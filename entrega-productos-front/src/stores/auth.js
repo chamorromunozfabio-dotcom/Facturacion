@@ -1,0 +1,75 @@
+import { computed, ref } from 'vue'
+import { defineStore } from 'pinia'
+import api, { getErrorMessage } from '../api/axios'
+import { mockUser, wait } from '../api/mocks'
+
+const TOKEN_KEY = 'token'
+const USER_KEY = 'user'
+const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true'
+
+function readStoredUser() {
+  try {
+    return JSON.parse(localStorage.getItem(USER_KEY)) || null
+  } catch {
+    return null
+  }
+}
+
+function pickToken(data) {
+  return data?.access_token || data?.token || data?.data?.access_token || null
+}
+
+function pickUser(data) {
+  return data?.user || data?.usuario || data?.data?.user || null
+}
+
+export const useAuthStore = defineStore('auth', () => {
+  const token = ref(localStorage.getItem(TOKEN_KEY) || '')
+  const user = ref(readStoredUser())
+
+  const isAuthenticated = computed(() => Boolean(token.value))
+
+  // El backend puede enviar "rol": "admin" o "rol": { id, nombre }
+  const role = computed(() => {
+    const raw = user.value?.rol ?? user.value?.role
+    if (!raw) return ''
+    return typeof raw === 'string' ? raw : raw.nombre ?? raw.name ?? ''
+  })
+
+  const userName = computed(
+    () => user.value?.nombre ?? user.value?.name ?? user.value?.correo ?? user.value?.usuario ?? '',
+  )
+
+  function saveSession(newToken, newUser) {
+    token.value = newToken
+    user.value = newUser
+    localStorage.setItem(TOKEN_KEY, newToken)
+    localStorage.setItem(USER_KEY, JSON.stringify(newUser))
+  }
+
+  async function login(credentials) {
+    if (USE_MOCKS) {
+      await wait(300)
+      saveSession('token-demo', mockUser)
+      return mockUser
+    }
+
+    const { data } = await api.post('/login', credentials)
+    const newToken = pickToken(data)
+    if (!newToken) throw new Error('El backend no devolvió un token')
+
+    saveSession(newToken, pickUser(data) || { nombre: credentials.correo, correo: credentials.correo, rol: '' })
+    return user.value
+  }
+
+  function logout() {
+    token.value = ''
+    user.value = null
+    localStorage.removeItem(TOKEN_KEY)
+    localStorage.removeItem(USER_KEY)
+  }
+
+  return { token, user, isAuthenticated, role, userName, login, logout, saveSession }
+})
+
+export { getErrorMessage }

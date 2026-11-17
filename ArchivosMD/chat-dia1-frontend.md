@@ -1,0 +1,259 @@
+# Registro del chat — Proyecto "Entrega de Productos" (Frontend, Día 1)
+
+**Fecha:** 17-11-2026
+**Ubicación del proyecto:** `C:\Users\SOPORTE03\Pictures\Proyecto`
+**Stack acordado:** Vue 3 + Vue Router + Pinia + Axios (frontend) / FastAPI + SQLAlchemy + MySQL (backend)
+**Entrega:** lunes 23-11-2026
+
+---
+
+## Mensaje 1 — Usuario
+
+> Somos 2 novatos y nos dieron ese proyecto para probar nuestras habilidades, yo soy frontend y mi compañero backend, vamos a usar vue para frontend y fastapi para backend, ayudanos desde 0 que debemos preguntarle a nuestro lider de proyecto y que informacion nos debe proporcionar para nosotros empezar a desarrollarlo
+>
+> Las tablas y bd nos las proporciona el, pero no sabemos como preguntar nada somos nuevos y es nuestro primer proyecto real, tenemos 5 dias y empezamos ya, asi que ayudame para saber que tengo que hacer y dame un paso a paso de que debo preguntar
+>
+> Voy a empezar a desarrollar este proyecto, dentro de la carpeta indicaiones encuentras todo lo que debes saber de este mismo si tienes alguna duda me preguntas, yo soy el dev frontend, asi que vamos con esta parte, estamos en el dia 1 asi que guiame paso a paso para hacer todo lo del dia 1 RECUERDA QUE YO SOLO SOY FRONTEND te doy informacion de backend para que no haya confusiones y todo marche bien al conectar mi parte de front con el backend de mi compañero
+
+---
+
+## Acciones previas del asistente
+
+1. Leyó `indicaciones/frontend-entrega-productos.md` e `indicaciones/backend-entrega-productos.md`.
+2. Verificó el entorno: **Node v26.13.0** y **npm 12.2.2**.
+3. Creó el proyecto `entrega-productos-front` con `create-vue@latest --router --pinia --bare`.
+4. Instaló dependencias y Axios.
+5. Creó la estructura del Día 1 (API, mocks, store, router, layout, vistas, README y documento de preguntas).
+6. Verificó `npm run build` (correcto) y el servidor de desarrollo en `http://127.0.0.1:5173` (HTTP 200).
+
+---
+
+## Mensaje 2 — Asistente (respuesta completa del Día 1)
+
+¡Listo! Ya dejé el **Día 1 completo y compilando** en:
+
+```
+C:\Users\SOPORTE03\Pictures\Proyecto\entrega-productos-front
+```
+
+El servidor de desarrollo está corriendo en **http://127.0.0.1:5173**. Si lo cierras, lo vuelves a levantar con `npm run dev`.
+
+### PASO 0 — Lo que le preguntas al líder HOY (antes de seguir)
+
+Creé el archivo **`PREGUNTAS_PARA_LIDER.md`** en la carpeta `ArchivosMD` con el listado completo y un mensaje listo para copiar y pegar. Las **7 preguntas bloqueantes** son:
+
+1. Nombre exacto de la BD y dónde está el `.sql` para importar en Laragon.
+2. Campos de las 4 tablas (`tipos`, `bodegas`, `usuarios`, `permisos`): nombre, tipo, obligatorio y relaciones.
+3. ¿Endpoints son `/tipos` o `/api/v1/tipos`?
+4. `POST /login`: ¿`usuario`/`contraseña` o `username`/`password`?
+5. ¿El token viene como `access_token` o `token`, y dónde van los datos del usuario?
+6. Valores literales de los roles y qué ve cada uno.
+7. Confirmar `{ data, total, page, limit }`, `{ detail }` y el nombre del parámetro de búsqueda (`q`, `search`...).
+
+> **No te frenes por esto:** hoy trabajamos con mocks. Las respuestas llegan para el Día 2/3.
+
+### PASO 1 — Entorno y proyecto creado
+
+- Node v26.13.0 y npm 12.2.2 disponibles.
+- Proyecto generado con `create-vue`: **Vue 3 + Router + Pinia + Axios**, sin TypeScript (más fácil para empezar).
+- Instalado con `npm install` y `npm install axios`.
+- Verificado: `npm run build` termina correctamente.
+
+### PASO 2 — Variables de entorno y mocks
+
+Archivos:
+- `entrega-productos-front/.env`
+- `entrega-productos-front/.env.example`
+
+```env
+VITE_API_URL=http://localhost:8000
+VITE_USE_MOCKS=true
+```
+
+Con `VITE_USE_MOCKS=true` respondo yo con datos falsos; cuando tu compañero publique la API, cambias a `false` y reinicias. Está en `src/api/mocks.js`.
+
+### PASO 3 — Axios listo para conectar con FastAPI
+
+Archivo: `src/api/axios.js`
+
+- `baseURL` = `VITE_API_URL`.
+- Interceptor que agrega `Authorization: Bearer <token>` a **todas** las peticiones.
+- Si el backend responde **401**, borra la sesión y manda al login.
+- Helper `getErrorMessage()` para mostrar el `detail` que devuelva el backend.
+
+Archivos de módulos: `src/api/tipos.js`, `bodegas.js`, `usuarios.js`, `permisos.js` (CRUD completo: `list`, `get`, `create`, `update`, `remove`).
+
+### PASO 4 — Sesión (Pinia)
+
+Archivo: `src/stores/auth.js`
+
+- Guarda `token` y `user` en `localStorage`.
+- `login()`, `logout()`, `isAuthenticated`, `role`, `userName`.
+- En modo mock entra con cualquier usuario/contraseña.
+
+### PASO 5 — Rutas y guardas
+
+Archivo: `src/router/index.js`
+
+- `/login` pública.
+- `/`, `/tipos`, `/bodegas`, `/usuarios`, `/permisos`, `/ordenes`, `/factura` protegidas.
+- Sin token → redirige a `/login?redirect=...`.
+- `meta.roles` para validar por rol (valores **provisionales**, marcados con `TODO`).
+- Ruta 404.
+
+### PASO 6 — Layout responsive
+
+Archivos:
+- `src/layouts/MainLayout.vue` → menú lateral + barra superior con usuario y "Cerrar sesión".
+- `src/config/navigation.js` → menú en un solo lugar; se filtra según el rol.
+- En móvil el menú pasa a una fila horizontal con scroll.
+
+### PASO 7 — Vistas base
+
+- `src/views/LoginView.vue` → formulario funcionando ya (modo demo).
+- `src/views/DashboardView.vue` → inicio con accesos a los módulos.
+- `Tipos`, `Bodegas`, `Usuarios`, `Permisos`, `Órdenes`, `Factura` → placeholders con el día en que se construyen y lo que falta confirmar.
+- `src/components/PagePlaceholder.vue` → componente reutilizable de esos placeholders.
+
+### PASO 8 — Lo que DEBES HACER TÚ hoy (tu checklist)
+
+1. **Envía el mensaje** de `PREGUNTAS_PARA_LIDER.md` a tu líder.
+2. **Abre** `http://127.0.0.1:5173` → te debe mandar a `/login`.
+3. **Entra** con cualquier usuario y contraseña (demo) → cae al inicio.
+4. **Navega** por todos los módulos y prueba "Cerrar sesión".
+5. **Prueba la guarda**: en DevTools → Application → Local Storage → borra `token` y recarga; debe volver al login.
+6. **Prueba el responsive**: achica la ventana a menos de 768 px.
+7. **Escríbele a tu compañero backend** confirmando: contrato `{ data, total, page, limit }`, error `{ detail }`, puerto `8000` y **CORS para `http://localhost:5173`**.
+8. **Cuando tengas las respuestas del líder, pásamelas** y seguimos con el Día 2 (login real contra FastAPI).
+
+### Reglas de oro para que front y back no choquen
+
+- Tú **no** te conectas a MySQL ni calculas totales ni firmas: solo pintas lo que te da la API.
+- El backend manda **401** (sin sesión) y **403** (sin permiso); tú solo muestras el mensaje.
+- Si una respuesta no coincide con el contrato, mándale el **JSON exacto y el código HTTP** a tu compañero.
+- Nada de "adivinar" campos: hasta que el líder confirme, todo está como `TODO` en el código.
+
+### Lo que viene
+
+**Día 2:** cambiar el login demo por `POST /login` real, guardar el JWT que devuelva tu compañero y afinar las guardas con los roles reales.
+
+Cuando me traigas las respuestas del líder (o cuando el backend ya tenga `/docs` arriba), continuamos con ese paso. 🚀
+
+---
+
+## Mensaje 3 — Usuario
+
+> Guardame el contenido de este chat en un .m y guardalo en la carpeta ArchivosMD
+
+---
+
+## Archivos generados durante la sesión
+
+```
+Proyecto/
+├── indicaciones/
+│   ├── backend-entrega-productos.md
+│   └── frontend-entrega-productos.md
+├── ArchivosMD/
+│   ├── PREGUNTAS_PARA_LIDER.md
+│   ├── chat-dia1-frontend.md
+│   ├── chat-dia1-frontend.m
+│   └── respuesta-al-backend.md
+└── entrega-productos-front/
+    ├── .env
+    ├── .env.example
+    ├── README.md
+    ├── package.json
+    ├── test/
+    │   ├── README.md
+    │   ├── getErrorMessage.test.js
+    │   ├── auth-store.test.js
+    │   ├── axios-interceptors.test.js
+    │   ├── router-guards.test.js
+    │   ├── mocks-crud.test.js
+    │   ├── page-placeholder.test.js
+    │   ├── login-view.test.js
+    │   └── main-layout.test.js
+    └── src/
+        ├── api/{axios.js, crud.js, mocks.js, tipos.js, bodegas.js, usuarios.js,
+        │         permisos.js, roles.js}
+        ├── assets/main.css
+        ├── components/PagePlaceholder.vue
+        ├── config/navigation.js
+        ├── layouts/MainLayout.vue
+        ├── router/index.js
+        ├── stores/auth.js
+        └── views/{LoginView, DashboardView, TiposView, BodegasView, UsuariosView,
+                   PermisosView, RolesView, OrdenesView, FacturaView,
+                   NotFoundView}.vue
+```
+
+---
+
+## Mensajes posteriores (logo, tests y respuesta del backend)
+
+### Logo
+
+- El usuario pidió poner como logo el archivo `public/logo.png` (2048×2048).
+- Se integró en `MainLayout.vue` (40×40), `LoginView.vue` (72×72) y como favicon en `index.html`.
+- También se cambió el título de la pestaña a **"Entrega de Productos"** y `lang="es"`.
+
+### Suite de tests unitarios (Vitest)
+
+- El usuario aclaró que quería **tests unitarios con Vitest**, no pruebas manuales.
+- Se eliminaron los archivos manuales y se instalaron `vitest`, `jsdom` y `@vue/test-utils`.
+- Se configuró `vite.config.js` y los scripts `npm test` / `npm run test:watch`.
+- Se crearon los 8 tests, uno por vez, ejecutándolos el usuario y reportando `Pasa`:
+
+| # | Test | Archivo |
+|---|------|---------|
+| 1 | `getErrorMessage` | `getErrorMessage.test.js` |
+| 2 | Store de autenticación | `auth-store.test.js` |
+| 3 | Interceptores de Axios | `axios-interceptors.test.js` |
+| 4 | Guardas del router | `router-guards.test.js` |
+| 5 | CRUD con mocks | `mocks-crud.test.js` |
+| 6 | `PagePlaceholder` | `page-placeholder.test.js` |
+| 7 | `LoginView` | `login-view.test.js` |
+| 8 | `MainLayout` | `main-layout.test.js` |
+
+Resultado final: **8 archivos, 32 aserciones ✅**.
+
+### Mensaje 4 — Usuario (respuesta del backend)
+
+> Listo. Mi compañero del backend me respondió lo siguiente:
+>
+> 1) Base de datos: nombre `entrega_productos` (MySQL, Laragon). No hay script `.sql`: la BD se crea vacía y las tablas las genera el backend al arrancar.
+> 2) Campos: `tipos` (id, nombre); `bodegas` (id, nombre, direccion opcional; pueden cambiar cuando el líder defina "quién recibe"); `permisos` (id, nombre, descripcion); tabla nueva `roles` (id, nombre, descripcion, relación muchos a muchos con permisos vía `rol_permiso`); `usuarios` (id, nombre, correo, contrasena solo envío, rol_id FK a roles). Sin fechas ni booleanos.
+> 3) Rutas sin prefijo: `/tipos`, `/bodegas`, `/usuarios`, `/permisos` y además `/roles` para el selector de rol. Patrón CRUD completo. Login el Día 2, Tipos/Bodegas el Día 3, Usuarios/Permisos el Día 4.
+>
+> Me pidió decidir: login (correo + contrasena y forma de la respuesta), roles (admin, bodeguero, cliente como suposición), campos de "quién recibe" en Bodegas, y unificar errores 422 como `{ detail }`.
+
+### Mensaje 5 — Asistente (decisiones y cambios aplicados)
+
+**Decisiones:**
+
+1. **Login:** `POST /login` con `{ "correo": "...", "contrasena": "..." }`. Respuesta `{ "access_token": "<jwt>", "user": { "id", "nombre", "correo", "rol": "admin" } }`. Pedir `rol` como string; el store también acepta `{ id, nombre }`. Error 401 con `{ detail }`.
+2. **Roles provisionales:** `admin`, `bodeguero`, `cliente`. Matriz: admin = todo; bodeguero = Inicio, Tipos, Bodegas, Órdenes, Factura; cliente = Inicio, Órdenes, Factura. Pendiente de confirmar por el líder.
+3. **Bodegas:** mantener `nombre` + `direccion` opcional y preguntar al líder por "quién recibe".
+4. **Errores 422:** unificar todos como `{ "detail": "texto legible" }`.
+
+**Cambios en el código:**
+
+- `src/views/LoginView.vue`: campos `correo` / `contrasena` (input `type="email"`).
+- `src/stores/auth.js`: `userName` usa `correo`; `role` acepta string u objeto `{ id, nombre }`.
+- `src/api/mocks.js`: campos reales + roles provisionales + filas de `roles`.
+- `src/config/navigation.js` y `src/router/index.js`: nuevos roles y ruta `/roles`.
+- `src/api/roles.js` y `src/views/RolesView.vue`: módulo nuevo.
+- Tests actualizados y ampliados: **32 aserciones ✅**.
+- `npm run build` también pasa ✅.
+
+**Archivos de apoyo creados/actualizados:**
+
+- `ArchivosMD/respuesta-al-backend.md` → mensaje para el compañero backend.
+- `ArchivosMD/PREGUNTAS_PARA_LIDER.md` → estado de lo resuelto y lo pendiente con el líder.
+
+**Mensaje para el backend (resumen):**
+
+> Confirmado: login con `correo` + `contrasena`, respuesta `{ access_token, user: {... rol: "admin" } }`, roles provisionales `admin/bodeguero/cliente`, y todos los errores (incluido 422) como `{ detail }`. Ya lo apliqué en el front. Agregué también `/roles`. Avisame cuando publiques `/login` para probar con `VITE_USE_MOCKS=false`.
+
+**Próximo paso:** cuando el backend publique `POST /login`, cambiar `VITE_USE_MOCKS=false` en `.env`, reiniciar `npm run dev` y probar con un correo real de la BD.
