@@ -159,6 +159,14 @@ const rowsByResource = {
       recibe_telefono: null,
     },
   ],
+  facturasClientes: [
+    {
+      id: clienteJuan.id,
+      nombre: clienteJuan.nombre,
+      tipo_documento: clienteJuan.tipo_documento,
+      numero_documento: clienteJuan.numero_documento,
+    },
+  ],
   usuarios: [
     { id: 1, nombre: 'Ana Pérez', correo: 'ana@entrega.com', rol: 'admin', rol_id: 1 },
     { id: 2, nombre: 'Luis Gómez', correo: 'luis@entrega.com', rol: 'bodeguero', rol_id: 2 },

@@ -89,7 +89,8 @@ src/
 
 ## Contrato acordado con backend
 
-> El contrato original está en `ArchivosMD/CONTRATO_FACTURAS.md`. Los cambios definitivos del backend están en `ArchivosMD/CAMBIOS_PARA_FRONTEND.md` (estados `emitida/firmada/recibida`, número `FE-0001` y campos `recibe_*`) y ya están aplicados en este frontend.
+> El contrato original está en `ArchivosMD/CONTRATO_FACTURAS.md`. Los cambios definitivos del backend están en `ArchivosMD/CAMBIOS_PARA_FRONTEND.md` y `ArchivosMD/CAMBIOS_PARA_FRONTENDv2.md` (estados `emitida/firmada/recibida`, número `FE-0001`, campos `recibe_*`, bodegas con dueño y `/facturas/clientes`) y ya están aplicados en este frontend.
+> Ojo: `ArchivosMD/CONTRATO_FACTURASv2.md` todavía trae valores viejos (`creada`, `aceptada`, `cerrada`, `FAC-000001`, `responsable_nombre`); no usar ese archivo como referencia.
 
 - **Login:** `POST /login` con JSON `{ "correo": "admin@entrega.com", "contrasena": "Admin123*" }` (no form-data).
 - **Respuesta login:** `{ "access_token": "<jwt>", "token_type": "bearer", "user": { "id": 1, "nombre": "Administrador", "correo": "admin@entrega.com", "rol": "admin" } }`.
@@ -147,12 +148,12 @@ Definidos por el líder en `CONTRATO_FACTURAS.MD`. Se cambian en un solo lugar: 
 | Módulo | admin | bodeguero | cliente |
 |---|---|---|---|
 | Tipos (productos) | CRUD | **CRUD** (es su catálogo) | — |
-| Bodegas | CRUD | Solo ver | — |
-| Usuarios | CRUD | Solo ver (el backend filtra `rol=cliente`) | — |
+| Bodegas | CRUD de todas; asigna dueño con `bodeguero_id` | CRUD **solo de las suyas** (el backend filtra) | — |
+| Usuarios | CRUD | **Sin acceso** (ni menú, ni ruta; API da 403) | — |
 | Roles, Permisos | CRUD | — | — |
-| Facturas | Crear, editar, borrar, entregar, recibir, ver PDF | Igual que admin, **solo las de su bodega** | Ver las suyas, aceptar con firma y rechazar |
+| Facturas | Todo | Crear solo desde sus bodegas, editar, borrar, entregar, recibir y ver PDF | Ver las suyas, aceptar con firma y rechazar |
 
-Nota: el backend hoy bloquea `DELETE /tipos/{id}` al bodeguero con `403` y todavía no filtra `GET /facturas` por bodega. Ambos puntos están solicitados en `ArchivosMD/MENSAJE_PARA_BACKEND.md`. Cuando `/me` devuelva `bodega_id`, el front lo envía como parámetro en el listado de facturas.
+El selector de clientes de Facturas ya no usa `/usuarios`: viene de `GET /facturas/clientes` (admin y bodeguero). El bodeguero tampoco ve el campo `bodeguero_id` en Bodegas: al crear, el backend lo pone como dueño automáticamente.
 
 `Órdenes` se quitó del menú: **la orden es la factura**, un solo módulo en `/facturas`. Las rutas viejas `/ordenes` y `/factura` redirigen ahí.
 
@@ -171,7 +172,7 @@ Nota: el backend hoy bloquea `DELETE /tipos/{id}` al bodeguero con `403` y todav
 ## Campos confirmados por backend
 
 - `tipos`: `id`, `nombre` (obligatorio, único)
-- `bodegas`: 8 campos detallados arriba (solo `nombre` obligatorio)
+- `bodegas`: 11 campos detallados arriba + `bodeguero_id` / `bodeguero_nombre` (solo `nombre` obligatorio)
 - `permisos`: `id`, `nombre`, `descripcion`
 - `roles`: `id`, `nombre`, `descripcion` (relación muchos a muchos con permisos)
 - `usuarios`: `id`, `nombre`, `correo`, `contrasena` (solo envío), `rol_id` + campos de cliente
@@ -198,7 +199,7 @@ Nota: el backend hoy bloquea `DELETE /tipos/{id}` al bodeguero con `403` y todav
 - [x] Mensaje claro para nombre repetido (400/409) y `PUT` parcial
 - [x] Roles y permisos definitivos del líder (matriz en `permissions.js`)
 - [x] Menú sin "Órdenes": un solo módulo **Facturas**
-- [x] Botones por rol: `bodeguero` gestiona Tipos, solo lee Bodegas/Usuarios y ve facturas de su bodega
+- [x] Botones por rol: `bodeguero` gestiona Tipos y sus Bodegas, y no tiene acceso a Usuarios
 - [x] Bodegas con 8 campos, columnas y validaciones confirmadas
 - [x] Usuarios con campos condicionales de cliente y filtro `?rol=`
 - [x] `SignaturePad` con firma PNG y límite de 500 KB
@@ -207,9 +208,6 @@ Nota: el backend hoy bloquea `DELETE /tipos/{id}` al bodeguero con `403` y todav
 
 ## Pendiente del backend / líder
 
-- [ ] Permitir `DELETE /tipos/{id}` al bodeguero (hoy da `403`).
-- [ ] Filtrar `GET /facturas` por la bodega del token cuando el rol sea bodeguero.
-- [ ] Incluir `bodega_id` en `GET /me`.
 - [ ] Definir el diseño visual (¿hay Figma/paleta?) si el líder lo tiene.
 
-El resto de endpoints y traducciones de errores ya están publicados y verificados. Detalle en `ArchivosMD/INTEGRACION_BACKEND.md`.
+Ya resuelto por el backend: `DELETE /tipos` para bodeguero, `/facturas/clientes`, bodegas con dueño y `403` en `/usuarios`. Según `CAMBIOS_PARA_FRONTENDv2.md`, el bodeguero **ve todas** las facturas (solo puede crear desde las suyas), así que el filtro `bodega_id` que enviamos es un refuerzo opcional que hoy se ignora. Detalle en `ArchivosMD/INTEGRACION_BACKEND.md`.

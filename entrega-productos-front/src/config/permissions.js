@@ -17,8 +17,9 @@ const RULES = {
   bodeguero: {
     // Los Tipos son los productos de su bodega: los gestiona completos.
     tipos: ['view', 'create', 'edit', 'delete'],
-    bodegas: ['view'],
-    usuarios: ['view'], // el backend fuerza ?rol=cliente
+    // El backend solo le permite ver, crear, editar y borrar SUS bodegas.
+    bodegas: ['view', 'create', 'edit', 'delete'],
+    // Sin clave 'usuarios': /usuarios es solo del admin (backend responde 403).
     facturas: ['view', 'create', 'edit', 'delete', 'entregar', 'recibir', 'pdf'],
   },
   cliente: {

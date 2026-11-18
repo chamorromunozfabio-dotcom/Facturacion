@@ -1,6 +1,6 @@
 import api from './axios'
 import { createCrudResource } from './crud'
-import { mockFacturaAction, wait } from './mocks'
+import { mockFacturaAction, mockList, wait } from './mocks'
 import { resolveApiModes } from '../config/apiModes'
 
 const USE_MOCKS = resolveApiModes().facturasMocks
@@ -13,6 +13,12 @@ export function postAccion(id, path, body) {
 
 export function getFacturaPdf(id) {
   return api.get(`/facturas/${id}/pdf`, { responseType: 'blob' })
+}
+
+/** Clientes activos para el selector de facturas (admin y bodeguero). */
+export function listClientes(params = {}) {
+  if (USE_MOCKS) return mockList('facturasClientes', params)
+  return api.get('/facturas/clientes', { params }).then((response) => response.data)
 }
 
 /** Valida la firma igual que el backend: prefijo, base64 y tamaño. */
@@ -68,6 +74,8 @@ async function accion(id, path, body) {
 
 export const facturasApi = {
   ...createCrudResource('facturas', { mocks: USE_MOCKS }),
+
+  listClientes,
 
   entregar(id) {
     return accion(id, 'entregar')

@@ -19,7 +19,6 @@ import SignaturePad from '../components/SignaturePad.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 import { useModalA11y } from '../composables/useModalA11y'
 import facturasApi, { validateFirma } from '../api/facturas'
-import usuariosApi from '../api/usuarios'
 import bodegasApi from '../api/bodegas'
 import tiposApi from '../api/tipos'
 import { getErrorMessage } from '../api/axios'
@@ -228,13 +227,14 @@ async function descargar(row) {
 }
 
 async function loadCatalogos() {
-  const [usuarios, bodegas, tipos] = await Promise.all([
-    usuariosApi.list({ rol: 'cliente', page: 1, limit: 100 }),
+  // /usuarios ya no está permitido para el bodeguero: el backend ofrece /facturas/clientes.
+  const [clientes, bodegas, tipos] = await Promise.all([
+    facturasApi.listClientes({ page: 1, limit: 100 }),
     bodegasApi.list({ page: 1, limit: 100 }),
     tiposApi.list({ page: 1, limit: 100 }),
   ])
   catalogos.value = {
-    clientes: usuarios.data ?? [],
+    clientes: clientes.data ?? [],
     bodegas: bodegas.data ?? [],
     tipos: tipos.data ?? [],
   }

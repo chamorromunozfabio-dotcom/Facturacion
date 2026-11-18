@@ -9,7 +9,7 @@ const modules = computed(() => visibleMenuFor(auth.role).filter((item) => item.t
 /** Cada rol ve un panel distinto: solo sus módulos y un mensaje acorde. */
 const roleMessages = {
   admin: 'Gestionas todos los módulos y el ciclo completo de las facturas.',
-  bodeguero: 'Gestionas Tipos, Bodegas, Usuarios cliente y el ciclo de las facturas.',
+  bodeguero: 'Gestionas Tipos, tus bodegas y el ciclo de las facturas.',
   cliente: 'Consulta tus facturas, acéptalas o recházalas y descarga el PDF.',
 }
 const roleMessage = computed(() => roleMessages[auth.role] || 'Bienvenido al sistema.')

@@ -5,6 +5,7 @@ import ConfirmDelete from '../components/ConfirmDelete.vue'
 import DataTable from '../components/DataTable.vue'
 import FormModal from '../components/FormModal.vue'
 import bodegasApi from '../api/bodegas'
+import usuariosApi from '../api/usuarios'
 import { getErrorMessage, isDuplicateError } from '../api/axios'
 import { useAuthStore } from '../stores/auth'
 import { hasPermission } from '../config/permissions'
@@ -13,14 +14,17 @@ const auth = useAuthStore()
 const canCreate = computed(() => hasPermission(auth.role, 'bodegas', 'create'))
 const canEdit = computed(() => hasPermission(auth.role, 'bodegas', 'edit'))
 const canDelete = computed(() => hasPermission(auth.role, 'bodegas', 'delete'))
+const esAdmin = computed(() => auth.role === 'admin')
+const bodegueroOptions = ref([])
 
-// Columnas sugeridas por el líder; el backend devuelve todos los campos.
-const columns = [
+// El admin ve el dueño; el bodeguero solo gestiona las suyas (el backend filtra).
+const columns = computed(() => [
   { key: 'nombre', label: 'Nombre' },
+  ...(esAdmin.value ? [{ key: 'bodeguero_nombre', label: 'Bodeguero' }] : []),
   { key: 'ciudad', label: 'Ciudad' },
   { key: 'recibe_nombre', label: 'Responsable' },
   { key: 'telefono', label: 'Teléfono' },
-]
+])
 
 const phonePattern = /^[0-9+\- ]{7,20}$/
 const phoneMessage = 'Usa entre 7 y 20 caracteres: dígitos, espacios, + o -.'
@@ -44,9 +48,29 @@ const fields = [
   },
 ]
 
-const emptyForm = () => Object.fromEntries(fields.map((field) => [field.key, '']))
+// Solo el admin puede asignar/cambiar el dueño; al crear, el backend se lo asigna al bodeguero.
+const formFields = computed(() =>
+  esAdmin.value
+    ? [
+        ...fields,
+        {
+          key: 'bodeguero_id',
+          label: 'Bodeguero dueño',
+          type: 'select',
+          options: [{ value: '', label: 'Sin asignar' }, ...bodegueroOptions.value],
+        },
+      ]
+    : fields,
+)
+
+const emptyForm = () => Object.fromEntries(formFields.value.map((field) => [field.key, '']))
 const formFromRow = (row) =>
-  Object.fromEntries(fields.map((field) => [field.key, row[field.key] ?? '']))
+  Object.fromEntries(
+    formFields.value.map((field) => [
+      field.key,
+      field.key === 'bodeguero_id' ? String(row[field.key] ?? '') : row[field.key] ?? '',
+    ]),
+  )
 
 const rows = ref([])
 const total = ref(0)
@@ -90,6 +114,19 @@ async function load() {
   }
 }
 
+async function loadBodegueros() {
+  if (!esAdmin.value) return
+  try {
+    const result = await usuariosApi.list({ rol: 'bodeguero', page: 1, limit: 100 })
+    bodegueroOptions.value = (result.data ?? []).map((user) => ({
+      value: user.id,
+      label: user.nombre,
+    }))
+  } catch {
+    bodegueroOptions.value = []
+  }
+}
+
 function openCreate() {
   editing.value = null
   form.value = emptyForm()
@@ -112,7 +149,12 @@ function cleanPayload(payload) {
 // El PUT acepta campos parciales: enviamos solo lo que cambió.
 function changedFields(payload) {
   return Object.fromEntries(
-    Object.entries(payload).filter(([key, value]) => value !== editing.value?.[key]),
+    Object.entries(payload).filter(([key, value]) => {
+      if (key === 'bodeguero_id') {
+        return String(value ?? '') !== String(editing.value?.[key] ?? '')
+      }
+      return value !== editing.value?.[key]
+    }),
   )
 }
 
@@ -124,6 +166,12 @@ function errorMessage(error, fallback) {
 async function save(payload) {
   saving.value = true
   const clean = cleanPayload(payload)
+  if (esAdmin.value && payload.bodeguero_id) {
+    clean.bodeguero_id = Number(payload.bodeguero_id)
+  } else if (esAdmin.value && editing.value?.bodeguero_id != null) {
+    // Al dejar "Sin asignar" en una edición, quitamos el dueño actual.
+    clean.bodeguero_id = null
+  }
   try {
     if (editing.value) {
       const changes = changedFields(clean)
@@ -170,7 +218,10 @@ async function confirmDelete() {
   }
 }
 
-onMounted(load)
+onMounted(() => {
+  load()
+  loadBodegueros()
+})
 </script>
 
 <template>
@@ -184,7 +235,11 @@ onMounted(load)
     </header>
 
     <p class="notice">
-      Los datos de quién recibe el producto se confirmarán con el líder.
+      {{
+        esAdmin
+          ? 'Puedes asignar el bodeguero dueño de cada bodega.'
+          : 'Solo ves y gestionas las bodegas que te pertenecen.'
+      }}
     </p>
 
     <Transition name="alert">
@@ -218,7 +273,7 @@ onMounted(load)
     <FormModal
       :open="modalOpen"
       :title="editing ? 'Editar bodega' : 'Nueva bodega'"
-      :fields="fields"
+      :fields="formFields"
       :model-value="form"
       :submit-label="editing ? 'Guardar cambios' : 'Crear bodega'"
       :loading="saving"

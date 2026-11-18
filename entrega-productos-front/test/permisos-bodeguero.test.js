@@ -49,11 +49,12 @@ describe('Test 34 — Permisos reales del bodeguero', () => {
     facturas.list.mockResolvedValue({ data: [], total: 0, page: 1, limit: 10 })
   })
 
-  it('el bodeguero gestiona Tipos (sus productos) pero no Bodegas ni Usuarios', () => {
+  it('el bodeguero gestiona Tipos y sus Bodegas, pero no Usuarios', () => {
     for (const action of ['view', 'create', 'edit', 'delete']) {
       expect(hasPermission('bodeguero', 'tipos', action)).toBe(true)
+      expect(hasPermission('bodeguero', 'bodegas', action)).toBe(true)
     }
-    expect(hasPermission('bodeguero', 'bodegas', 'edit')).toBe(false)
+    expect(hasPermission('bodeguero', 'usuarios', 'view')).toBe(false)
     expect(hasPermission('bodeguero', 'usuarios', 'create')).toBe(false)
     expect(hasPermission('bodeguero', 'roles', 'view')).toBe(false)
     expect(hasPermission('bodeguero', 'permisos', 'view')).toBe(false)

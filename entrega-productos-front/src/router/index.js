@@ -33,7 +33,7 @@ const router = createRouter({
           path: 'usuarios',
           name: 'usuarios',
           component: () => import('../views/UsuariosView.vue'),
-          meta: { roles: ['admin', 'bodeguero'] },
+          meta: { roles: ['admin'] },
         },
         {
           path: 'permisos',

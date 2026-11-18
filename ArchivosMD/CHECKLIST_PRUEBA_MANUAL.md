@@ -35,7 +35,7 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 | Rol | Módulos que debe ver |
 |---|---|
 | admin | Inicio, Tipos, Bodegas, Usuarios, Permisos, Roles, Facturas (7) |
-| bodeguero | Inicio, Tipos, Bodegas, Usuarios, Facturas (5) |
+| bodeguero | Inicio, Tipos, Bodegas, Facturas (4) |
 | cliente | Inicio, Facturas (2) |
 
 - [ ] No aparece “Órdenes” en ningún rol.
@@ -51,7 +51,7 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 - [ ] Buscar `ali` → encuentra “Alimentos” (parcial y sin mayúsculas).
 - [ ] Editar el nombre → alerta “Tipo actualizado.”
 - [ ] Eliminar → pide confirmación; `Cancelar` no borra, `Eliminar` sí.
-- [ ] Como **bodeguero**: ve el listado pero NO ve Crear/Editar/Eliminar.
+- [ ] Como **bodeguero**: ve el listado y SÍ ve Crear/Editar/Eliminar (son sus productos).
 
 ## 4. Bodegas y Usuarios
 
@@ -61,7 +61,9 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 - [ ] Admin: crear usuario con `rol_id` 1/2/3.
 - [ ] Al elegir **cliente** aparecen tipo/número de documento, teléfono, dirección y ciudad (todos opcionales; `PA` disponible).
 - [ ] Al elegir admin o bodeguero esos campos NO aparecen.
-- [ ] Bodeguero: gestiona Tipos (Crear/Editar/Eliminar), solo ve Bodegas y en Usuarios solo ve clientes.
+- [ ] Bodeguero: Crear/Editar/Eliminar en Tipos y en sus Bodegas; **no ve el menú Usuarios**.
+- [ ] Admin: en Bodegas aparece el selector “Bodeguero dueño” y puede asignarlo.
+- [ ] Al crear una bodega como bodeguero, no aparece el selector de dueño (el backend lo asigna).
 
 ## 5. Facturas
 
@@ -109,11 +111,11 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 - [ ] Tipos: crear “Alimentos”, buscar `ali`, editar y eliminar contra la API.
 - [ ] Bodegas: crear con `codigo`, `departamento`, `correo` y `recibe_*` (ya no `responsable_*`).
 - [ ] Usuarios: crear cliente con datos opcionales (incluye `PA` y `ciudad`).
-- [ ] Como bodeguero: Crear/Editar/Eliminar en Tipos; Bodegas solo lectura; Usuarios solo clientes; facturas solo de su bodega.
+- [ ] Como bodeguero: Crear/Editar/Eliminar en Tipos y en sus bodegas; `/usuarios` da 403; el selector de clientes sale de `/facturas/clientes`.
 - [ ] Facturas: crear `FE-0001` en `emitida`, entregar, aceptar con firma → `firmada`, recibir → `recibida` y descargar `FE-0001.pdf`.
 - [ ] **No tocar CORS del backend**: seguimos llamando a `/api` (proxy de Vite).
 
 ---
 
-**Estado actual:** 34 archivos de test / 166 aserciones en verde + build correcto.
-**Rama:** pendiente de merge del Test 34.
+**Estado actual:** 35 archivos de test / 171 aserciones en verde + build correcto.
+**Rama:** pendiente de merge del Test 35.
