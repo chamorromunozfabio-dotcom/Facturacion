@@ -97,7 +97,8 @@ function handleSubmit() {
 </script>
 
 <template>
-  <div v-if="open" data-test="modal" class="modal">
+  <Transition name="modal">
+    <div v-if="open" data-test="modal" class="modal">
     <div class="modal__backdrop" @click="emit('close')"></div>
 
     <div class="modal__panel" role="dialog" aria-modal="true" :aria-label="title">
@@ -160,6 +161,7 @@ function handleSubmit() {
       </form>
     </div>
   </div>
+  </Transition>
 </template>
 
 <style scoped>

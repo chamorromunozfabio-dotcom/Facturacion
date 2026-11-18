@@ -15,7 +15,8 @@ const emit = defineEmits(['confirm', 'cancel'])
 </script>
 
 <template>
-  <div v-if="open" data-test="confirm-delete" class="confirm">
+  <Transition name="modal">
+    <div v-if="open" data-test="confirm-delete" class="confirm">
     <div class="confirm__backdrop" @click="emit('cancel')"></div>
 
     <div class="confirm__panel" role="alertdialog" aria-modal="true" :aria-label="title">
@@ -42,6 +43,7 @@ const emit = defineEmits(['confirm', 'cancel'])
       </footer>
     </div>
   </div>
+  </Transition>
 </template>
 
 <style scoped>

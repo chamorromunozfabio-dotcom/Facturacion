@@ -144,12 +144,14 @@ onMounted(load)
       <span class="badge">Día 3</span>
     </header>
 
-    <AlertMessage
-      v-if="alert"
-      :type="alert.type"
-      :message="alert.message"
-      @close="alert = null"
-    />
+    <Transition name="alert">
+      <AlertMessage
+        v-if="alert"
+        :type="alert.type"
+        :message="alert.message"
+        @close="alert = null"
+      />
+    </Transition>
 
     <DataTable
       :columns="columns"

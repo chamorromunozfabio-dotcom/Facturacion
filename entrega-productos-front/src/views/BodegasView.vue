@@ -184,12 +184,14 @@ onMounted(load)
       Pendiente con el líder: los campos de "quién recibe" el producto.
     </p>
 
-    <AlertMessage
-      v-if="alert"
-      :type="alert.type"
-      :message="alert.message"
-      @close="alert = null"
-    />
+    <Transition name="alert">
+      <AlertMessage
+        v-if="alert"
+        :type="alert.type"
+        :message="alert.message"
+        @close="alert = null"
+      />
+    </Transition>
 
     <DataTable
       :columns="columns"

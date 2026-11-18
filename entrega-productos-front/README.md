@@ -121,6 +121,7 @@ Definidos por el líder en `CONTRATO_FACTURAS.MD`. Se cambian en un solo lugar: 
 - Si el sistema pide “reducir movimiento”, las animaciones CSS se desactivan automáticamente (`prefers-reduced-motion`).
 - Los botones (`Nuevo`, `Editar`, `Eliminar`, `Ver`, `Entregar`, `Aceptar`, `Rechazar`, `Recibir`, `PDF` y paginación) también llevan iconos Lucide. Siguen emitiendo los mismos eventos y teniendo los mismos `data-test`.
 - Cada rol tiene un color de acento: admin violeta, bodeguero verde y cliente ámbar. Se define con una variable CSS `--accent` en `MainLayout.vue` (`data-role`) y la hereda el dashboard. En pantallas chicas el menú se vuelve horizontal y se muestra compacto.
+- Las alertas y todos los modales (generales y de facturas: detalle, firma y rechazo) entran y salen con `<Transition>`: `name="alert"` y `name="modal"`. Las clases CSS viven en `src/assets/main.css` y respetan `prefers-reduced-motion`.
 
 ## Campos confirmados por backend
 

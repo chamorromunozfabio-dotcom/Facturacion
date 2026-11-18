@@ -313,12 +313,14 @@ onMounted(load)
       <span class="badge">Día 5</span>
     </header>
 
-    <AlertMessage
-      v-if="alert"
-      :type="alert.type"
-      :message="alert.message"
-      @close="alert = null"
-    />
+    <Transition name="alert">
+      <AlertMessage
+        v-if="alert"
+        :type="alert.type"
+        :message="alert.message"
+        @close="alert = null"
+      />
+    </Transition>
 
     <label class="estado-filter">
       Estado
@@ -437,6 +439,7 @@ onMounted(load)
       @close="formOpen = false"
     />
 
+    <Transition name="modal">
     <div v-if="detailOpen" data-test="detail-modal" class="modal">
       <div class="modal__backdrop" @click="detailOpen = false"></div>
       <div class="modal__panel" role="dialog" aria-modal="true" aria-label="Detalle de factura">
@@ -450,7 +453,9 @@ onMounted(load)
         </div>
       </div>
     </div>
+    </Transition>
 
+    <Transition name="modal">
     <div v-if="firmaOpen" data-test="firma-modal" class="modal">
       <div class="modal__backdrop" @click="firmaOpen = false"></div>
       <div class="modal__panel modal__panel--small" role="dialog" aria-modal="true" aria-label="Aceptar con firma">
@@ -477,7 +482,9 @@ onMounted(load)
         </div>
       </div>
     </div>
+    </Transition>
 
+    <Transition name="modal">
     <div v-if="rechazoOpen" data-test="rechazo-modal" class="modal">
       <div class="modal__backdrop" @click="rechazoOpen = false"></div>
       <div class="modal__panel modal__panel--small" role="dialog" aria-modal="true" aria-label="Rechazar factura">
@@ -506,6 +513,7 @@ onMounted(load)
         </div>
       </div>
     </div>
+    </Transition>
 
     <ConfirmDelete
       :open="confirmOpen"

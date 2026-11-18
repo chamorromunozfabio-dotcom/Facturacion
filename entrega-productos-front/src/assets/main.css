@@ -22,3 +22,47 @@ select {
 a {
   color: inherit;
 }
+
+/* Transiciones compartidas: alertas y modales (Vue puro, sin librerías). */
+.alert-enter-active,
+.alert-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.alert-enter-from,
+.alert-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-active .modal__panel,
+.modal-leave-active .modal__panel {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.modal-enter-from .modal__panel,
+.modal-leave-to .modal__panel {
+  opacity: 0;
+  transform: translateY(12px) scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alert-enter-active,
+  .alert-leave-active,
+  .modal-enter-active,
+  .modal-leave-active,
+  .modal-enter-active .modal__panel,
+  .modal-leave-active .modal__panel {
+    transition: none;
+  }
+}
