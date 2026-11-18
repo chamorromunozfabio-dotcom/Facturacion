@@ -29,7 +29,7 @@ async function logout() {
 
       <nav class="menu" aria-label="Menú principal">
         <RouterLink v-for="item in visibleMenu" :key="item.to" :to="item.to" class="menu__item">
-          <span aria-hidden="true">{{ item.icon }}</span>
+          <component :is="item.icon" :size="18" aria-hidden="true" />
           <span>{{ item.label }}</span>
         </RouterLink>
       </nav>
@@ -45,7 +45,11 @@ async function logout() {
       </header>
 
       <main class="content">
-        <RouterView />
+        <RouterView v-slot="{ Component }">
+          <Transition name="fade" mode="out-in">
+            <component :is="Component" />
+          </Transition>
+        </RouterView>
       </main>
     </div>
   </div>
@@ -114,6 +118,26 @@ async function logout() {
 .menu__item.router-link-exact-active {
   background: #2563eb;
   color: #fff;
+}
+
+.menu__item svg {
+  flex-shrink: 0;
+}
+
+/* Transición suave al cambiar de vista (Vue puro, sin librerías extra). */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.fade-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
 }
 
 .main {

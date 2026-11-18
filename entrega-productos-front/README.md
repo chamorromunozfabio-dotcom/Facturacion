@@ -1,6 +1,6 @@
 # Entrega de Productos – Frontend
 
-Vue 3 + Vue Router + Pinia + Axios.
+Vue 3 + Vue Router + Pinia + Axios + `@lucide/vue` (iconos). Animaciones con Vue/CSS puro.
 
 ## Cómo ejecutar
 
@@ -111,6 +111,13 @@ Definidos por el líder en `CONTRATO_FACTURAS.MD`. Se cambian en un solo lugar: 
 | Facturas | Crear, editar, borrar, entregar, recibir, ver PDF | Igual que admin | Ver las suyas, aceptar con firma y rechazar |
 
 `Órdenes` se quitó del menú: **la orden es la factura**, un solo módulo en `/facturas`. Las rutas viejas `/ordenes` y `/factura` redirigen ahí.
+
+### Interfaz por rol
+
+- El menú y el dashboard se construyen con `visibleMenuFor(rol)`: admin ve 7 módulos, bodeguero 5 y cliente solo Inicio + Facturas.
+- Los iconos son componentes SVG de **`@lucide/vue`** (paquete oficial de Lucide; `lucide-vue-next` quedó deprecated). Están declarados en `src/config/navigation.js` y se pintan con `<component :is="item.icon" />`.
+- No se agregó ninguna librería de animación: el cambio de vista usa `<Transition name="fade" mode="out-in">` en `MainLayout.vue` y las tarjetas del dashboard usan una animación CSS escalonada.
+- Si el sistema pide “reducir movimiento”, las animaciones CSS se desactivan automáticamente (`prefers-reduced-motion`).
 
 ## Campos confirmados por backend
 

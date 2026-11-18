@@ -40,10 +40,11 @@ npm run test:watch
 | 22 | `FacturaDetail`: detalle, totales, firma y rechazo | ✅ PASÓ | [factura-detail.test.js](factura-detail.test.js) |
 | 23 | `FacturaForm`: líneas dinámicas y validaciones | ✅ PASÓ | [factura-form.test.js](factura-form.test.js) |
 | 24 | `FacturaView`: listado, detalle y acciones por estado/rol | ✅ PASÓ | [factura-view.test.js](factura-view.test.js) |
+| 25 | Vistas por rol: iconos Lucide y transiciones | ✅ PASÓ | [role-views-icons.test.js](role-views-icons.test.js) |
 
 ---
 
-**24 archivos de test.** Ejecutar todo con `npm test`.
+**25 archivos de test, 133 aserciones.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >

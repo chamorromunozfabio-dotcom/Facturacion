@@ -19,7 +19,7 @@ const RouterLinkStub = {
 
 const RouterViewStub = {
   setup(_, { slots }) {
-    return () => h('div', slots.default?.())
+    return () => h('div', slots.default?.({ Component: h('p', 'Contenido de prueba') }))
   },
 }
 
