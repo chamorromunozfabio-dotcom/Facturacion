@@ -12,6 +12,8 @@ npm run dev
 
 Abrir: http://localhost:5173
 
+> Para verificar en el navegador, seguí la [checklist de prueba manual](../ArchivosMD/CHECKLIST_PRUEBA_MANUAL.md).
+
 `npm run dev` ya incluye `--host`, así que Vite también se expone en la red local.
 
 ## Ver el frontend desde otra PC de la red
