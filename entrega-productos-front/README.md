@@ -36,6 +36,16 @@ El login muestra botones **Admin / Bodeguero / Cliente** que llenan las credenci
 
 Cualquier otro correo entra como admin demo. El rol se guarda en `localStorage` y se conserva al recargar.
 
+### Cuentas reales (con `VITE_USE_MOCKS=false`)
+
+| Rol | Correo | Contraseña |
+|---|---|---|
+| admin | `admin@entrega.com` | `Admin123*` |
+| bodeguero | `bodeguero@gmail.com` | `Bodega123*` |
+| cliente | `cliente@gmail.com` | `Cliente123*` |
+
+> Las cuentas de `@entrega.com` para bodeguero y cliente daban `401`; estas son las que realmente existen en la API.
+
 > Si no conecta, revisa el firewall de Windows: debe permitir el **puerto 5173** (TCP) para redes privadas.
 
 ### ¿Por qué funciona si el backend solo permite `localhost:5173`?
@@ -136,10 +146,13 @@ Definidos por el líder en `CONTRATO_FACTURAS.MD`. Se cambian en un solo lugar: 
 
 | Módulo | admin | bodeguero | cliente |
 |---|---|---|---|
-| Tipos, Bodegas | CRUD | Solo ver | — |
+| Tipos (productos) | CRUD | **CRUD** (es su catálogo) | — |
+| Bodegas | CRUD | Solo ver | — |
 | Usuarios | CRUD | Solo ver (el backend filtra `rol=cliente`) | — |
 | Roles, Permisos | CRUD | — | — |
-| Facturas | Crear, editar, borrar, entregar, recibir, ver PDF | Igual que admin | Ver las suyas, aceptar con firma y rechazar |
+| Facturas | Crear, editar, borrar, entregar, recibir, ver PDF | Igual que admin, **solo las de su bodega** | Ver las suyas, aceptar con firma y rechazar |
+
+Nota: el backend hoy bloquea `DELETE /tipos/{id}` al bodeguero con `403` y todavía no filtra `GET /facturas` por bodega. Ambos puntos están solicitados en `ArchivosMD/MENSAJE_PARA_BACKEND.md`. Cuando `/me` devuelva `bodega_id`, el front lo envía como parámetro en el listado de facturas.
 
 `Órdenes` se quitó del menú: **la orden es la factura**, un solo módulo en `/facturas`. Las rutas viejas `/ordenes` y `/factura` redirigen ahí.
 
@@ -185,7 +198,7 @@ Definidos por el líder en `CONTRATO_FACTURAS.MD`. Se cambian en un solo lugar: 
 - [x] Mensaje claro para nombre repetido (400/409) y `PUT` parcial
 - [x] Roles y permisos definitivos del líder (matriz en `permissions.js`)
 - [x] Menú sin "Órdenes": un solo módulo **Facturas**
-- [x] Botones Crear/Editar/Eliminar ocultos para `bodeguero`
+- [x] Botones por rol: `bodeguero` gestiona Tipos, solo lee Bodegas/Usuarios y ve facturas de su bodega
 - [x] Bodegas con 8 campos, columnas y validaciones confirmadas
 - [x] Usuarios con campos condicionales de cliente y filtro `?rol=`
 - [x] `SignaturePad` con firma PNG y límite de 500 KB
@@ -194,7 +207,9 @@ Definidos por el líder en `CONTRATO_FACTURAS.MD`. Se cambian en un solo lugar: 
 
 ## Pendiente del backend / líder
 
-- [ ] Publicar los endpoints de `/bodegas`, `/usuarios` y `/facturas`.
-- [ ] Aplicar el `403` a `POST`/`PUT`/`DELETE` de `bodeguero` en `/tipos` y `/bodegas`.
-- [ ] Traducir los 422 de `page`/`limit`.
+- [ ] Permitir `DELETE /tipos/{id}` al bodeguero (hoy da `403`).
+- [ ] Filtrar `GET /facturas` por la bodega del token cuando el rol sea bodeguero.
+- [ ] Incluir `bodega_id` en `GET /me`.
 - [ ] Definir el diseño visual (¿hay Figma/paleta?) si el líder lo tiene.
+
+El resto de endpoints y traducciones de errores ya están publicados y verificados. Detalle en `ArchivosMD/INTEGRACION_BACKEND.md`.

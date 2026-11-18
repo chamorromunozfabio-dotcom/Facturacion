@@ -48,11 +48,12 @@ npm run test:watch
 | 30 | Cuentas demo por rol y atajos en el login | ✅ PASÓ | [mock-accounts.test.js](mock-accounts.test.js) |
 | 31 | Mensajes claros: validación, botones y títulos | ✅ PASÓ | [ux-messages.test.js](ux-messages.test.js) |
 | 32 | Modo híbrido y CRUD reales de Roles/Permisos | ✅ PASÓ | [real-api-modules.test.js](real-api-modules.test.js) |
-| 33 | Contrato definitivo: estados, FE-0001 y campos renombrados | ⏳ Por ejecutar | [contrato-definitivo.test.js](contrato-definitivo.test.js) |
+| 33 | Contrato definitivo: estados, FE-0001 y campos renombrados | ✅ PASÓ | [contrato-definitivo.test.js](contrato-definitivo.test.js) |
+| 34 | Permisos reales del bodeguero: CRUD de Tipos y facturas de su bodega | ⏳ Por ejecutar | [permisos-bodeguero.test.js](permisos-bodeguero.test.js) |
 
 ---
 
-**33 archivos de test, 162 aserciones.** Ejecutar todo con `npm test`.
+**34 archivos de test, 166 aserciones.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >

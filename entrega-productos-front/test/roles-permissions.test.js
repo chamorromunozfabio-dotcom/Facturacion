@@ -11,9 +11,11 @@ describe('Test 16 — Permisos y menú definitivos del líder', () => {
     expect(hasPermission('admin', 'facturas', 'entregar')).toBe(true)
   })
 
-  it('bodeguero solo ve Tipos, Bodegas y Usuarios', () => {
+  it('bodeguero gestiona Tipos y solo lee Bodegas y Usuarios', () => {
     expect(hasPermission('bodeguero', 'tipos', 'view')).toBe(true)
-    expect(hasPermission('bodeguero', 'tipos', 'create')).toBe(false)
+    expect(hasPermission('bodeguero', 'tipos', 'create')).toBe(true)
+    expect(hasPermission('bodeguero', 'tipos', 'edit')).toBe(true)
+    expect(hasPermission('bodeguero', 'tipos', 'delete')).toBe(true)
     expect(hasPermission('bodeguero', 'bodegas', 'delete')).toBe(false)
     expect(hasPermission('bodeguero', 'usuarios', 'view')).toBe(true)
     expect(hasPermission('bodeguero', 'usuarios', 'create')).toBe(false)

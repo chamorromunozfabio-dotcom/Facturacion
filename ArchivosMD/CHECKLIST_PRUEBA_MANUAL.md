@@ -16,7 +16,8 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 > | admin | `admin@entrega.com` | `Admin123*` |
 > | bodeguero | `luis@entrega.com` | `Bodega123*` |
 > | cliente (demo) | `juan@cliente.com` | `Cliente123*` |
-> | cliente (API real) | `cliente@entrega.com` | `Cliente123*` |
+> | bodeguero (API real) | `bodeguero@gmail.com` | `Bodega123*` |
+> | cliente (API real) | `cliente@gmail.com` | `Cliente123*` |
 >
 > Cualquier otro correo sigue entrando como admin demo. El rol se conserva al recargar (F5).
 
@@ -60,7 +61,7 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 - [ ] Admin: crear usuario con `rol_id` 1/2/3.
 - [ ] Al elegir **cliente** aparecen tipo/número de documento, teléfono, dirección y ciudad (todos opcionales; `PA` disponible).
 - [ ] Al elegir admin o bodeguero esos campos NO aparecen.
-- [ ] Bodeguero: solo ver en ambos módulos; en Usuarios solo ve clientes.
+- [ ] Bodeguero: gestiona Tipos (Crear/Editar/Eliminar), solo ve Bodegas y en Usuarios solo ve clientes.
 
 ## 5. Facturas
 
@@ -103,16 +104,16 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 
 ## 8. Integración real (todo contra la API)
 
-- [ ] Login real con `admin@entrega.com` / `Admin123*` (bodeguero: `bodeguero@entrega.com` / `Bodega123*`; cliente: `cliente@entrega.com` / `Cliente123*`).
+- [ ] Login real con `admin@entrega.com` / `Admin123*` (bodeguero: `bodeguero@gmail.com` / `Bodega123*`; cliente: `cliente@gmail.com` / `Cliente123*`).
 - [ ] Recargar la página → `GET /me` mantiene la sesión.
 - [ ] Tipos: crear “Alimentos”, buscar `ali`, editar y eliminar contra la API.
 - [ ] Bodegas: crear con `codigo`, `departamento`, `correo` y `recibe_*` (ya no `responsable_*`).
 - [ ] Usuarios: crear cliente con datos opcionales (incluye `PA` y `ciudad`).
-- [ ] Como bodeguero: no puede escribir Tipos/Bodegas y solo ve clientes en Usuarios.
+- [ ] Como bodeguero: Crear/Editar/Eliminar en Tipos; Bodegas solo lectura; Usuarios solo clientes; facturas solo de su bodega.
 - [ ] Facturas: crear `FE-0001` en `emitida`, entregar, aceptar con firma → `firmada`, recibir → `recibida` y descargar `FE-0001.pdf`.
 - [ ] **No tocar CORS del backend**: seguimos llamando a `/api` (proxy de Vite).
 
 ---
 
-**Estado actual:** 33 archivos de test / 162 aserciones en verde + build correcto.
-**Rama:** pendiente de merge del Test 33.
+**Estado actual:** 34 archivos de test / 166 aserciones en verde + build correcto.
+**Rama:** pendiente de merge del Test 34.

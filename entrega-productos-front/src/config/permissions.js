@@ -15,7 +15,8 @@ const RULES = {
     facturas: ['view', 'create', 'edit', 'delete', 'entregar', 'recibir', 'pdf'],
   },
   bodeguero: {
-    tipos: ['view'],
+    // Los Tipos son los productos de su bodega: los gestiona completos.
+    tipos: ['view', 'create', 'edit', 'delete'],
     bodegas: ['view'],
     usuarios: ['view'], // el backend fuerza ?rol=cliente
     facturas: ['view', 'create', 'edit', 'delete', 'entregar', 'recibir', 'pdf'],

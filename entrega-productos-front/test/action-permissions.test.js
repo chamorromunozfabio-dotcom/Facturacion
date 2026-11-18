@@ -45,16 +45,16 @@ describe('Test 17 — Botones según permiso', () => {
     expect(wrapper.find('[data-test="delete"]').exists()).toBe(true)
   })
 
-  it('el bodeguero ve el listado de Tipos pero sin botones de cambio', async () => {
+  it('el bodeguero gestiona sus productos en Tipos', async () => {
     useAuthStore().saveSession('token-123', { nombre: 'Luis', rol: 'bodeguero' })
 
     const wrapper = mount(TiposView)
     await flushPromises()
 
     expect(wrapper.text()).toContain('Alimentos')
-    expect(wrapper.find('[data-test="create"]').exists()).toBe(false)
-    expect(wrapper.find('[data-test="edit"]').exists()).toBe(false)
-    expect(wrapper.find('[data-test="delete"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="create"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="edit"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="delete"]').exists()).toBe(true)
   })
 
   it('el admin sí ve los botones en Tipos', async () => {

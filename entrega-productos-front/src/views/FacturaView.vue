@@ -112,6 +112,10 @@ async function load() {
   try {
     const params = { q: q.value, page: page.value, limit: limit.value }
     if (estadoFilter.value) params.estado = estadoFilter.value
+    // El backend filtra por el token; si /me trae la bodega, la enviamos también.
+    if (auth.role === 'bodeguero' && auth.user?.bodega_id) {
+      params.bodega_id = auth.user.bodega_id
+    }
     const result = await facturasApi.list(params)
     rows.value = result.data ?? []
     total.value = result.total ?? 0
