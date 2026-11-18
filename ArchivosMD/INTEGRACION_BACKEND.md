@@ -27,15 +27,22 @@ Todo el frontend llama a la API real. El proxy `/api` de Vite sigue evitando el 
 | Nuevo `GET /facturas/clientes` | `facturasApi.listClientes()` reemplaza a `/usuarios?rol=cliente` en el formulario de facturas |
 | `DELETE /tipos` permitido al bodeguero | verificado en vivo: ya responde `404` (no `403`) con un id inexistente |
 | Facturas desde las bodegas propias | el backend valida con `400`; el bodeguero solo ve sus bodegas en el selector |
-| `PUT /roles/{id}/permisos` (estable según el aviso v2) | pantalla de Permisos del admin: elige usuario/rol, marca permisos y guarda la lista completa |
+| Permisos por usuario (`ArchivosMD/RESPUESTA_PERMISOS_FRONTEND.md`) | `PermisosView` elige usuario, carga sus permisos y guarda con `PUT /usuarios/{id}/permisos`; el rol quedó como plantilla |
 
-### Asignación de permisos (verificado en `/openapi.json`)
+### Asignación de permisos por usuario (verificado en vivo)
 
-- El backend **no tiene un endpoint de permisos por usuario**. Los permisos se guardan en el **rol** y, por eso, en todos los usuarios que lo tienen.
-- `PUT /roles/{rol_id}/permisos` con `{ "permisos_ids": [1, 2] }` **reemplaza** los permisos actuales. `[]` se los quita todos. Responde el rol actualizado con `permisos: [{id, nombre}]`.
-- `rolesApi.setPermisos(rolId, ids)` llama a ese endpoint (o usa un equivalente en mocks).
-- La vista `PermisosView` carga `GET /roles`, `GET /permisos` y `GET /usuarios`; muestra quién se afecta porque `UsuarioOut` trae `rol_id` y `rol`.
-- En vivo: hay 1 permiso (`comra`) y los 3 roles tienen `permisos: []`. El test no modifica datos reales: solo comprueba la URL y el cuerpo de la petición con axios simulado.
+El backend aceptó el pedido y publicó:
+
+| Método | Ruta | Uso en el front |
+|---|---|---|
+| GET | `/usuarios/{id}/permisos` | `usuariosApi.listPermisos(id)` → `{ data: [{id, nombre}] }` |
+| PUT | `/usuarios/{id}/permisos` | `usuariosApi.setPermisos(id, ids)` → `{ permisos_ids }`, reemplaza, `[]` quita todos |
+| POST | `/usuarios/{id}/permisos/{permiso_id}` | `usuariosApi.addPermiso(id, permisoId)` |
+| DELETE | `/usuarios/{id}/permisos/{permiso_id}` | `usuariosApi.removePermiso(id, permisoId)` |
+
+- `/usuarios`, `/usuarios/{id}`, `/me` y el `user` de `/login` traen `permisos: [{id, nombre}]`. El store los guarda en `auth.permisos` (no se usan aún para el menú: los guards siguen por rol y la matriz `permissions.js` sigue fija).
+- Permisos efectivos = **solo los del usuario**; el rol es plantilla al crear y cambiarlo después no modifica usuarios existentes. `PUT /roles/{id}/permisos` sigue disponible como plantilla.
+- En vivo: `/openapi.json` trae los 4 endpoints nuevos; `GET /usuarios/1/permisos` → `200 {data: []}`; `login` y `/me` traen `permisos: []`. Hay 1 permiso (`comra`) y los 3 roles con `permisos: []`. Las pruebas no cambiaron datos reales: simularon axios.
 
 ## Permisos finales
 
@@ -63,7 +70,7 @@ Según el cuadro de `CAMBIOS_PARA_FRONTENDv2.md`, el bodeguero **ve todas** las 
 - Test 33: contrato definitivo (estados, `FE-0001`, campos `recibe_*`).
 - Test 34: permisos del bodeguero en Tipos y parámetro `bodega_id`.
 - Test 35: contrato v2 (bodegas propias, sin Usuarios, selector `/facturas/clientes`).
-- Test 36: asignación de permisos por rol (`PUT /roles/{id}/permisos`) y pantalla del admin.
-- 36 archivos de test / 177 aserciones en verde.
+- Test 36: permisos por usuario (`GET/PUT /usuarios/{id}/permisos`, POST/DELETE) y pantalla del admin.
+- 36 archivos de test / 178 aserciones en verde.
 - `npm run build` correcto.
 - API en vivo: `/facturas/clientes` → 200 para admin/bodeguero y 403 para cliente; `/bodegas?bodeguero_id=` existe; el bodeguero ve `data: []` porque aún no tiene bodegas asignadas.

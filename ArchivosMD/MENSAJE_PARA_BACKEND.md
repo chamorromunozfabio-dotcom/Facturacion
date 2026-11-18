@@ -42,7 +42,11 @@ También quedó sin efecto nuestro pedido anterior de filtrar `GET /facturas` po
 
 > Coincido con tu aviso: las cuentas `@entrega.com` del documento v2 ya no son las que están en la BD. Estas son las que responden `200`.
 
-## 🆕 Pedido nuevo: permisos por usuario (dejar de depender del rol)
+## ✅ Pedido de permisos por usuario — resuelto por el backend (18-11-2026)
+
+> Gracias por `RESPUESTA_PERMISOS_FRONTEND.md`. Verifiqué los 4 endpoints en `/openapi.json` y que `/login`, `/me` y `/usuarios` traen `permisos`. Ya adapté la vista: eliges usuario, cargas `GET /usuarios/{id}/permisos` y guardas con `PUT /usuarios/{id}/permisos`. Dejo el pedido original abajo como registro.
+
+### Pedido original
 
 Hola, necesitamos cambiar el modelo de permisos. Hoy `PUT /roles/{id}/permisos` asigna permisos al **rol**, así que no se puede dar o quitar un acceso a **un usuario** sin afectar a todos los que tienen ese rol. Para la lógica de negocio necesitamos que el permiso sea **por usuario**.
 

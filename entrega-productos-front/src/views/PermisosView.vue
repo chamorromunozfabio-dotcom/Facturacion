@@ -17,28 +17,27 @@ const canEdit = computed(() => hasPermission(auth.role, 'permisos', 'edit'))
 const canDelete = computed(() => hasPermission(auth.role, 'permisos', 'delete'))
 
 /* ------------------------------------------------------------------
- * 1) Asignación de permisos (lo que pide el negocio)
- * El backend no tiene permisos por usuario: los guarda en el ROL.
- * Elegimos un usuario para ver su rol y marcamos lo que ese rol puede hacer.
+ * 1) Asignación de permisos POR USUARIO (contrato publicado por el backend)
+ * El rol es solo la plantilla al crear usuarios: cambiar el rol no cambia
+ * los permisos de quien ya existe. Guardamos con PUT /usuarios/{id}/permisos.
  * ------------------------------------------------------------------ */
 const roles = ref([])
 const todosLosPermisos = ref([])
 const usuarios = ref([])
-const rolSeleccionadoId = ref(null)
+const usuarioSeleccionadoId = ref(null)
 const permisosSeleccionados = ref([])
+const permisosIniciales = ref([])
 const cargandoAsignacion = ref(false)
 const guardandoPermisos = ref(false)
 const mensajeAsignacion = ref(null)
 
-const rolSeleccionado = computed(
-  () => roles.value.find((rol) => rol.id === rolSeleccionadoId.value) ?? null,
+const usuarioSeleccionado = computed(
+  () => usuarios.value.find((usuario) => usuario.id === usuarioSeleccionadoId.value) ?? null,
 )
-const usuariosDelRol = computed(() =>
-  usuarios.value.filter((usuario) => usuario.rol_id === rolSeleccionadoId.value),
+const rolDelUsuario = computed(
+  () => roles.value.find((rol) => rol.id === usuarioSeleccionado.value?.rol_id) ?? null,
 )
-const idsActuales = computed(() =>
-  (rolSeleccionado.value?.permisos ?? []).map((permiso) => permiso.id).sort((a, b) => a - b),
-)
+const idsActuales = computed(() => [...permisosIniciales.value].sort((a, b) => a - b))
 const idsSeleccionados = computed(() => [...permisosSeleccionados.value].sort((a, b) => a - b))
 const hayCambios = computed(
   () => JSON.stringify(idsActuales.value) !== JSON.stringify(idsSeleccionados.value),
@@ -47,19 +46,19 @@ const hayCambios = computed(
 async function loadAssignment() {
   cargandoAsignacion.value = true
   try {
-    const [listaRoles, listaPermisos, listaUsuarios] = await Promise.all([
-      rolesApi.list({ page: 1, limit: 100 }),
-      permisosApi.list({ q: '', page: 1, limit: 100 }),
+    const [listaUsuarios, listaPermisos, listaRoles] = await Promise.all([
       usuariosApi.list({ page: 1, limit: 100 }),
+      permisosApi.list({ q: '', page: 1, limit: 100 }),
+      rolesApi.list({ page: 1, limit: 100 }),
     ])
-    roles.value = listaRoles.data ?? []
-    todosLosPermisos.value = listaPermisos.data ?? []
     usuarios.value = listaUsuarios.data ?? []
+    todosLosPermisos.value = listaPermisos.data ?? []
+    roles.value = listaRoles.data ?? []
 
-    if (!rolSeleccionadoId.value && roles.value.length) {
-      rolSeleccionadoId.value = roles.value[0].id
-    } else {
-      sincronizarPermisos()
+    const preferido = usersPreferidos()[0]
+    if (preferido) {
+      usuarioSeleccionadoId.value = preferido.id
+      await cargarPermisosDelUsuario()
     }
   } catch (error) {
     mensajeAsignacion.value = { type: 'error', message: getErrorMessage(error) }
@@ -68,17 +67,31 @@ async function loadAssignment() {
   }
 }
 
-function sincronizarPermisos() {
-  permisosSeleccionados.value = (rolSeleccionado.value?.permisos ?? []).map(
-    (permiso) => permiso.id,
-  )
+/** Dejamos arriba al admin en turno para que vea sus propios permisos. */
+function usersPreferidos() {
+  const propio = usuarios.value.find((usuario) => usuario.id === auth.user?.id)
+  return propio ? [propio, ...usuarios.value.filter((u) => u.id !== propio.id)] : usuarios.value
 }
 
-watch(rolSeleccionadoId, sincronizarPermisos)
+async function cargarPermisosDelUsuario() {
+  if (!usuarioSeleccionadoId.value) {
+    permisosIniciales.value = []
+    permisosSeleccionados.value = []
+    return
+  }
+  try {
+    const resultado = await usuariosApi.listPermisos(usuarioSeleccionadoId.value)
+    const ids = (resultado.data ?? []).map((permiso) => permiso.id)
+    permisosIniciales.value = ids
+    permisosSeleccionados.value = [...ids]
+  } catch (error) {
+    mensajeAsignacion.value = { type: 'error', message: getErrorMessage(error) }
+  }
+}
 
 function seleccionarUsuario(valor) {
-  const usuario = usuarios.value.find((item) => String(item.id) === String(valor))
-  if (usuario?.rol_id != null) rolSeleccionadoId.value = Number(usuario.rol_id)
+  usuarioSeleccionadoId.value = valor === '' ? null : Number(valor)
+  cargarPermisosDelUsuario()
 }
 
 function togglePermiso(id, marcado) {
@@ -88,21 +101,23 @@ function togglePermiso(id, marcado) {
 }
 
 async function guardarPermisos() {
-  if (!rolSeleccionado.value || !hayCambios.value) return
+  if (!usuarioSeleccionado.value || !hayCambios.value) return
   guardandoPermisos.value = true
   mensajeAsignacion.value = null
   try {
-    const rolActualizado = await rolesApi.setPermisos(
-      rolSeleccionado.value.id,
+    const usuarioActualizado = await usuariosApi.setPermisos(
+      usuarioSeleccionado.value.id,
       idsSeleccionados.value,
     )
-    roles.value = roles.value.map((rol) =>
-      rol.id === rolActualizado.id ? { ...rol, ...rolActualizado } : rol,
+    usuarios.value = usuarios.value.map((usuario) =>
+      usuario.id === usuarioActualizado.id ? { ...usuario, ...usuarioActualizado } : usuario,
     )
-    sincronizarPermisos()
+    const ids = (usuarioActualizado.permisos ?? []).map((permiso) => permiso.id)
+    permisosIniciales.value = ids
+    permisosSeleccionados.value = [...ids]
     mensajeAsignacion.value = {
       type: 'success',
-      message: `Permisos de "${rolActualizado.nombre}" actualizados.`,
+      message: `Permisos de "${usuarioActualizado.nombre}" actualizados.`,
     }
   } catch (error) {
     mensajeAsignacion.value = {
@@ -270,8 +285,8 @@ onMounted(() => {
         <div>
           <h2>Dar o quitar permisos</h2>
           <p class="assignment__hint">
-            El backend guarda los permisos en el <strong>rol</strong>, no en cada usuario. Elegí un
-            usuario para ver su rol; al guardar, el cambio alcanza a todos los usuarios de ese rol.
+            Los permisos son de <strong>cada usuario</strong>. El rol solo es la plantilla al crearlo:
+            cambiar el rol después no modifica los permisos de usuarios que ya existen.
           </p>
         </div>
       </header>
@@ -288,34 +303,29 @@ onMounted(() => {
       <div class="assignment__selectors">
         <label>
           <span>Usuario</span>
-          <select data-test="assignment-user" @change="seleccionarUsuario($event.target.value)">
-            <option value="">Elige un usuario (opcional)</option>
+          <select
+            data-test="assignment-user"
+            :value="usuarioSeleccionadoId ?? ''"
+            @change="seleccionarUsuario($event.target.value)"
+          >
+            <option value="">Elige un usuario</option>
             <option v-for="usuario in usuarios" :key="usuario.id" :value="usuario.id">
               {{ usuario.nombre }} — {{ usuario.rol }}
             </option>
           </select>
         </label>
-
-        <label>
-          <span>Rol</span>
-          <select v-model.number="rolSeleccionadoId" data-test="assignment-role">
-            <option v-for="rol in roles" :key="rol.id" :value="rol.id">
-              {{ rol.nombre }}
-            </option>
-          </select>
-        </label>
       </div>
 
-      <p v-if="cargandoAsignacion" class="assignment__loading">Cargando roles y permisos...</p>
+      <p v-if="cargandoAsignacion" class="assignment__loading">Cargando usuarios y permisos...</p>
 
-      <template v-else-if="rolSeleccionado">
-        <p class="assignment__affected" data-test="affected-users">
-          Usuarios con el rol <strong>{{ rolSeleccionado.nombre }}</strong>:
-          {{ usuariosDelRol.length ? usuariosDelRol.map((u) => u.nombre).join(', ') : 'ninguno' }}.
+      <template v-else-if="usuarioSeleccionado">
+        <p class="assignment__affected" data-test="assignment-affected">
+          Editando los permisos de <strong>{{ usuarioSeleccionado.nombre }}</strong>
+          <template v-if="rolDelUsuario"> (rol {{ rolDelUsuario.nombre }})</template>.
         </p>
 
         <fieldset class="assignment__list">
-          <legend>Permisos de {{ rolSeleccionado.nombre }}</legend>
+          <legend>Permisos de {{ usuarioSeleccionado.nombre }}</legend>
           <p v-if="todosLosPermisos.length === 0" class="assignment__empty">
             Todavía no hay permisos creados. Creá uno en la tabla de abajo.
           </p>
@@ -352,7 +362,7 @@ onMounted(() => {
         </div>
       </template>
 
-      <p v-else class="assignment__empty">No hay roles cargados.</p>
+      <p v-else class="assignment__empty">No hay usuarios cargados.</p>
     </section>
 
     <section class="catalog">

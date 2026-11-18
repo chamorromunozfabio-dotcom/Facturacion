@@ -41,6 +41,10 @@ export const useAuthStore = defineStore('auth', () => {
     () => user.value?.nombre ?? user.value?.name ?? user.value?.correo ?? user.value?.usuario ?? '',
   )
 
+  // El backend ya devuelve `permisos` en /login, /me y /usuarios.
+  // Se guardan con la sesión; hoy el menú sigue usando la matriz fija de permissions.js.
+  const permisos = computed(() => user.value?.permisos ?? [])
+
   function saveSession(newToken, newUser) {
     token.value = newToken
     user.value = newUser
@@ -98,7 +102,7 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem(USER_KEY)
   }
 
-  return { token, user, isAuthenticated, role, userName, login, fetchMe, logout, saveSession }
+  return { token, user, isAuthenticated, role, userName, permisos, login, fetchMe, logout, saveSession }
 })
 
 export { getErrorMessage }

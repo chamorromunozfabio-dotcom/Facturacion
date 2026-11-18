@@ -19,12 +19,16 @@ const roles = vi.hoisted(() => ({
 
 const usuarios = vi.hoisted(() => ({
   list: vi.fn(),
+  listPermisos: vi.fn(),
+  setPermisos: vi.fn(),
+  addPermiso: vi.fn(),
+  removePermiso: vi.fn(),
 }))
 
 vi.mock('../src/api/permisos', () => ({ default: permisos }))
 vi.mock('../src/api/roles', () => ({ default: roles }))
 vi.mock('../src/api/usuarios', () => ({ default: usuarios }))
-// Forzamos modo real para comprobar la URL del endpoint de asignación.
+// Forzamos modo real para comprobar las URL de los endpoints de permisos.
 vi.mock('../src/config/apiModes', () => ({
   resolveApiModes: () => ({ authMocks: false, catalogsMocks: false, facturasMocks: false }),
 }))
@@ -35,22 +39,33 @@ import router from '../src/router'
 import PermisosView from '../src/views/PermisosView.vue'
 import { useAuthStore } from '../src/stores/auth'
 
-describe('Test 36 — Permisos: dar y quitar accesos desde el rol', () => {
+describe('Test 36 — Permisos por usuario (contrato publicado por el backend)', () => {
   beforeEach(() => {
     localStorage.clear()
     setActivePinia(createPinia())
     vi.clearAllMocks()
-    useAuthStore().saveSession('token-123', { nombre: 'Ana', rol: 'admin' })
+    useAuthStore().saveSession('token-123', { id: 1, nombre: 'Ana', rol: 'admin' })
 
-    roles.list.mockResolvedValue({
+    usuarios.list.mockResolvedValue({
       data: [
-        { id: 1, nombre: 'admin', permisos: [{ id: 1, nombre: 'crear_factura' }] },
-        { id: 2, nombre: 'bodeguero', permisos: [] },
-        { id: 3, nombre: 'cliente', permisos: [] },
+        { id: 1, nombre: 'Ana', correo: 'admin@entrega.com', rol: 'admin', rol_id: 1, permisos: [] },
+        { id: 2, nombre: 'Luis', correo: 'bodeguero@gmail.com', rol: 'bodeguero', rol_id: 2, permisos: [] },
+        { id: 5, nombre: 'Juan', correo: 'cliente@gmail.com', rol: 'cliente', rol_id: 3, permisos: [] },
       ],
       total: 3,
       page: 1,
       limit: 100,
+    })
+    usuarios.listPermisos.mockImplementation(async (id) => ({
+      data: Number(id) === 1 ? [{ id: 1, nombre: 'crear_factura' }] : [],
+    }))
+    usuarios.setPermisos.mockResolvedValue({
+      id: 1,
+      nombre: 'Ana',
+      permisos: [
+        { id: 1, nombre: 'crear_factura' },
+        { id: 2, nombre: 'editar_factura' },
+      ],
     })
     permisos.list.mockResolvedValue({
       data: [
@@ -61,51 +76,42 @@ describe('Test 36 — Permisos: dar y quitar accesos desde el rol', () => {
       page: 1,
       limit: 100,
     })
-    usuarios.list.mockResolvedValue({
+    roles.list.mockResolvedValue({
       data: [
-        { id: 1, nombre: 'Ana', correo: 'admin@entrega.com', rol: 'admin', rol_id: 1 },
-        { id: 2, nombre: 'Luis', correo: 'bodeguero@gmail.com', rol: 'bodeguero', rol_id: 2 },
-        { id: 5, nombre: 'Juan', correo: 'cliente@gmail.com', rol: 'cliente', rol_id: 3 },
+        { id: 1, nombre: 'admin', permisos: [] },
+        { id: 2, nombre: 'bodeguero', permisos: [] },
+        { id: 3, nombre: 'cliente', permisos: [] },
       ],
       total: 3,
       page: 1,
       limit: 100,
     })
-    roles.setPermisos.mockResolvedValue({
-      id: 1,
-      nombre: 'admin',
-      permisos: [
-        { id: 1, nombre: 'crear_factura' },
-        { id: 2, nombre: 'editar_factura' },
-      ],
-    })
   })
 
-  it('carga roles, usuarios y permisos, y marca los del rol seleccionado', async () => {
+  it('carga usuarios y muestra los permisos del usuario seleccionado', async () => {
     const wrapper = mount(PermisosView)
     await flushPromises()
 
-    expect(roles.list).toHaveBeenCalledWith({ page: 1, limit: 100 })
     expect(usuarios.list).toHaveBeenCalledWith({ page: 1, limit: 100 })
-    expect(wrapper.find('[data-test="permiso-option-1"]').exists()).toBe(true)
+    expect(usuarios.listPermisos).toHaveBeenCalledWith(1)
     expect(wrapper.find('[data-test="permiso-check-1"]').element.checked).toBe(true)
     expect(wrapper.find('[data-test="permiso-check-2"]').element.checked).toBe(false)
-    expect(wrapper.find('[data-test="affected-users"]').text()).toContain('Ana')
+    expect(wrapper.find('[data-test="assignment-affected"]').text()).toContain('Ana')
   })
 
-  it('elegir un usuario cambia el rol y muestra a quién afecta el cambio', async () => {
+  it('al elegir otro usuario carga SUS permisos, no los del anterior', async () => {
     const wrapper = mount(PermisosView)
     await flushPromises()
 
-    await wrapper.find('[data-test="assignment-user"]').setValue('2')
+    await wrapper.find('[data-test="assignment-user"]').setValue('5')
     await flushPromises()
 
-    expect(wrapper.find('[data-test="assignment-role"]').element.value).toBe('2')
-    expect(wrapper.find('[data-test="affected-users"]').text()).toContain('Luis')
+    expect(usuarios.listPermisos).toHaveBeenCalledWith(5)
+    expect(wrapper.find('[data-test="assignment-affected"]').text()).toContain('Juan')
     expect(wrapper.find('[data-test="permiso-check-1"]').element.checked).toBe(false)
   })
 
-  it('marcar un permiso y guardar envía la lista completa al backend', async () => {
+  it('marcar un permiso y guardar usa PUT /usuarios/{id}/permisos con la lista completa', async () => {
     const wrapper = mount(PermisosView)
     await flushPromises()
 
@@ -113,12 +119,12 @@ describe('Test 36 — Permisos: dar y quitar accesos desde el rol', () => {
     await wrapper.find('[data-test="save-permisos"]').trigger('click')
     await flushPromises()
 
-    expect(roles.setPermisos).toHaveBeenCalledWith(1, [1, 2])
-    expect(wrapper.text()).toContain('Permisos de "admin" actualizados.')
+    expect(usuarios.setPermisos).toHaveBeenCalledWith(1, [1, 2])
+    expect(wrapper.text()).toContain('Permisos de "Ana" actualizados.')
     expect(wrapper.find('[data-test="save-permisos"]').attributes('disabled')).toBeDefined()
   })
 
-  it('desmarcar un permiso lo quita del rol (lista vacía incluida)', async () => {
+  it('desmarcar todos envía permisos_ids vacío para quitar los accesos', async () => {
     const wrapper = mount(PermisosView)
     await flushPromises()
 
@@ -126,20 +132,48 @@ describe('Test 36 — Permisos: dar y quitar accesos desde el rol', () => {
     await wrapper.find('[data-test="save-permisos"]').trigger('click')
     await flushPromises()
 
-    expect(roles.setPermisos).toHaveBeenCalledWith(1, [])
+    expect(usuarios.setPermisos).toHaveBeenCalledWith(1, [])
   })
 
-  it('el cliente de la API llama a PUT /roles/{id}/permisos con permisos_ids', async () => {
+  it('el cliente de la API usa los endpoints reales de permisos por usuario', async () => {
+    const realUsuariosApi = await vi.importActual('../src/api/usuarios')
     const realRolesApi = await vi.importActual('../src/api/roles')
-    const put = vi.spyOn(api, 'put').mockResolvedValue({
-      data: { id: 3, nombre: 'cliente', permisos: [{ id: 2, nombre: 'editar_factura' }] },
+    const get = vi.spyOn(api, 'get').mockResolvedValue({ data: { data: [{ id: 2, nombre: 'editar_factura' }] } })
+    const put = vi.spyOn(api, 'put').mockResolvedValue({ data: { id: 1, permisos: [] } })
+    const post = vi.spyOn(api, 'post').mockResolvedValue({ data: { id: 1, permisos: [] } })
+    const del = vi.spyOn(api, 'delete').mockResolvedValue({ status: 204, data: '' })
+
+    await realUsuariosApi.default.listPermisos(1)
+    await realUsuariosApi.default.setPermisos(1, [2, 2])
+    await realUsuariosApi.default.addPermiso(1, 2)
+    await realUsuariosApi.default.removePermiso(1, 2)
+
+    expect(get).toHaveBeenCalledWith('/usuarios/1/permisos')
+    expect(put).toHaveBeenCalledWith('/usuarios/1/permisos', { permisos_ids: [2, 2] })
+    expect(post).toHaveBeenCalledWith('/usuarios/1/permisos/2')
+    expect(del).toHaveBeenCalledWith('/usuarios/1/permisos/2')
+
+    // El endpoint de rol sigue existiendo como plantilla (no lo rompemos).
+    await realRolesApi.default.setPermisos(1, [2])
+    expect(put).toHaveBeenCalledWith('/roles/1/permisos', { permisos_ids: [2] })
+
+    get.mockRestore()
+    put.mockRestore()
+    post.mockRestore()
+    del.mockRestore()
+  })
+
+  it('la sesión conserva los permisos que manda el backend', () => {
+    const auth = useAuthStore()
+    auth.saveSession('token-456', {
+      id: 1,
+      nombre: 'Ana',
+      rol: 'admin',
+      permisos: [{ id: 2, nombre: 'editar_factura' }],
     })
 
-    const resultado = await realRolesApi.default.setPermisos(3, [2, 2])
-
-    expect(put).toHaveBeenCalledWith('/roles/3/permisos', { permisos_ids: [2, 2] })
-    expect(resultado.permisos[0].nombre).toBe('editar_factura')
-    put.mockRestore()
+    expect(auth.permisos).toEqual([{ id: 2, nombre: 'editar_factura' }])
+    expect(JSON.parse(localStorage.getItem('user')).permisos).toHaveLength(1)
   })
 
   it('Permisos sigue siendo un módulo exclusivo del admin', () => {

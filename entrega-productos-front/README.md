@@ -150,12 +150,12 @@ Definidos por el líder en `CONTRATO_FACTURAS.MD`. Se cambian en un solo lugar: 
 | Tipos (productos) | CRUD | **CRUD** (es su catálogo) | — |
 | Bodegas | CRUD de todas; asigna dueño con `bodeguero_id` | CRUD **solo de las suyas** (el backend filtra) | — |
 | Usuarios | CRUD | **Sin acceso** (ni menú, ni ruta; API da 403) | — |
-| Roles, Permisos | CRUD; asigna permisos al rol con `PUT /roles/{id}/permisos` | — | — |
+| Roles, Permisos | CRUD de roles/permisos; **permisos por usuario** con `PUT /usuarios/{id}/permisos` | — | — |
 | Facturas | Todo | Crear solo desde sus bodegas, editar, borrar, entregar, recibir y ver PDF | Ver las suyas, aceptar con firma y rechazar |
 
 El selector de clientes de Facturas ya no usa `/usuarios`: viene de `GET /facturas/clientes` (admin y bodeguero). El bodeguero tampoco ve el campo `bodeguero_id` en Bodegas: al crear, el backend lo pone como dueño automáticamente.
 
-**Cómo funcionan los permisos:** el backend **no guarda permisos por usuario**, sino por **rol**. En `Permisos` el admin elige un usuario (para ver su rol) o elige el rol directamente, marca/desmarca permisos y guarda. Se envía la lista completa a `PUT /roles/{id}/permisos` con `{ permisos_ids: [...] }`; `[]` le quita todos. La pantalla avisa cuántos usuarios se afectan, porque el cambio aplica a todo el rol. El menú y las rutas de `Roles`/`Permisos` son solo del admin.
+**Cómo funcionan los permisos (respuesta del backend en `ArchivosMD/RESPUESTA_PERMISOS_FRONTEND.md`):** son **por usuario**. En `Permisos` el admin elige un usuario, ve sus permisos actuales (`GET /usuarios/{id}/permisos`), los marca/desmarca y guarda con `PUT /usuarios/{id}/permisos` → `{ permisos_ids: [...] }`; `[]` quita todos. También existen `POST`/`DELETE /usuarios/{id}/permisos/{permiso_id}` para uno solo. El **rol es solo la plantilla** al crear usuarios: cambiar un rol después no altera permisos de usuarios existentes. `/login`, `/me` y `/usuarios` ya traen `permisos: [{id, nombre}]` y la sesión los guarda (`auth.permisos`). Por ahora los guards siguen siendo por rol y el menú/botones usan la matriz fija `permissions.js`: cuando el backend pase a bloquear por permiso, se ajusta esa matriz. El menú y las rutas de `Roles`/`Permisos` son solo del admin.
 
 `Órdenes` se quitó del menú: **la orden es la factura**, un solo módulo en `/facturas`. Las rutas viejas `/ordenes` y `/factura` redirigen ahí.
 

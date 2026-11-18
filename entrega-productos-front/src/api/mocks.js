@@ -168,8 +168,8 @@ const rowsByResource = {
     },
   ],
   usuarios: [
-    { id: 1, nombre: 'Ana Pérez', correo: 'ana@entrega.com', rol: 'admin', rol_id: 1 },
-    { id: 2, nombre: 'Luis Gómez', correo: 'luis@entrega.com', rol: 'bodeguero', rol_id: 2 },
+    { id: 1, nombre: 'Ana Pérez', correo: 'ana@entrega.com', rol: 'admin', rol_id: 1, permisos: [] },
+    { id: 2, nombre: 'Luis Gómez', correo: 'luis@entrega.com', rol: 'bodeguero', rol_id: 2, permisos: [] },
     {
       id: 3,
       nombre: 'Juan Pérez',
@@ -288,6 +288,62 @@ export async function mockUpdate(resource, id, payload) {
 export async function mockRemove() {
   await wait()
   return { detail: 'Eliminado (modo demo)' }
+}
+
+function usuarioDemo(usuarioId) {
+  const usuario = rowsByResource.usuarios.find((row) => row.id === Number(usuarioId))
+  if (!usuario) throw new Error('Usuario no encontrado')
+  return usuario
+}
+
+function permisosResumen(valores) {
+  return valores
+    .map((valor) => (typeof valor === 'object' ? valor.id : valor))
+    .map((id) => rowsByResource.permisos.find((permiso) => permiso.id === Number(id)))
+    .filter(Boolean)
+    .map(({ id, nombre }) => ({ id, nombre }))
+}
+
+/** Permisos de un usuario en modo demo. */
+export async function mockListPermisos(usuarioId) {
+  await wait()
+  const usuario = usuarioDemo(usuarioId)
+  return { data: permisosResumen(usuario.permisos ?? []) }
+}
+
+/** Reemplaza todos los permisos de un usuario (PUT real). */
+export async function mockSetPermisosUsuario(usuarioId, permisosIds = []) {
+  await wait()
+  const usuario = usuarioDemo(usuarioId)
+  const ids = [...new Set(permisosIds.map(Number))]
+  if (ids.some((id) => !rowsByResource.permisos.some((permiso) => permiso.id === id))) {
+    throw new Error('Uno o más permisos no existen')
+  }
+  usuario.permisos = permisosResumen(ids)
+  return { ...usuario }
+}
+
+/** Agrega un permiso a un usuario (POST real). */
+export async function mockAddPermiso(usuarioId, permisoId) {
+  await wait()
+  const usuario = usuarioDemo(usuarioId)
+  if (!rowsByResource.permisos.some((permiso) => permiso.id === Number(permisoId))) {
+    throw new Error('Permiso no encontrado')
+  }
+  const ids = [...new Set([...(usuario.permisos ?? []).map((p) => p.id), Number(permisoId)])]
+  usuario.permisos = permisosResumen(ids)
+  return { ...usuario }
+}
+
+/** Quita un permiso a un usuario (DELETE real). */
+export async function mockRemovePermiso(usuarioId, permisoId) {
+  await wait()
+  const usuario = usuarioDemo(usuarioId)
+  if (!rowsByResource.permisos.some((permiso) => permiso.id === Number(permisoId))) {
+    throw new Error('Permiso no encontrado')
+  }
+  usuario.permisos = (usuario.permisos ?? []).filter((p) => p.id !== Number(permisoId))
+  return { ...usuario }
 }
 
 /** Reemplaza los permisos de un rol en modo demo (igual que el backend). */

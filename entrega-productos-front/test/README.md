@@ -51,11 +51,11 @@ npm run test:watch
 | 33 | Contrato definitivo: estados, FE-0001 y campos renombrados | ✅ PASÓ | [contrato-definitivo.test.js](contrato-definitivo.test.js) |
 | 34 | Permisos reales del bodeguero: CRUD de Tipos y facturas de su bodega | ✅ PASÓ | [permisos-bodeguero.test.js](permisos-bodeguero.test.js) |
 | 35 | Contrato v2: bodegas propias, sin Usuarios y selector `/facturas/clientes` | ✅ PASÓ | [contrato-v2.test.js](contrato-v2.test.js) |
-| 36 | Permisos: dar y quitar accesos al rol con `PUT /roles/{id}/permisos` | ⏳ Por ejecutar | [permisos-asignacion.test.js](permisos-asignacion.test.js) |
+| 36 | Permisos por usuario: `PUT /usuarios/{id}/permisos`, checks y sesión | ⏳ Por ejecutar | [permisos-asignacion.test.js](permisos-asignacion.test.js) |
 
 ---
 
-**36 archivos de test, 177 aserciones.** Ejecutar todo con `npm test`.
+**36 archivos de test, 178 aserciones.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >
