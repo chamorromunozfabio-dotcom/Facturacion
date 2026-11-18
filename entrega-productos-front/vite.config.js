@@ -19,5 +19,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     include: ['test/**/*.test.js'],
+    // Los tests unitarios siempre usan mocks, sin importar el .env local
+    env: { VITE_USE_MOCKS: 'true' },
   },
 })

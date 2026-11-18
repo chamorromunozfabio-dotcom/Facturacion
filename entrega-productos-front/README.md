@@ -37,13 +37,17 @@ src/
 
 ## Contrato acordado con backend
 
-- **Login:** `POST /login` con `{ "correo": "ana@empresa.com", "contrasena": "..." }`
-- **Respuesta login:** `{ "access_token": "<jwt>", "token_type": "bearer", "user": { "id": 1, "nombre": "Ana Pérez", "correo": "ana@empresa.com", "rol": "admin" } }`
-- Listados: `{ "data": [...], "total": 1, "page": 1, "limit": 10 }`
-- Errores (incluido 422): `{ "detail": "mensaje legible" }`
-- Token: `Authorization: Bearer <token>`
-- CORS habilitado para `http://localhost:5173`
-- Endpoints: `/login`, `/tipos`, `/bodegas`, `/usuarios`, `/permisos`, `/roles` (CRUD completo)
+- **Login:** `POST /login` con JSON `{ "correo": "admin@entrega.com", "contrasena": "Admin123*" }` (no form-data).
+- **Respuesta login:** `{ "access_token": "<jwt>", "token_type": "bearer", "user": { "id": 1, "nombre": "Administrador", "correo": "admin@entrega.com", "rol": "admin" } }`.
+- `user.rol` llega como **texto** (`admin`, `bodeguero`, `cliente`).
+- **Token:** `Authorization: Bearer <token>`, vence a los **60 minutos**.
+- **Recuperar sesión:** `GET /me` con ese header devuelve el mismo `user`. Se llama al arrancar la app.
+- **Errores 401/403:** `{ "detail": "texto" }` (`"Correo o contraseña incorrectos"`, `"No ha iniciado sesión"`, `"Token inválido o vencido"`, `"No tiene permiso para esta acción"`).
+- **Errores 422:** hoy `detail` llega como **lista** de FastAPI. El frontend la normaliza a texto en `getErrorMessage()`; pendiente que el backend lo unifique.
+- **Listados:** formato `{ data, total, page, limit }` **pendiente** (aún no hay endpoints de listado).
+- **Búsqueda:** recomendado `q` con `page` y `limit`; confirmado por el frontend, pendiente de definición en backend.
+- CORS habilitado para `http://localhost:5173`.
+- Endpoints: `/login`, `/me`, `/solo-admin` (temporal), `/tipos`, `/bodegas`, `/usuarios`, `/permisos`, `/roles`.
 
 ## Roles provisionales
 
@@ -73,6 +77,9 @@ src/
 - [x] Vistas base y mocks para trabajar sin backend
 - [x] Login adaptado a `correo` + `contrasena`
 - [x] Módulo y ruta `/roles` agregados
-- [x] 8 tests unitarios (32 aserciones) en `test/`
+- [x] 8 tests unitarios (34 aserciones) en `test/`
+- [x] `GET /me` para recuperar la sesión al recargar
+- [x] Normalización de errores 422 (`detail` lista → texto)
 - [ ] Confirmar con el líder los roles y los campos de "quién recibe" en Bodegas
+- [ ] Confirmar formato de listados y parámetro `q` cuando publiquen los CRUD
 - [ ] Confirmar formato de la firma (fase 2)

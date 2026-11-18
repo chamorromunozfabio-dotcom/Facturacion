@@ -27,6 +27,8 @@ npm run test:watch
 
 ---
 
-**Serie completa: 8/8 ✅ — 32 aserciones.** Ejecutar todo con `npm test`.
+**Serie completa: 8/8 ✅ — 34 aserciones.** Ejecutar todo con `npm test`.
 
-> Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente` y endpoint `/roles`.
+> Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
+>
+> Los tests fuerzan `VITE_USE_MOCKS=true` en `vite.config.js`, así que funcionan aunque tu `.env` local esté en `false` para probar la API real.

@@ -38,10 +38,39 @@ api.interceptors.response.use(
   },
 )
 
+/**
+ * FastAPI normalmente manda detail como string, pero los 422 vienen como lista.
+ * Unificamos ambos casos para que la UI siempre muestre un texto.
+ */
+function formatDetail(detail) {
+  if (typeof detail === 'string') return detail
+
+  if (Array.isArray(detail)) {
+    return detail
+      .map((item) => {
+        if (typeof item === 'string') return item
+        if (item?.msg) {
+          const loc = Array.isArray(item.loc)
+            ? item.loc.filter((part) => part !== 'body').join('.')
+            : ''
+          return loc ? `${loc}: ${item.msg}` : item.msg
+        }
+        return ''
+      })
+      .filter(Boolean)
+      .join(' · ')
+  }
+
+  if (detail?.msg) return detail.msg
+  if (detail?.message) return detail.message
+
+  return ''
+}
+
 /** Mensaje listo para mostrar al usuario a partir de cualquier error de Axios. */
 export function getErrorMessage(error) {
   return (
-    error.response?.data?.detail ||
+    formatDetail(error.response?.data?.detail) ||
     error.response?.data?.message ||
     error.message ||
     'Error inesperado. Intenta de nuevo.'

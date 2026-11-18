@@ -62,6 +62,27 @@ export const useAuthStore = defineStore('auth', () => {
     return user.value
   }
 
+  /**
+   * Recupera el usuario al recargar la página usando GET /me.
+   * El token dura 60 min: si venció, el interceptor 401 cierra la sesión.
+   */
+  async function fetchMe() {
+    if (!token.value) return null
+
+    if (USE_MOCKS) {
+      await wait(150)
+      user.value = mockUser
+      localStorage.setItem(USER_KEY, JSON.stringify(mockUser))
+      return user.value
+    }
+
+    const { data } = await api.get('/me')
+    const me = pickUser(data) || data
+    user.value = me
+    localStorage.setItem(USER_KEY, JSON.stringify(me))
+    return user.value
+  }
+
   function logout() {
     token.value = ''
     user.value = null
@@ -69,7 +90,7 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem(USER_KEY)
   }
 
-  return { token, user, isAuthenticated, role, userName, login, logout, saveSession }
+  return { token, user, isAuthenticated, role, userName, login, fetchMe, logout, saveSession }
 })
 
 export { getErrorMessage }

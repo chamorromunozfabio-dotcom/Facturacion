@@ -44,6 +44,16 @@ describe('Test 2 — store de autenticación', () => {
     expect(auth.role).toBe('cliente')
   })
 
+  it('recupera el usuario con GET /me (modo demo)', async () => {
+    localStorage.setItem('token', 'token-123')
+    const auth = useAuthStore()
+
+    await auth.fetchMe()
+
+    expect(auth.userName).toBe('Usuario Demo (frontend)')
+    expect(JSON.parse(localStorage.getItem('user'))).toMatchObject({ rol: 'admin' })
+  })
+
   it('recupera la sesión guardada al crear el store', () => {
     localStorage.setItem('token', 'token-guardado')
     localStorage.setItem('user', JSON.stringify({ nombre: 'Luis', role: 'bodeguero' }))

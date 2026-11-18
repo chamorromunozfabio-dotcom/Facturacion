@@ -16,8 +16,11 @@
 | `roles` | `id`, `nombre`, `descripcion` + relación muchos a muchos con permisos |
 | `usuarios` | `id`, `nombre`, `correo`, `contrasena` (solo envío), `rol_id` |
 | Rutas | Sin prefijo: `/tipos`, `/bodegas`, `/usuarios`, `/permisos`, `/roles` |
-| Login | `POST /login` con `{ correo, contrasena }` → `{ access_token, user }` |
-| Errores | Unificados como `{ "detail": "texto" }`, incluido 422 |
+| Login | `POST /login` con `{ correo, contrasena }` → `{ access_token, token_type, user }`. No es form-data. |
+| Token | `Bearer`, vence en 60 min. `GET /me` recupera el usuario al recargar. |
+| Roles | Valores exactos: `admin`, `bodeguero`, `cliente` (provisionales). Solo existe `/solo-admin` como restricción temporal; tabla `permisos` vacía. |
+| Errores | 401/403 con `{ "detail": "texto" }`. Los 422 siguen con `detail` lista; el frontend los normaliza. |
+| Listados | Aún sin definir. Búsqueda recomendada `q` + `page` + `limit` (aceptada por el frontend). |
 
 ---
 
@@ -43,4 +46,6 @@
 - Los roles provisionales se cambian en `src/config/navigation.js` y `src/router/index.js`.
 - El login ya usa `correo` + `contrasena`; el store acepta `rol` como string u objeto `{ nombre }`.
 - Agregamos `src/api/roles.js` y la ruta `/roles`.
-- Los tests siguen en verde: `npm test` → 8 archivos, 32 aserciones.
+- `GET /me` se llama al arrancar si hay token guardado; si venció, el 401 cierra sesión.
+- `getErrorMessage()` convierte el `detail` lista de los 422 en texto.
+- Los tests siguen en verde: `npm test` → 8 archivos, 34 aserciones (fuerzan mocks en `vite.config.js`).

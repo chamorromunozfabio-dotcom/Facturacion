@@ -36,18 +36,29 @@ Lo consultamos con el líder. Por ahora dejamos `nombre` + `direccion` opcional.
 
 ## 4) Errores 422 ✅
 
-Sí, unificamos **todos** los errores (400, 401, 403, 404, 422) como:
+Para 401/403 confirmado `{ "detail": "texto" }` con esos mensajes.
+
+Para los **422** vimos que `detail` sigue llegando como lista. Por ahora lo normalizamos en el frontend (`getErrorMessage()` convierte la lista en texto legible), pero si podés unificarlo vos mejor:
 
 ```json
 { "detail": "texto legible para el usuario" }
 ```
 
-Si FastAPI devuelve el array típico de validación, convertí lo a un solo string. Nuestro `getErrorMessage()` ya lee solo `detail`.
+Así el front no depende del formato interno de FastAPI.
 
-## 5) Pendiente tuyo
+## 5) Listados y búsqueda ✅ (por nuestra parte)
+
+Confirmamos usar **`q`** como parámetro de búsqueda, junto con **`page`** y **`limit`**. Ya lo tenemos así en los mocks. El formato `{ data, total, page, limit }` lo dejamos pendiente hasta que publiques el primer listado.
+
+## 6) Sesión ✅
+
+Agregamos `GET /me` al arranque para recuperar el usuario al recargar. Si el token de 60 min venció, el interceptor 401 limpia la sesión y manda al login.
+
+## 7) Pendiente tuyo
 
 - Avisarme cuando publiques `POST /login` para probar con `VITE_USE_MOCKS=false`.
 - Confirmar que CORS sigue activo para `http://localhost:5173`.
 - Pasarme la URL de `/docs` cuando esté arriba.
+- Normalizar los 422 si es posible.
 
 ¡Gracias! 🚀
