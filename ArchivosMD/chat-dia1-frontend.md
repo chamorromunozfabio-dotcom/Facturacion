@@ -283,4 +283,4 @@ Resultado final: **8 archivos, 32 aserciones ✅**.
 
 **Documentación actualizada:** `README.md`, `test/README.md`, `ArchivosMD/PREGUNTAS_PARA_LIDER.md` y `ArchivosMD/respuesta-al-backend.md`.
 
-**Estado del repo:** cambios pendientes de commit/push a `https://github.com/chamorromunozfabio-dotcom/Facturacion.git`.
+**Estado del repo:** cambios subidos a `https://github.com/chamorromunozfabio-dotcom/Facturacion.git` en el commit `93c8e6b` (_Ajustar frontend a respuestas del backend: /me, errores 422 y búsqueda q_).

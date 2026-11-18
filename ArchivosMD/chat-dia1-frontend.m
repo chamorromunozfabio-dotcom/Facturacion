@@ -257,3 +257,30 @@ Resultado final: **8 archivos, 32 aserciones ✅**.
 > Confirmado: login con `correo` + `contrasena`, respuesta `{ access_token, user: {... rol: "admin" } }`, roles provisionales `admin/bodeguero/cliente`, y todos los errores (incluido 422) como `{ detail }`. Ya lo apliqué en el front. Agregué también `/roles`. Avisame cuando publiques `/login` para probar con `VITE_USE_MOCKS=false`.
 
 **Próximo paso:** cuando el backend publique `POST /login`, cambiar `VITE_USE_MOCKS=false` en `.env`, reiniciar `npm run dev` y probar con un correo real de la BD.
+
+---
+
+## Mensaje 6 — Usuario (nuevas respuestas del backend)
+
+> El backend confirmó:
+>
+> 4. `POST /login` espera JSON con `correo` y `contrasena` (sin ñ), no form-data. Ejemplo `{ "correo": "admin@entrega.com", "contrasena": "Admin123*" }`. Si el correo no es válido responde 422.
+> 5. Respuesta: `{ "access_token": "eyJ...", "token_type": "bearer", "user": { "id": 1, "nombre": "Administrador", "correo": "admin@entrega.com", "rol": "admin" } }`. `rol` es texto. El token vence en 60 min. Las rutas usan `Authorization: Bearer <token>`. Para recuperar la sesión al recargar existe `GET /me`, que devuelve el mismo `user`.
+> 6. Roles exactos: `admin`, `bodeguero`, `cliente` (minúsculas, sin tildes, provisionales). Descripciones del seed: admin administra todo; bodeguero gestiona bodegas, productos y entregas; cliente consulta y recibe sus entregas. Aún no hay permisos reales: solo `GET /solo-admin` temporal; tabla `permisos` vacía.
+> 7. Errores 401/403 con `{ "detail": "texto" }` y mensajes concretos. Excepción: los 422 siguen con `detail` como lista de FastAPI, falta normalizar. Listados `{ data, total, page, limit }` aún no definidos. Parámetro de búsqueda recomendado `q` con `page` y `limit`, pendiente de confirmación del frontend.
+
+## Mensaje 7 — Asistente (ajustes aplicados)
+
+**Decisiones y cambios:**
+
+1. **422 normalizados en el front:** `getErrorMessage()` ahora convierte `detail` lista en texto (`correo: value is not a valid email address · contrasena: field required`). Se agregó un test.
+2. **`GET /me` al arrancar:** `auth.fetchMe()` se llama desde `main.js` si hay token guardado. Si el token de 60 min venció, el interceptor 401 limpia la sesión y manda al login.
+3. **Roles:** confirmados como `admin`, `bodeguero`, `cliente` (provisionales). Se anotó que solo existe `/solo-admin` y que la tabla `permisos` está vacía.
+4. **Búsqueda:** confirmamos `q` + `page` + `limit` por nuestra parte; el formato de listados queda pendiente hasta que publiquen el primer CRUD.
+5. **Tests independientes del `.env` local:** el `.env` estaba en `VITE_USE_MOCKS=false` para probar el backend real, así que se fijó `VITE_USE_MOCKS: 'true'` dentro de `vite.config.js` → `test.env`.
+
+**Verificación:** `npm test` → 8 archivos, **34 aserciones ✅**. `npm run build` ✅.
+
+**Documentación actualizada:** `README.md`, `test/README.md`, `ArchivosMD/PREGUNTAS_PARA_LIDER.md` y `ArchivosMD/respuesta-al-backend.md`.
+
+**Estado del repo:** cambios subidos a `https://github.com/chamorromunozfabio-dotcom/Facturacion.git` en el commit `93c8e6b` (_Ajustar frontend a respuestas del backend: /me, errores 422 y búsqueda q_).
