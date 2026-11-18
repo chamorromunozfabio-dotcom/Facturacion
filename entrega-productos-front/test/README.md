@@ -50,11 +50,12 @@ npm run test:watch
 | 32 | Modo híbrido y CRUD reales de Roles/Permisos | ✅ PASÓ | [real-api-modules.test.js](real-api-modules.test.js) |
 | 33 | Contrato definitivo: estados, FE-0001 y campos renombrados | ✅ PASÓ | [contrato-definitivo.test.js](contrato-definitivo.test.js) |
 | 34 | Permisos reales del bodeguero: CRUD de Tipos y facturas de su bodega | ✅ PASÓ | [permisos-bodeguero.test.js](permisos-bodeguero.test.js) |
-| 35 | Contrato v2: bodegas propias, sin Usuarios y selector `/facturas/clientes` | ⏳ Por ejecutar | [contrato-v2.test.js](contrato-v2.test.js) |
+| 35 | Contrato v2: bodegas propias, sin Usuarios y selector `/facturas/clientes` | ✅ PASÓ | [contrato-v2.test.js](contrato-v2.test.js) |
+| 36 | Permisos: dar y quitar accesos al rol con `PUT /roles/{id}/permisos` | ⏳ Por ejecutar | [permisos-asignacion.test.js](permisos-asignacion.test.js) |
 
 ---
 
-**35 archivos de test, 171 aserciones.** Ejecutar todo con `npm test`.
+**36 archivos de test, 177 aserciones.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >

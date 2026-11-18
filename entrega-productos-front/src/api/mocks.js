@@ -188,9 +188,9 @@ const rowsByResource = {
     { id: 2, nombre: 'Firmar recepción', descripcion: 'Permite recibir y firmar' },
   ],
   roles: [
-    { id: 1, nombre: 'admin', descripcion: 'Acceso total' },
-    { id: 2, nombre: 'bodeguero', descripcion: 'Gestión de bodega y órdenes' },
-    { id: 3, nombre: 'cliente', descripcion: 'Consulta de órdenes y factura' },
+    { id: 1, nombre: 'admin', descripcion: 'Acceso total', permisos: [] },
+    { id: 2, nombre: 'bodeguero', descripcion: 'Gestión de bodega y órdenes', permisos: [] },
+    { id: 3, nombre: 'cliente', descripcion: 'Consulta de órdenes y factura', permisos: [] },
   ],
   facturas: [
     factura({ id: 1, numero: 'FE-0001', estado: 'emitida', cliente: clienteJuan }),
@@ -288,4 +288,17 @@ export async function mockUpdate(resource, id, payload) {
 export async function mockRemove() {
   await wait()
   return { detail: 'Eliminado (modo demo)' }
+}
+
+/** Reemplaza los permisos de un rol en modo demo (igual que el backend). */
+export async function mockSetPermisos(rolId, permisosIds = []) {
+  await wait()
+  const rol = rowsByResource.roles.find((row) => row.id === Number(rolId))
+  if (!rol) throw new Error('Rol no encontrado')
+  const ids = [...new Set(permisosIds.map(Number))]
+  rol.permisos = ids
+    .map((id) => rowsByResource.permisos.find((permiso) => permiso.id === id))
+    .filter(Boolean)
+    .map(({ id, nombre }) => ({ id, nombre }))
+  return { ...rol }
 }

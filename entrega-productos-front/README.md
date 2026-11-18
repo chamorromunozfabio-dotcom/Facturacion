@@ -150,16 +150,18 @@ Definidos por el líder en `CONTRATO_FACTURAS.MD`. Se cambian en un solo lugar: 
 | Tipos (productos) | CRUD | **CRUD** (es su catálogo) | — |
 | Bodegas | CRUD de todas; asigna dueño con `bodeguero_id` | CRUD **solo de las suyas** (el backend filtra) | — |
 | Usuarios | CRUD | **Sin acceso** (ni menú, ni ruta; API da 403) | — |
-| Roles, Permisos | CRUD | — | — |
+| Roles, Permisos | CRUD; asigna permisos al rol con `PUT /roles/{id}/permisos` | — | — |
 | Facturas | Todo | Crear solo desde sus bodegas, editar, borrar, entregar, recibir y ver PDF | Ver las suyas, aceptar con firma y rechazar |
 
 El selector de clientes de Facturas ya no usa `/usuarios`: viene de `GET /facturas/clientes` (admin y bodeguero). El bodeguero tampoco ve el campo `bodeguero_id` en Bodegas: al crear, el backend lo pone como dueño automáticamente.
+
+**Cómo funcionan los permisos:** el backend **no guarda permisos por usuario**, sino por **rol**. En `Permisos` el admin elige un usuario (para ver su rol) o elige el rol directamente, marca/desmarca permisos y guarda. Se envía la lista completa a `PUT /roles/{id}/permisos` con `{ permisos_ids: [...] }`; `[]` le quita todos. La pantalla avisa cuántos usuarios se afectan, porque el cambio aplica a todo el rol. El menú y las rutas de `Roles`/`Permisos` son solo del admin.
 
 `Órdenes` se quitó del menú: **la orden es la factura**, un solo módulo en `/facturas`. Las rutas viejas `/ordenes` y `/factura` redirigen ahí.
 
 ### Interfaz por rol
 
-- El menú y el dashboard se construyen con `visibleMenuFor(rol)`: admin ve 7 módulos, bodeguero 5 y cliente solo Inicio + Facturas.
+- El menú y el dashboard se construyen con `visibleMenuFor(rol)`: admin ve 7 módulos, bodeguero 4 (Inicio, Tipos, Bodegas y Facturas) y cliente solo Inicio + Facturas.
 - Los iconos son componentes SVG de **`@lucide/vue`** (paquete oficial de Lucide; `lucide-vue-next` quedó deprecated). Están declarados en `src/config/navigation.js` y se pintan con `<component :is="item.icon" />`.
 - No se agregó ninguna librería de animación: el cambio de vista usa `<Transition name="fade" mode="out-in">` en `MainLayout.vue` y las tarjetas del dashboard usan una animación CSS escalonada.
 - Si el sistema pide “reducir movimiento”, las animaciones CSS se desactivan automáticamente (`prefers-reduced-motion`).

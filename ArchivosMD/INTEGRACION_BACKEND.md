@@ -27,6 +27,15 @@ Todo el frontend llama a la API real. El proxy `/api` de Vite sigue evitando el 
 | Nuevo `GET /facturas/clientes` | `facturasApi.listClientes()` reemplaza a `/usuarios?rol=cliente` en el formulario de facturas |
 | `DELETE /tipos` permitido al bodeguero | verificado en vivo: ya responde `404` (no `403`) con un id inexistente |
 | Facturas desde las bodegas propias | el backend valida con `400`; el bodeguero solo ve sus bodegas en el selector |
+| `PUT /roles/{id}/permisos` (estable según el aviso v2) | pantalla de Permisos del admin: elige usuario/rol, marca permisos y guarda la lista completa |
+
+### Asignación de permisos (verificado en `/openapi.json`)
+
+- El backend **no tiene un endpoint de permisos por usuario**. Los permisos se guardan en el **rol** y, por eso, en todos los usuarios que lo tienen.
+- `PUT /roles/{rol_id}/permisos` con `{ "permisos_ids": [1, 2] }` **reemplaza** los permisos actuales. `[]` se los quita todos. Responde el rol actualizado con `permisos: [{id, nombre}]`.
+- `rolesApi.setPermisos(rolId, ids)` llama a ese endpoint (o usa un equivalente en mocks).
+- La vista `PermisosView` carga `GET /roles`, `GET /permisos` y `GET /usuarios`; muestra quién se afecta porque `UsuarioOut` trae `rol_id` y `rol`.
+- En vivo: hay 1 permiso (`comra`) y los 3 roles tienen `permisos: []`. El test no modifica datos reales: solo comprueba la URL y el cuerpo de la petición con axios simulado.
 
 ## Permisos finales
 
@@ -54,6 +63,7 @@ Según el cuadro de `CAMBIOS_PARA_FRONTENDv2.md`, el bodeguero **ve todas** las 
 - Test 33: contrato definitivo (estados, `FE-0001`, campos `recibe_*`).
 - Test 34: permisos del bodeguero en Tipos y parámetro `bodega_id`.
 - Test 35: contrato v2 (bodegas propias, sin Usuarios, selector `/facturas/clientes`).
-- 35 archivos de test / 171 aserciones en verde.
+- Test 36: asignación de permisos por rol (`PUT /roles/{id}/permisos`) y pantalla del admin.
+- 36 archivos de test / 177 aserciones en verde.
 - `npm run build` correcto.
 - API en vivo: `/facturas/clientes` → 200 para admin/bodeguero y 403 para cliente; `/bodegas?bodeguero_id=` existe; el bodeguero ve `data: []` porque aún no tiene bodegas asignadas.

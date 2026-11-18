@@ -102,7 +102,11 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 - [ ] Admin: crear un rol “supervisor” → aparece en la tabla y sale “Rol creado.”
 - [ ] Admin: editar y eliminar un rol con confirmación.
 - [ ] Admin: crear un permiso “editar_factura” → sale “Permiso creado.”
-- [ ] Bodeguero: no ve botones Crear/Editar/Eliminar en Roles ni Permisos.
+- [ ] Admin: en **Permisos**, elegir el usuario “Ana” → se selecciona el rol `admin` y aparece “Usuarios con el rol admin: Ana”.
+- [ ] Admin: marcar “editar_factura” y tocar **Guardar permisos** → sale “Permisos de "admin" actualizados.” y se deshabilita el botón.
+- [ ] Admin: desmarcarlo y guardar → el rol queda sin ese permiso (se envía `permisos_ids: []`).
+- [ ] Confirmar en `GET /roles` que el rol tiene la lista de permisos guardada.
+- [ ] Bodeguero: no ve el menú Permisos y la ruta `/permisos` lo devuelve al inicio.
 
 ## 8. Integración real (todo contra la API)
 
@@ -117,5 +121,5 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 
 ---
 
-**Estado actual:** 35 archivos de test / 171 aserciones en verde + build correcto.
-**Rama:** pendiente de merge del Test 35.
+**Estado actual:** 36 archivos de test / 177 aserciones en verde + build correcto.
+**Rama:** pendiente de merge del Test 36.

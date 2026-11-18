@@ -5,6 +5,8 @@ import ConfirmDelete from '../components/ConfirmDelete.vue'
 import DataTable from '../components/DataTable.vue'
 import FormModal from '../components/FormModal.vue'
 import permisosApi from '../api/permisos'
+import rolesApi from '../api/roles'
+import usuariosApi from '../api/usuarios'
 import { getErrorMessage, isDuplicateError } from '../api/axios'
 import { useAuthStore } from '../stores/auth'
 import { hasPermission } from '../config/permissions'
@@ -14,6 +16,107 @@ const canCreate = computed(() => hasPermission(auth.role, 'permisos', 'create'))
 const canEdit = computed(() => hasPermission(auth.role, 'permisos', 'edit'))
 const canDelete = computed(() => hasPermission(auth.role, 'permisos', 'delete'))
 
+/* ------------------------------------------------------------------
+ * 1) Asignación de permisos (lo que pide el negocio)
+ * El backend no tiene permisos por usuario: los guarda en el ROL.
+ * Elegimos un usuario para ver su rol y marcamos lo que ese rol puede hacer.
+ * ------------------------------------------------------------------ */
+const roles = ref([])
+const todosLosPermisos = ref([])
+const usuarios = ref([])
+const rolSeleccionadoId = ref(null)
+const permisosSeleccionados = ref([])
+const cargandoAsignacion = ref(false)
+const guardandoPermisos = ref(false)
+const mensajeAsignacion = ref(null)
+
+const rolSeleccionado = computed(
+  () => roles.value.find((rol) => rol.id === rolSeleccionadoId.value) ?? null,
+)
+const usuariosDelRol = computed(() =>
+  usuarios.value.filter((usuario) => usuario.rol_id === rolSeleccionadoId.value),
+)
+const idsActuales = computed(() =>
+  (rolSeleccionado.value?.permisos ?? []).map((permiso) => permiso.id).sort((a, b) => a - b),
+)
+const idsSeleccionados = computed(() => [...permisosSeleccionados.value].sort((a, b) => a - b))
+const hayCambios = computed(
+  () => JSON.stringify(idsActuales.value) !== JSON.stringify(idsSeleccionados.value),
+)
+
+async function loadAssignment() {
+  cargandoAsignacion.value = true
+  try {
+    const [listaRoles, listaPermisos, listaUsuarios] = await Promise.all([
+      rolesApi.list({ page: 1, limit: 100 }),
+      permisosApi.list({ q: '', page: 1, limit: 100 }),
+      usuariosApi.list({ page: 1, limit: 100 }),
+    ])
+    roles.value = listaRoles.data ?? []
+    todosLosPermisos.value = listaPermisos.data ?? []
+    usuarios.value = listaUsuarios.data ?? []
+
+    if (!rolSeleccionadoId.value && roles.value.length) {
+      rolSeleccionadoId.value = roles.value[0].id
+    } else {
+      sincronizarPermisos()
+    }
+  } catch (error) {
+    mensajeAsignacion.value = { type: 'error', message: getErrorMessage(error) }
+  } finally {
+    cargandoAsignacion.value = false
+  }
+}
+
+function sincronizarPermisos() {
+  permisosSeleccionados.value = (rolSeleccionado.value?.permisos ?? []).map(
+    (permiso) => permiso.id,
+  )
+}
+
+watch(rolSeleccionadoId, sincronizarPermisos)
+
+function seleccionarUsuario(valor) {
+  const usuario = usuarios.value.find((item) => String(item.id) === String(valor))
+  if (usuario?.rol_id != null) rolSeleccionadoId.value = Number(usuario.rol_id)
+}
+
+function togglePermiso(id, marcado) {
+  permisosSeleccionados.value = marcado
+    ? [...permisosSeleccionados.value, Number(id)]
+    : permisosSeleccionados.value.filter((permisoId) => permisoId !== Number(id))
+}
+
+async function guardarPermisos() {
+  if (!rolSeleccionado.value || !hayCambios.value) return
+  guardandoPermisos.value = true
+  mensajeAsignacion.value = null
+  try {
+    const rolActualizado = await rolesApi.setPermisos(
+      rolSeleccionado.value.id,
+      idsSeleccionados.value,
+    )
+    roles.value = roles.value.map((rol) =>
+      rol.id === rolActualizado.id ? { ...rol, ...rolActualizado } : rol,
+    )
+    sincronizarPermisos()
+    mensajeAsignacion.value = {
+      type: 'success',
+      message: `Permisos de "${rolActualizado.nombre}" actualizados.`,
+    }
+  } catch (error) {
+    mensajeAsignacion.value = {
+      type: 'error',
+      message: getErrorMessage(error) || 'No se pudieron guardar los permisos.',
+    }
+  } finally {
+    guardandoPermisos.value = false
+  }
+}
+
+/* ------------------------------------------------------------------
+ * 2) CRUD de permisos (se mantiene igual)
+ * ------------------------------------------------------------------ */
 const columns = [
   { key: 'nombre', label: 'Nombre' },
   { key: 'descripcion', label: 'Descripción' },
@@ -137,7 +240,10 @@ async function confirmDelete() {
   }
 }
 
-onMounted(load)
+onMounted(() => {
+  load()
+  loadAssignment()
+})
 </script>
 
 <template>
@@ -145,9 +251,9 @@ onMounted(load)
     <header class="crud-page__header">
       <div>
         <h1>Permisos</h1>
-        <p>Crea permisos y asígnalos a un rol desde la API.</p>
+        <p>Da o quita accesos, y crea los permisos que existirán en el sistema.</p>
       </div>
-      <span class="badge">Accesos</span>
+      <span class="badge">Solo administrador</span>
     </header>
 
     <Transition name="alert">
@@ -159,30 +265,123 @@ onMounted(load)
       />
     </Transition>
 
-    <DataTable
-      :columns="columns"
-      :rows="rows"
-      :total="total"
-      :page="page"
-      :limit="limit"
-      :q="q"
-      :loading="loading"
-      create-label="Nuevo permiso"
-      :can-create="canCreate"
-      :can-edit="canEdit"
-      :can-delete="canDelete"
-      @update:q="q = $event"
-      @update:page="page = $event"
-      @create="openCreate"
-      @edit="openEdit"
-      @delete="askDelete"
-    >
-      <template #cell-estado="{ value }">
-        <span :class="value ? 'estado--activo' : 'estado--inactivo'">
-          {{ value ? 'Activo' : 'Inactivo' }}
-        </span>
+    <section class="assignment">
+      <header class="assignment__header">
+        <div>
+          <h2>Dar o quitar permisos</h2>
+          <p class="assignment__hint">
+            El backend guarda los permisos en el <strong>rol</strong>, no en cada usuario. Elegí un
+            usuario para ver su rol; al guardar, el cambio alcanza a todos los usuarios de ese rol.
+          </p>
+        </div>
+      </header>
+
+      <Transition name="alert">
+        <AlertMessage
+          v-if="mensajeAsignacion"
+          :type="mensajeAsignacion.type"
+          :message="mensajeAsignacion.message"
+          @close="mensajeAsignacion = null"
+        />
+      </Transition>
+
+      <div class="assignment__selectors">
+        <label>
+          <span>Usuario</span>
+          <select data-test="assignment-user" @change="seleccionarUsuario($event.target.value)">
+            <option value="">Elige un usuario (opcional)</option>
+            <option v-for="usuario in usuarios" :key="usuario.id" :value="usuario.id">
+              {{ usuario.nombre }} — {{ usuario.rol }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          <span>Rol</span>
+          <select v-model.number="rolSeleccionadoId" data-test="assignment-role">
+            <option v-for="rol in roles" :key="rol.id" :value="rol.id">
+              {{ rol.nombre }}
+            </option>
+          </select>
+        </label>
+      </div>
+
+      <p v-if="cargandoAsignacion" class="assignment__loading">Cargando roles y permisos...</p>
+
+      <template v-else-if="rolSeleccionado">
+        <p class="assignment__affected" data-test="affected-users">
+          Usuarios con el rol <strong>{{ rolSeleccionado.nombre }}</strong>:
+          {{ usuariosDelRol.length ? usuariosDelRol.map((u) => u.nombre).join(', ') : 'ninguno' }}.
+        </p>
+
+        <fieldset class="assignment__list">
+          <legend>Permisos de {{ rolSeleccionado.nombre }}</legend>
+          <p v-if="todosLosPermisos.length === 0" class="assignment__empty">
+            Todavía no hay permisos creados. Creá uno en la tabla de abajo.
+          </p>
+          <label
+            v-for="permiso in todosLosPermisos"
+            :key="permiso.id"
+            class="assignment__option"
+            :data-test="`permiso-option-${permiso.id}`"
+          >
+            <input
+              type="checkbox"
+              :data-test="`permiso-check-${permiso.id}`"
+              :checked="permisosSeleccionados.includes(permiso.id)"
+              @change="togglePermiso(permiso.id, $event.target.checked)"
+            />
+            <span>
+              <strong>{{ permiso.nombre }}</strong>
+              <small v-if="permiso.descripcion">— {{ permiso.descripcion }}</small>
+            </span>
+          </label>
+        </fieldset>
+
+        <div class="assignment__actions">
+          <button
+            data-test="save-permisos"
+            type="button"
+            class="btn btn--primary"
+            :disabled="!hayCambios || guardandoPermisos"
+            @click="guardarPermisos"
+          >
+            {{ guardandoPermisos ? 'Guardando...' : 'Guardar permisos' }}
+          </button>
+          <span v-if="!hayCambios" class="assignment__note">Sin cambios por guardar.</span>
+        </div>
       </template>
-    </DataTable>
+
+      <p v-else class="assignment__empty">No hay roles cargados.</p>
+    </section>
+
+    <section class="catalog">
+      <h2>Catálogo de permisos</h2>
+      <DataTable
+        :columns="columns"
+        :rows="rows"
+        :total="total"
+        :page="page"
+        :limit="limit"
+        :q="q"
+        :loading="loading"
+        create-label="Nuevo permiso"
+        :can-create="canCreate"
+        :can-edit="canEdit"
+        :can-delete="canDelete"
+        @update:q="q = $event"
+        @update:page="page = $event"
+        @create="openCreate"
+        @edit="openEdit"
+        @delete="askDelete"
+      >
+        <template #cell-estado="{ value }">
+          <span :class="value ? 'estado--activo' : 'estado--inactivo'">
+            {{ value ? 'Activo' : 'Inactivo' }}
+          </span>
+        </template>
+      </DataTable>
+    </section>
 
     <FormModal
       :open="modalOpen"
@@ -228,6 +427,11 @@ h1 {
   font-size: 1.5rem;
 }
 
+h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
 p {
   margin: 4px 0 0;
   color: #6b7280;
@@ -240,6 +444,113 @@ p {
   padding: 4px 10px;
   font-size: 0.8rem;
   font-weight: 600;
+}
+
+.assignment,
+.catalog {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 6%);
+}
+
+.assignment__header,
+.assignment__selectors,
+.assignment__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.assignment__hint {
+  max-width: 760px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.assignment__selectors label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.assignment__selectors select {
+  min-width: 220px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #fff;
+}
+
+.assignment__affected {
+  font-size: 0.9rem;
+}
+
+.assignment__list {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 8px;
+}
+
+.assignment__list legend {
+  padding: 0 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.assignment__option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.assignment__option small {
+  color: #6b7280;
+}
+
+.assignment__note,
+.assignment__empty,
+.assignment__loading {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: #4f46e5;
+  border-color: #4f46e5;
+  color: #fff;
 }
 
 .estado--activo {

@@ -1,7 +1,7 @@
 # Mensaje para el backend — contrato v2 aplicado
 
 > Listo para copiar y pegar. Fecha: 18-11-2026 (actualizado).
-> Estado del frontend: **35 archivos de test / 171 aserciones en verde y build correcto.**
+> Estado del frontend: **36 archivos de test / 177 aserciones en verde y build correcto.**
 
 ---
 
@@ -13,7 +13,8 @@
 2. **Selector de clientes.** `FacturaForm` ya no usa `/usuarios?rol=cliente`; usa tu endpoint nuevo `GET /facturas/clientes` (verifiqué 200 para admin/bodeguero y 403 para cliente).
 3. **Bodegas con dueño.** Agregué `bodeguero_nombre` como columna para el admin y un selector “Bodeguero dueño” con `GET /usuarios?rol=bodeguero`. El valor se envía como número. El bodeguero no ve ese campo: al crear, el backend lo asigna solo.
 4. **Permisos de bodegas.** El bodeguero ya tiene Crear/Editar/Eliminar (sus bodegas). El admin ve y edita todas.
-5. **Documentación y tests.** Actualicé README, checklist, integración y contrato interno. Agregué el Test 35; todo en verde.
+5. **Pantalla de Permisos del admin.** Ya no es solo un CRUD suelto: el admin elige un usuario (o un rol), marca/desmarca permisos y guarda con `PUT /roles/{id}/permisos` (`permisos_ids` completo, `[]` para quitar todos). La pantalla muestra a qué usuarios afecta porque el backend guarda permisos por **rol**, no por usuario.
+6. **Documentación y tests.** Actualicé README, checklist, integración y contrato interno. Agregué los Tests 35 y 36; todo en verde.
 
 ## ✅ Lo que verifiqué de tu parte
 
@@ -23,6 +24,7 @@
 - El bodeguero solo recibe sus bodegas (hoy `data: []`, porque aún no tiene ninguna asignada).
 - `/usuarios` da `403` para bodeguero y cliente.
 - Los borrados protegidos, errores 422 en español y el PDF `FE-0001.pdf` siguen iguales.
+- `PUT /roles/{id}/permisos` está en tu OpenAPI con `RolPermisosUpdate.permisos_ids` obligatorio y responde el rol con su lista nueva; lo dejamos marcado como estable en el documento v2. No modifiqué datos reales al probar: simulé axios.
 
 ## 📌 Observación sobre los documentos
 
@@ -39,5 +41,26 @@ También quedó sin efecto nuestro pedido anterior de filtrar `GET /facturas` po
 | cliente | `cliente@gmail.com` | `Cliente123*` |
 
 > Coincido con tu aviso: las cuentas `@entrega.com` del documento v2 ya no son las que están en la BD. Estas son las que responden `200`.
+
+## 🆕 Pedido nuevo: permisos por usuario (dejar de depender del rol)
+
+Hola, necesitamos cambiar el modelo de permisos. Hoy `PUT /roles/{id}/permisos` asigna permisos al **rol**, así que no se puede dar o quitar un acceso a **un usuario** sin afectar a todos los que tienen ese rol. Para la lógica de negocio necesitamos que el permiso sea **por usuario**.
+
+### Lo que necesitamos del backend
+
+1. Tabla nueva `usuario_permisos` con `usuario_id` + `permiso_id` (únicos juntos, con FK a `usuarios` y `permisos`).
+2. Endpoints nuevos, **solo admin**:
+   - `GET /usuarios/{usuario_id}/permisos` → `{ data: [{ id, nombre }] }` (o la misma forma que ya usan los roles).
+   - `PUT /usuarios/{usuario_id}/permisos` con `{ "permisos_ids": [1, 2] }` → **reemplaza** todos los permisos del usuario y devuelve el usuario con `permisos: [{id, nombre}]`. `[]` le quita todos. Si algún id no existe → `400` y no cambia nada. Usuario inexistente → `404`. No admin → `403`.
+   - Opcional: `POST /usuarios/{id}/permisos/{permiso_id}` y `DELETE /usuarios/{id}/permisos/{permiso_id}` para sumar/quitar uno solo.
+3. Que `GET /usuarios`, `GET /usuarios/{id}` y `GET /me` traigan el campo `permisos: [{ id, nombre }]`, como ya trae `RolOut`.
+4. Regla de **permisos efectivos**. Recomiendo esta: **los permisos efectivos son solo los del usuario**; el rol se usa únicamente como plantilla al crearlo (se copian sus permisos en ese momento). Así, cambiar un rol después **no** modifica silenciosamente a los usuarios ya creados. La alternativa sería unir rol + usuario, pero para "quitar" haría falta además una lista de permisos denegados.
+5. Migración: al crear la tabla, copiar los permisos actuales de `roles_permisos` a `usuario_permisos` para que nadie se quede sin acceso.
+6. Podés dejar `PUT /roles/{id}/permisos` por compatibilidad, pero marcarlo como "plantilla/legacy" para evitar confusión.
+7. Si además los guards de los endpoints van a usar estos permisos en vez de un rol fijo, avisennos para probar los `403` con cada permiso.
+
+### Qué hacemos nosotros en el frontend
+
+En cuanto estén publicados los endpoints, cambiamos `PermisosView`: el usuario ya se puede elegir en el selector y los checks ya están; solo reemplazamos la llamada `PUT /roles/{id}/permisos` por `PUT /usuarios/{id}/permisos` y mostramos los `permisos` que devuelve cada usuario. No tocamos CORS ni el proxy `/api`.
 
 Si ves algo distinto en una prueba manual, me pasás **rol + pasos + mensaje de consola (F12)** y lo ajustamos. ¡Gracias! 🚀
