@@ -427,3 +427,52 @@ Resultado final: **8 archivos, 32 aserciones ✅**.
 - Rama `main` con commit pendiente de subir.
 
 **Pendiente ahora solo del backend:** publicar Bodegas, Usuarios y Facturas; aplicar el `403` de bodeguero en Tipos/Bodegas; traducir los 422 de `page`/`limit`.
+
+---
+
+## Mensaje 16 — Usuario
+
+> Listo que informacion le proporciono al backend para que el pueda seguir
+
+## Mensaje 16 — Asistente (informe para el backend)
+
+Se armó un mensaje listo para copiar y pegar con todo lo que el frontend ya consume y lo que falta publicar. Se guardó además como archivo propio: **`ArchivosMD/MENSAJE_PARA_BACKEND.md`**.
+
+**Contenido del informe:**
+
+1. **Tipos:** falta el `403` al bodeguero en `POST`/`PUT`/`DELETE` (los `GET` siguen permitidos).
+2. **Bodegas:** publicar con 8 campos; solo `nombre` obligatorio; validaciones de teléfono (7-20 caracteres), correo y documento (≤ 20); mismo patrón de listado/CRUD que Tipos.
+3. **Usuarios:** `rol_id` numérico (1/2/3), campos de cliente obligatorios solo para `rol_id = 3`, `contrasena` opcional al editar y `GET /usuarios?rol=cliente` forzado para bodeguero.
+4. **Facturas:** listado con `q` (número + nombre del cliente) y `estado`; detalle con `trazabilidad.firma`; CRUD solo en `creada`; acciones `entregar`/`aceptar`/`rechazar`/`recibir` con sus estados origen; firma data URL PNG máx. 500 KB; PDF con `blob` y `Content-Disposition`; el backend filtra por `cliente_id` del token (el front nunca lo envía); los totales los calcula el backend.
+5. **422 de `page`/`limit`:** traducir al español.
+
+**Notas de integración incluidas:** token Bearer de 60 min, errores con `{ "detail": "texto" }`, proxy `/api` de Vite (no hace falta tocar CORS) y prueba de a un módulo por vez con `VITE_USE_MOCKS=false`.
+
+**Resumen de prioridades entregado:**
+
+| Prioridad | Qué hacer |
+|---|---|
+| 1 | 403 al bodeguero en `POST`/`PUT`/`DELETE` de `/tipos` |
+| 2 | Publicar `/bodegas` (8 campos) |
+| 3 | Publicar `/usuarios` (`rol_id`, campos de cliente, filtro `rol=cliente`) |
+| 4 | Publicar `/facturas` (listado, detalle, CRUD, acciones, firma, PDF) |
+| 5 | Traducir 422 de `page`/`limit` |
+
+---
+
+## Mensaje 17 — Usuario
+
+> bueno guarda este registro del chat en donde sabes y lo demas tambien
+
+## Mensaje 17 — Asistente (registro guardado)
+
+Se guardó todo en el repositorio:
+
+- **`ArchivosMD/chat-dia1-frontend.md`**: este registro (Mensajes 1 a 17), con el Día 1, el Día 3, la llegada del contrato, los Días 4 y 5 y el informe para el backend.
+- **`ArchivosMD/MENSAJE_PARA_BACKEND.md`**: el mensaje completo para copiar y pegar, con los ejemplos de JSON y la tabla de prioridades.
+- **`ArchivosMD/CONTRATO_FACTURAS.md`**: contrato original del líder (ya estaba en el repo).
+- **`ArchivosMD/PREGUNTAS_PARA_LIDER.md`**: actualizado sin preguntas bloqueantes.
+- **`entrega-productos-front/README.md`**: contratos aplicados, permisos y pendientes del backend.
+- **`entrega-productos-front/test/README.md`**: los 24 tests marcados como PASÓ.
+
+Todo quedó versionado y subido a `origin/main`.
