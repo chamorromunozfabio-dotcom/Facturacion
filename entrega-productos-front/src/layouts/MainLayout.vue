@@ -17,7 +17,7 @@ async function logout() {
 </script>
 
 <template>
-  <div class="layout">
+  <div class="layout" :data-role="auth.role || 'invitado'">
     <aside class="sidebar">
       <div class="brand">
         <img :src="logoUrl" alt="Logo de Entrega de Productos" class="brand__logo" />
@@ -57,9 +57,23 @@ async function logout() {
 
 <style scoped>
 .layout {
+  --accent: #2563eb;
   display: grid;
   grid-template-columns: 240px 1fr;
   min-height: 100vh;
+}
+
+/* Cada rol tiene un color de acento distinto, heredado por el dashboard. */
+.layout[data-role='admin'] {
+  --accent: #4f46e5;
+}
+
+.layout[data-role='bodeguero'] {
+  --accent: #059669;
+}
+
+.layout[data-role='cliente'] {
+  --accent: #d97706;
 }
 
 .sidebar {
@@ -116,7 +130,7 @@ async function logout() {
 }
 
 .menu__item.router-link-exact-active {
-  background: #2563eb;
+  background: var(--accent);
   color: #fff;
 }
 
@@ -162,8 +176,9 @@ async function logout() {
 }
 
 .user small {
-  color: #6b7280;
+  color: var(--accent);
   font-size: 0.78rem;
+  font-weight: 600;
 }
 
 .logout {
@@ -195,6 +210,14 @@ async function logout() {
     padding-bottom: 12px;
   }
 
+  .brand small {
+    display: none;
+  }
+
+  .brand strong {
+    font-size: 0.85rem;
+  }
+
   .menu {
     flex-direction: row;
     overflow-x: auto;
@@ -203,6 +226,8 @@ async function logout() {
 
   .menu__item {
     white-space: nowrap;
+    padding: 8px 10px;
+    font-size: 0.85rem;
   }
 
   .content {

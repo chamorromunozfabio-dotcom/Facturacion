@@ -1,5 +1,15 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
+import {
+  Check,
+  Eye,
+  FileDown,
+  PackageCheck,
+  Pencil,
+  Trash2,
+  Truck,
+  X,
+} from '@lucide/vue'
 import AlertMessage from '../components/AlertMessage.vue'
 import ConfirmDelete from '../components/ConfirmDelete.vue'
 import DataTable from '../components/DataTable.vue'
@@ -334,7 +344,8 @@ onMounted(load)
     >
       <template #actions="{ row }">
         <button data-test="ver" type="button" class="btn btn--small" @click="openDetail(row)">
-          Ver
+          <Eye :size="14" aria-hidden="true" />
+          <span>Ver</span>
         </button>
         <button
           v-if="canEdit && row.estado === 'creada'"
@@ -343,7 +354,8 @@ onMounted(load)
           class="btn btn--small"
           @click="openEdit(row)"
         >
-          Editar
+          <Pencil :size="14" aria-hidden="true" />
+          <span>Editar</span>
         </button>
         <button
           v-if="canDelete && row.estado === 'creada'"
@@ -352,7 +364,8 @@ onMounted(load)
           class="btn btn--small btn--danger"
           @click="askDelete(row)"
         >
-          Eliminar
+          <Trash2 :size="14" aria-hidden="true" />
+          <span>Eliminar</span>
         </button>
         <button
           v-if="canEntregar && row.estado === 'creada'"
@@ -361,7 +374,8 @@ onMounted(load)
           class="btn btn--small"
           @click="entregar(row)"
         >
-          Entregar
+          <Truck :size="14" aria-hidden="true" />
+          <span>Entregar</span>
         </button>
         <button
           v-if="canAceptar && row.estado === 'entregada'"
@@ -370,7 +384,8 @@ onMounted(load)
           class="btn btn--small btn--primary"
           @click="openAceptar(row)"
         >
-          Aceptar
+          <Check :size="14" aria-hidden="true" />
+          <span>Aceptar</span>
         </button>
         <button
           v-if="canRechazar && row.estado === 'entregada'"
@@ -379,7 +394,8 @@ onMounted(load)
           class="btn btn--small btn--danger"
           @click="openRechazar(row)"
         >
-          Rechazar
+          <X :size="14" aria-hidden="true" />
+          <span>Rechazar</span>
         </button>
         <button
           v-if="canRecibir && row.estado === 'aceptada'"
@@ -388,7 +404,8 @@ onMounted(load)
           class="btn btn--small"
           @click="recibir(row)"
         >
-          Recibir
+          <PackageCheck :size="14" aria-hidden="true" />
+          <span>Recibir</span>
         </button>
         <button
           v-if="canPdf"
@@ -397,7 +414,8 @@ onMounted(load)
           class="btn btn--small"
           @click="descargar(row)"
         >
-          PDF
+          <FileDown :size="14" aria-hidden="true" />
+          <span>PDF</span>
         </button>
       </template>
     </DataTable>
@@ -515,7 +533,7 @@ h2 { margin: 0; font-size: 1.1rem; }
 label { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; font-weight: 600; color: #374151; }
 textarea { width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px; font: inherit; }
 .error { color: #b91c1c; background: #fef2f2; border-radius: 6px; padding: 8px 10px; font-size: 0.9rem; }
-.btn { border: 1px solid #d1d5db; background: #fff; color: #374151; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #d1d5db; background: #fff; color: #374151; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
 .btn--small { padding: 5px 10px; font-size: 0.85rem; }
 .btn--primary { background: #4f46e5; border-color: #4f46e5; color: #fff; }
 .btn--danger { color: #b91c1c; border-color: #fca5a5; }

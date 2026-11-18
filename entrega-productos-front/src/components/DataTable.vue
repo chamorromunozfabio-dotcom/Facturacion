@@ -1,5 +1,6 @@
 <script setup>
 import { computed, useSlots } from 'vue'
+import { ChevronLeft, ChevronRight, Pencil, Plus, Search, Trash2 } from '@lucide/vue'
 
 /**
  * Tabla reutilizable para todos los CRUD.
@@ -47,6 +48,7 @@ function goTo(page) {
   <section class="data-table">
     <header class="data-table__toolbar">
       <label v-if="searchable" class="data-table__search">
+        <Search :size="16" aria-hidden="true" />
         <span>Buscar</span>
         <input
           data-test="search"
@@ -64,7 +66,8 @@ function goTo(page) {
         class="btn btn--primary"
         @click="emit('create')"
       >
-        + Nuevo
+        <Plus :size="16" aria-hidden="true" />
+        <span>Nuevo</span>
       </button>
     </header>
 
@@ -92,7 +95,8 @@ function goTo(page) {
                   class="btn btn--small"
                   @click="emit('edit', row)"
                 >
-                  Editar
+                  <Pencil :size="14" aria-hidden="true" />
+                  <span>Editar</span>
                 </button>
                 <button
                   v-if="canDelete"
@@ -101,7 +105,8 @@ function goTo(page) {
                   class="btn btn--small btn--danger"
                   @click="emit('delete', row)"
                 >
-                  Eliminar
+                  <Trash2 :size="14" aria-hidden="true" />
+                  <span>Eliminar</span>
                 </button>
               </slot>
             </td>
@@ -125,7 +130,8 @@ function goTo(page) {
           :disabled="!canPrev"
           @click="goTo(page - 1)"
         >
-          Anterior
+          <ChevronLeft :size="14" aria-hidden="true" />
+          <span>Anterior</span>
         </button>
         <span>Página {{ page }} de {{ totalPages }}</span>
         <button
@@ -135,7 +141,8 @@ function goTo(page) {
           :disabled="!canNext"
           @click="goTo(page + 1)"
         >
-          Siguiente
+          <span>Siguiente</span>
+          <ChevronRight :size="14" aria-hidden="true" />
         </button>
       </div>
     </footer>
@@ -234,6 +241,10 @@ th {
 }
 
 .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   border: 1px solid #d1d5db;
   background: #fff;
   color: #374151;

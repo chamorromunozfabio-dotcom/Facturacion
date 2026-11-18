@@ -66,12 +66,12 @@ h1 {
 }
 
 .card:hover {
-  border-color: #2563eb;
+  border-color: var(--accent, #2563eb);
   box-shadow: 0 4px 12px rgb(37 99 235 / 12%);
 }
 
 .card__icon {
-  color: #2563eb;
+  color: var(--accent, #2563eb);
 }
 
 .card small {

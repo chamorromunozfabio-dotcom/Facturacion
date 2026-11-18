@@ -118,6 +118,8 @@ Definidos por el líder en `CONTRATO_FACTURAS.MD`. Se cambian en un solo lugar: 
 - Los iconos son componentes SVG de **`@lucide/vue`** (paquete oficial de Lucide; `lucide-vue-next` quedó deprecated). Están declarados en `src/config/navigation.js` y se pintan con `<component :is="item.icon" />`.
 - No se agregó ninguna librería de animación: el cambio de vista usa `<Transition name="fade" mode="out-in">` en `MainLayout.vue` y las tarjetas del dashboard usan una animación CSS escalonada.
 - Si el sistema pide “reducir movimiento”, las animaciones CSS se desactivan automáticamente (`prefers-reduced-motion`).
+- Los botones (`Nuevo`, `Editar`, `Eliminar`, `Ver`, `Entregar`, `Aceptar`, `Rechazar`, `Recibir`, `PDF` y paginación) también llevan iconos Lucide. Siguen emitiendo los mismos eventos y teniendo los mismos `data-test`.
+- Cada rol tiene un color de acento: admin violeta, bodeguero verde y cliente ámbar. Se define con una variable CSS `--accent` en `MainLayout.vue` (`data-role`) y la hereda el dashboard. En pantallas chicas el menú se vuelve horizontal y se muestra compacto.
 
 ## Campos confirmados por backend
 
