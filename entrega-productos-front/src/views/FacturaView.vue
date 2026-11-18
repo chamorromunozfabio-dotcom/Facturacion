@@ -16,6 +16,7 @@ import DataTable from '../components/DataTable.vue'
 import FacturaDetail from '../components/FacturaDetail.vue'
 import FacturaForm from '../components/FacturaForm.vue'
 import SignaturePad from '../components/SignaturePad.vue'
+import StatusBadge from '../components/StatusBadge.vue'
 import facturasApi, { validateFirma } from '../api/facturas'
 import usuariosApi from '../api/usuarios'
 import bodegasApi from '../api/bodegas'
@@ -342,6 +343,10 @@ onMounted(load)
       @update:page="page = $event"
       @create="openCreate"
     >
+      <template #cell-estado="{ value }">
+        <StatusBadge :estado="value" />
+      </template>
+
       <template #actions="{ row }">
         <button data-test="ver" type="button" class="btn btn--small" @click="openDetail(row)">
           <Eye :size="14" aria-hidden="true" />

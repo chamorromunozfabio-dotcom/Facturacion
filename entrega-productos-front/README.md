@@ -98,6 +98,7 @@ src/
 - Firma: data URL completa `data:image/png;base64,...`, base64 válido, máx. 500 KB. Se devuelve en `trazabilidad.firma` (solo en el detalle).
 - PDF: `application/pdf` con `Content-Disposition: attachment; filename="FAC-000001.pdf"`. Se descarga con `blob` porque el `<a>` simple no envía el Bearer.
 - Líneas: al menos 1; `cantidad > 0`, `precio_unitario ≥ 0`, `descuento_porcentaje` 0-100, `iva_porcentaje` 0/5/19, `tipo_id` opcional. Los totales los calcula el backend.
+- Interfaz: el estado se muestra con `StatusBadge.vue` (mismo componente en listado y detalle). Colores: gris `creada`, ámbar `entregada`, verde `aceptada`, rojo `rechazada`, azul `cerrada`. `DataTable` admite slots `cell-<key>` para personalizar celdas.
 
 ## Roles y permisos definitivos
 

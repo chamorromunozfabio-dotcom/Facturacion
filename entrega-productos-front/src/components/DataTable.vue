@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight, Pencil, Plus, Search, Trash2 } from '@lucide
  *
  * columns: [{ key: 'nombre', label: 'Nombre' }]
  * El padre escucha update:q, update:page, create, edit y delete.
+ * Para personalizar una celda se usa el slot `cell-<key>` (por ejemplo `cell-estado`).
  */
 const props = defineProps({
   columns: { type: Array, required: true },
@@ -84,7 +85,9 @@ function goTo(page) {
         <tbody>
           <tr v-for="row in rows" :key="row.id">
             <td v-for="column in columns" :key="column.key">
-              {{ row[column.key] ?? '—' }}
+              <slot :name="`cell-${column.key}`" :row="row" :value="row[column.key]">
+                {{ row[column.key] ?? '—' }}
+              </slot>
             </td>
             <td v-if="showActions" class="data-table__actions">
               <slot name="actions" :row="row">

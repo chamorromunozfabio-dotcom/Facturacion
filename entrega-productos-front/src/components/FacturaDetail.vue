@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import StatusBadge from './StatusBadge.vue'
 
 const props = defineProps({
   factura: { type: Object, required: true },
@@ -28,9 +29,7 @@ const software = computed(() => props.factura.software ?? {})
         <h2 data-test="detail-numero">{{ factura.numero }}</h2>
         <p>Emisión: {{ factura.fecha_emision }}</p>
       </div>
-      <span data-test="detail-estado" class="badge" :class="`badge--${factura.estado}`">
-        {{ factura.estado }}
-      </span>
+      <StatusBadge data-test="detail-estado" :estado="factura.estado" />
     </header>
 
     <div class="detail__grid">
@@ -207,20 +206,6 @@ td {
   gap: 8px 20px;
   font-size: 0.9rem;
 }
-
-.badge {
-  border-radius: 999px;
-  padding: 4px 12px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  background: #e5e7eb;
-  text-transform: capitalize;
-}
-
-.badge--entregada { background: #fef3c7; color: #92400e; }
-.badge--aceptada { background: #dcfce7; color: #166534; }
-.badge--rechazada { background: #fee2e2; color: #991b1b; }
-.badge--cerrada { background: #dbeafe; color: #1e40af; }
 
 .firma img {
   max-height: 90px;
