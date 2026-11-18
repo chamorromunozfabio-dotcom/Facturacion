@@ -284,3 +284,28 @@ Resultado final: **8 archivos, 32 aserciones ✅**.
 **Documentación actualizada:** `README.md`, `test/README.md`, `ArchivosMD/PREGUNTAS_PARA_LIDER.md` y `ArchivosMD/respuesta-al-backend.md`.
 
 **Estado del repo:** cambios subidos a `https://github.com/chamorromunozfabio-dotcom/Facturacion.git` en el commit `93c8e6b` (_Ajustar frontend a respuestas del backend: /me, errores 422 y búsqueda q_).
+
+---
+
+## Mensaje 8 — Usuario
+
+> http://192.168.20.49:8000/docs acá está lo del backend
+
+## Mensaje 9 — Asistente (verificación del backend real)
+
+- `/docs` respondió **200** y el título del OpenAPI es **"Entrega de Productos"**.
+- Endpoints publicados por ahora: `/login`, `/me`, `/solo-admin` y `/` (health).
+- Los schemas coinciden con el contrato del frontend:
+  - `LoginRequest`: `correo` (email) y `contrasena`, ambos obligatorios.
+  - `LoginResponse`: `access_token`, `token_type` y `user`.
+  - `UserOut`: `id`, `nombre`, `correo`, `rol` (string).
+  - `HTTPValidationError`: `detail` como lista (422).
+- Prueba real exitosa:
+  - `POST /login` con `admin@entrega.com` / `Admin123*` → token recibido.
+  - `GET /me` con `Bearer <token>` → mismo usuario.
+  - `GET /solo-admin` → `{"mensaje":"Acceso de administrador"}`.
+- CORS verificado: `Access-Control-Allow-Origin: http://localhost:5173`.
+- Se actualizó `.env` local con `VITE_API_URL=http://192.168.20.49:8000` (manteniendo `VITE_USE_MOCKS=false`). `.env` no se sube al repo; `.env.example` sí documenta la IP de ejemplo.
+- Servidor de desarrollo reiniciado en `http://localhost:5173` (HTTP 200).
+
+**Conclusión:** el frontend ya está apuntando al backend real; queda probar el login desde el navegador.
