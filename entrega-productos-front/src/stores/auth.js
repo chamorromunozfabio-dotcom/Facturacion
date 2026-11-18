@@ -2,10 +2,11 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import api, { getErrorMessage } from '../api/axios'
 import { MOCK_ACCOUNTS, mockUser, wait } from '../api/mocks'
+import { resolveApiModes } from '../config/apiModes'
 
 const TOKEN_KEY = 'token'
 const USER_KEY = 'user'
-const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true'
+const authMocks = resolveApiModes().authMocks
 
 function readStoredUser() {
   try {
@@ -48,7 +49,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function login(credentials) {
-    if (USE_MOCKS) {
+    if (authMocks) {
       await wait(300)
       const correo = String(credentials?.correo ?? '').trim().toLowerCase()
       const cuenta = MOCK_ACCOUNTS.find(
@@ -75,7 +76,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function fetchMe() {
     if (!token.value) return null
 
-    if (USE_MOCKS) {
+    if (authMocks) {
       await wait(150)
       // Respetamos el rol guardado para no volver a admin al recargar.
       user.value = readStoredUser() || mockUser

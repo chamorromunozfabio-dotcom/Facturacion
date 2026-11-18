@@ -3,11 +3,12 @@ import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getErrorMessage, useAuthStore } from '../stores/auth'
 import { MOCK_ACCOUNTS } from '../api/mocks'
+import { resolveApiModes } from '../config/apiModes'
 
 const auth = useAuthStore()
 const route = useRoute()
 const router = useRouter()
-const isMockMode = import.meta.env.VITE_USE_MOCKS === 'true'
+const isMockMode = resolveApiModes().authMocks
 const logoUrl = `${import.meta.env.BASE_URL}logo.png`
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/

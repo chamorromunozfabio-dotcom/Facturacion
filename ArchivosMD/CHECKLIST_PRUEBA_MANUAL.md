@@ -5,8 +5,9 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 ## 0. Preparación
 
 - [ ] `npm install` dentro de `entrega-productos-front`.
-- [ ] `.env` con `VITE_USE_MOCKS=true`, `VITE_API_URL=/api` y `VITE_BACKEND_URL=http://192.168.20.49:8000`.
-- [ ] `npm run dev` y abrir `http://localhost:5173/` (o la IP de red que muestra Vite).
+- [ ] `.env` con `VITE_API_URL=/api`, `VITE_BACKEND_URL=http://192.168.20.49:8000`, `VITE_USE_MOCKS=false` y `VITE_FACTURAS_MOCKS=true` (modo híbrido: catálogos reales, Facturas con mocks).
+- [ ] Reiniciar `npm run dev` después de cambiar `.env` (Vite no recarga variables en caliente).
+- [ ] Abrir `http://localhost:5173/` (o la IP de red que muestra Vite).
 
 > En el login de modo demo hay botones **Admin / Bodeguero / Cliente** que llenan las credenciales solos.
 >
@@ -91,19 +92,26 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 - [ ] Si el sistema tiene activado “reducir movimiento”, no hay animaciones.
 - [ ] El canvas de firma tiene etiqueta accesible.
 
-## 7. Cuando el backend publique los CRUD
+## 7. Roles y Permisos (ahora son CRUD reales)
 
-- [ ] Avisarme con el mensaje de `ArchivosMD/MENSAJE_PARA_BACKEND.md`.
-- [ ] Configurar `.env` con `VITE_USE_MOCKS=false`.
-- [ ] Reiniciar `npm run dev` (importante: Vite no recarga variables de entorno en caliente).
-- [ ] Login real: `admin@entrega.com` / `Admin123*`.
-- [ ] Probar `/tipos?q=ALI&page=1&limit=10`.
-- [ ] Probar `/bodegas`, `/usuarios` y `/facturas` en ese orden.
-- [ ] Verificar que el backend devuelve `403` a bodeguero en POST/PUT/DELETE de Tipos y Bodegas.
-- [ ] Verificar que los 422 de `page`/`limit` estén traducidos.
+- [ ] Admin: crear un rol “supervisor” → aparece en la tabla y sale “Rol creado.”
+- [ ] Admin: editar y eliminar un rol con confirmación.
+- [ ] Admin: crear un permiso “editar_factura” → sale “Permiso creado.”
+- [ ] Bodeguero: no ve botones Crear/Editar/Eliminar en Roles ni Permisos.
+
+## 8. Integración real (modo híbrido)
+
+- [ ] Login real con `admin@entrega.com` / `Admin123*` (bodeguero: `bodeguero@entrega.com` / `Bodega123*`).
+- [ ] Recargar la página → `GET /me` mantiene la sesión.
+- [ ] Tipos: crear “Alimentos”, buscar `ali`, editar y eliminar contra la API.
+- [ ] Bodegas: listar y crear contra la API (el backend hoy guarda solo `nombre`, `direccion` y `estado`).
+- [ ] Usuarios: listar como admin y crear con `rol_id` 1/2/3 (los campos de cliente aún no los guarda el backend).
+- [ ] Como bodeguero, `/usuarios` debe dar `403` (confirmar el permiso pendiente del backend).
+- [ ] Facturas siguen con mocks hasta que se publique `/facturas`.
 - [ ] **No tocar CORS del backend**: seguimos llamando a `/api` (proxy de Vite).
+- [ ] Pendientes detallados en `ArchivosMD/INTEGRACION_BACKEND.md`.
 
 ---
 
-**Estado actual:** 31 archivos de test / 154 aserciones en verde + build correcto.
-**Rama:** `main` limpia y pusheada.
+**Estado actual:** 32 archivos de test / 157 aserciones en verde + build correcto.
+**Rama:** pendiente de merge del Test 32.

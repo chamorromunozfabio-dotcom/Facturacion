@@ -48,9 +48,19 @@ El navegador llama a `/api` en el **mismo origen** del frontend (por ejemplo `ht
 |---|---|---|
 | `VITE_API_URL` | `/api` | Ruta que usa Axios; Vite la reenvía al backend |
 | `VITE_BACKEND_URL` | `http://192.168.20.49:8000` | IP real de FastAPI (la usa solo el proxy de Vite) |
-| `VITE_USE_MOCKS` | `true` / `false` | `true` usa datos falsos; `false` llama a la API real |
+| `VITE_USE_MOCKS` | `true` / `false` | `true` usa datos falsos en todo; `false` usa la API real |
+| `VITE_FACTURAS_MOCKS` | `true` / `false` | Permite dejar solo Facturas con mocks mientras el backend publica `/facturas` |
 
-Cuando el backend publique `/login` y los CRUD, cambia `VITE_USE_MOCKS=false` y reinicia `npm run dev`.
+### Modo híbrido (backend ya publicó los catálogos)
+
+El backend ya tiene `/login`, `/me`, `/tipos`, `/bodegas`, `/usuarios`, `/roles` y `/permisos`, pero todavía **no `/facturas`**. Por eso la configuración actual es:
+
+```env
+VITE_USE_MOCKS=false
+VITE_FACTURAS_MOCKS=true
+```
+
+Así: login, Tipos, Bodegas, Usuarios, Roles y Permisos usan la API real; Facturas sigue con datos falsos. Cuando el backend publique `/facturas`, poner `VITE_FACTURAS_MOCKS=false` y reiniciar `npm run dev`. Los tests fuerzan mocks en `vite.config.js`, así que no se ven afectados.
 
 ## Estructura
 
@@ -79,7 +89,7 @@ src/
 - **Listados:** confirmado `{ data, total, page, limit }`, `page` empieza en 1, `limit` por defecto 10 y máximo 100 (exceso → 422).
 - **Búsqueda:** `q` con coincidencia parcial y sin distinguir mayúsculas.
 - CORS habilitado para `http://localhost:5173`; para otras IPs se usa el proxy `/api` de Vite (ver arriba).
-- Endpoints publicados: `/login`, `/me`, `/solo-admin` (temporal), `/tipos`. En contrato (a publicar): `/bodegas`, `/usuarios`, `/permisos`, `/roles`, `/facturas`.
+- Endpoints publicados y en uso: `/login`, `/me`, `/tipos`, `/bodegas`, `/usuarios`, `/roles`, `/permisos` (más `/solo-admin`, temporal). Falta: `/facturas` y sus acciones.
 
 ### Tipos (Día 3 — publicado por el backend)
 
@@ -89,7 +99,7 @@ src/
 - `GET /tipos?q=&page=1&limit=10` → `{ data, total, page, limit }`, ordenado por `id`, `limit` máximo 100.
 - `q` busca coincidencias parciales sin distinguir mayúsculas (`q=ALI` → "Alimentos").
 - Errores: `401`, `403`, `404` (`Tipo no encontrado`), `400` (`Ya existe un tipo con ese nombre`; el front también maneja `409`) y `422` con `detail` como texto.
-- Roles: el backend responderá `403` a `POST`/`PUT`/`DELETE` para `bodeguero` (a aplicar). Los `GET` siguen permitidos para `admin` y `bodeguero`.
+- Roles: los `GET` están permitidos para admin y bodeguero. **Pendiente en backend:** responder `403` a `POST`/`PUT`/`DELETE` de Tipos y Bodegas para `bodeguero` (hoy lo permite). Ver `ArchivosMD/INTEGRACION_BACKEND.md`.
 
 ### Bodegas (Día 4 — contrato recibido, a publicar por backend)
 

@@ -1,8 +1,9 @@
 import api from './axios'
 import { createCrudResource } from './crud'
 import { mockFacturaAction, wait } from './mocks'
+import { resolveApiModes } from '../config/apiModes'
 
-const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true'
+const USE_MOCKS = resolveApiModes().facturasMocks
 const FIRMA_PREFIX = 'data:image/png;base64,'
 
 /** Peticiones de bajo nivel: se exportan para poder probarlas sin mocks. */
@@ -66,7 +67,7 @@ async function accion(id, path, body) {
 }
 
 export const facturasApi = {
-  ...createCrudResource('facturas'),
+  ...createCrudResource('facturas', { mocks: USE_MOCKS }),
 
   entregar(id) {
     return accion(id, 'entregar')

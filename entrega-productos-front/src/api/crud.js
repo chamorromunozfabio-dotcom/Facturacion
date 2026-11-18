@@ -1,14 +1,18 @@
 import api from './axios'
 import { mockList, mockGet, mockCreate, mockUpdate, mockRemove } from './mocks'
+import { resolveApiModes } from '../config/apiModes'
 
-const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true'
+const { catalogsMocks } = resolveApiModes()
 
 /**
  * Fábrica de funciones CRUD para un recurso.
  * Devuelve siempre los datos ya parseados (response.data),
  * con la forma acordada: { data, total, page, limit } en listados.
  */
-export function createCrudResource(resource) {
+export function createCrudResource(resource, options = {}) {
+  // Facturas puede forzar mocks con { mocks: true } mientras no exista la API.
+  const USE_MOCKS = options.mocks ?? catalogsMocks
+
   return {
     list(params = {}) {
       if (USE_MOCKS) return mockList(resource, params)

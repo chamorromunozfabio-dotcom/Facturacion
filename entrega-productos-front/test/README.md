@@ -47,10 +47,11 @@ npm run test:watch
 | 29 | Accesibilidad: Escape, foco y aria-label | ✅ PASÓ | [accessibility.test.js](accessibility.test.js) |
 | 30 | Cuentas demo por rol y atajos en el login | ✅ PASÓ | [mock-accounts.test.js](mock-accounts.test.js) |
 | 31 | Mensajes claros: validación, botones y títulos | ✅ PASÓ | [ux-messages.test.js](ux-messages.test.js) |
+| 32 | Modo híbrido y CRUD reales de Roles/Permisos | ⏳ Por ejecutar | [real-api-modules.test.js](real-api-modules.test.js) |
 
 ---
 
-**31 archivos de test, 154 aserciones.** Ejecutar todo con `npm test`.
+**32 archivos de test, 157 aserciones.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >
