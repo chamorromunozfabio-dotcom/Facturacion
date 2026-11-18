@@ -54,11 +54,16 @@ Confirmamos usar **`q`** como parámetro de búsqueda, junto con **`page`** y **
 
 Agregamos `GET /me` al arranque para recuperar el usuario al recargar. Si el token de 60 min venció, el interceptor 401 limpia la sesión y manda al login.
 
-## 7) Pendiente tuyo
+## 7) CORS / ver el front desde otra PC ✅ (resuelto en el front)
 
-- Avisarme cuando publiques `POST /login` para probar con `VITE_USE_MOCKS=false`.
-- Confirmar que CORS sigue activo para `http://localhost:5173`.
-- Pasarme la URL de `/docs` cuando esté arriba.
-- Normalizar los 422 si es posible.
+Como el backend solo permite `http://localhost:5173`, al abrir el front por la IP (`http://192.168.20.44:5173`) aparecía `400 Disallowed CORS origin`. Lo solucionamos en el frontend con un proxy de Vite: el navegador llama a `/api` (mismo origen) y Vite reenvía a tu IP `http://192.168.20.49:8000` quitando el `Origin`. Ya no necesitás agregar la IP a `allow_origins`, aunque si la agregás tampoco molesta.
+
+Verificado: `/login`, `/me` y `/solo-admin` funcionan a través de ese proxy.
+
+## 8) Pendiente tuyo
+
+- Normalizar los 422 si es posible (por ahora lo hacemos en el front).
+- Definir el formato de listados y confirmar `q` + `page` + `limit`.
+- Confirmar con el líder los roles definitivos y los campos de "quién recibe" en Bodegas.
 
 ¡Gracias! 🚀

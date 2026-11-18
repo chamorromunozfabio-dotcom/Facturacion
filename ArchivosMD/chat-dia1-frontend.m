@@ -309,3 +309,34 @@ Resultado final: **8 archivos, 32 aserciones ✅**.
 - Servidor de desarrollo reiniciado en `http://localhost:5173` (HTTP 200).
 
 **Conclusión:** el frontend ya está apuntando al backend real; queda probar el login desde el navegador.
+
+---
+
+## Mensaje 10 — Usuario
+
+> Listo ahora como lo arranco aca para que el pueda ver mi frontend funcionando tambien
+
+## Mensaje 11 — Asistente (exponer el frontend en la red)
+
+**Problema detectado:** la IP de esta PC es `192.168.20.44`. El backend solo permite CORS para `http://localhost:5173`, así que al abrir `http://192.168.20.44:5173` el login daba `400 Disallowed CORS origin`.
+
+**Solución aplicada (sin tocar el backend):**
+
+1. `npm run dev` ahora es `vite --host` y `vite.config.js` tiene `server.host: '0.0.0.0'`. Vite muestra la línea **Network** con la IP.
+2. Se agregó un proxy en Vite: el navegador llama a `/api` (mismo origen) y Vite lo reenvía a `VITE_BACKEND_URL` (`http://192.168.20.49:8000`), quitando la cabecera `Origin`. No hay preflight CORS.
+3. `.env`: `VITE_API_URL=/api` + `VITE_BACKEND_URL=http://192.168.20.49:8000`. `.env.example` actualizado con las dos variables.
+
+**Verificación desde la IP de red (con `Origin: http://192.168.20.44:5173`):**
+
+- `GET http://192.168.20.44:5173/` → **200**
+- `GET /api/me` sin token → **401** `{"detail":"No ha iniciado sesión"}` (el proxy llegó al backend)
+- `POST /api/login` con `admin@entrega.com` / `Admin123*` → **OK**, usuario `Administrador`, rol `admin`
+- `GET /api/me` con `Bearer <token>` → **OK**, mismo usuario
+- `npm test` → 8 archivos, **34 aserciones ✅**
+- `npm run build` → ✅
+
+**Incidencia intermedia:** al importar `loadEnv` desde `vitest/config` falló el arranque (`does not provide an export named 'loadEnv'`). Se corrigió importándolo desde `vite`.
+
+**URL para el compañero:** `http://192.168.20.44:5173/`. Si no conecta, permitir el puerto 5173 TCP en el firewall de Windows (red privada).
+
+**Documentación actualizada:** `README.md` con la sección "Ver el frontend desde otra PC de la red".
