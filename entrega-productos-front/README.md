@@ -66,6 +66,17 @@ src/
 - CORS habilitado para `http://localhost:5173`; para otras IPs se usa el proxy `/api` de Vite (ver arriba).
 - Endpoints: `/login`, `/me`, `/solo-admin` (temporal), `/tipos`, `/bodegas`, `/usuarios`, `/permisos`, `/roles`.
 
+### Tipos (Día 3 — publicado por el backend)
+
+- Campos: `id` (lo genera el backend) y `nombre` (1 a 100 caracteres, se quitan espacios al inicio/final, único sin distinguir mayúsculas).
+- `POST /tipos` → `201` con el registro. `PUT /tipos/{id}` → `200` con el registro; acepta campos parciales (`null` se ignora).
+- `GET /tipos/{id}` → `200`. `DELETE /tipos/{id}` → `204` **sin cuerpo** (no se parsea JSON).
+- `GET /tipos?q=&page=1&limit=10` → `{ data, total, page, limit }`, ordenado por `id`, `limit` máximo 100.
+- `q` busca coincidencias parciales sin distinguir mayúsculas (`q=ALI` → "Alimentos").
+- Errores: `401`, `403`, `404` (`Tipo no encontrado`), `400` (`Ya existe un tipo con ese nombre`; el front también maneja `409`) y `422` con `detail` como texto.
+- Roles: solo `admin` y `bodeguero`; `cliente` recibe `403`.
+- Bodegas seguirá el mismo patrón; los campos de "quién recibe" esperan al líder.
+
 ## Roles provisionales
 
 `admin`, `bodeguero`, `cliente` — **confirmar con el líder**. Se cambian en un solo lugar: `src/config/navigation.js` y `src/router/index.js`.
@@ -99,6 +110,10 @@ src/
 - [x] Normalización de errores 422 (`detail` lista → texto)
 - [x] Frontend accesible desde la red (`npm run dev` con `--host`)
 - [x] Proxy `/api` para evitar problemas de CORS al abrirlo por IP
+- [x] Componentes reutilizables: `DataTable`, `FormModal`, `ConfirmDelete`, `AlertMessage`
+- [x] CRUD de Tipos y Bodegas conectado a los mocks (listo para API real)
+- [x] Validación de `nombre`: `trim` + máximo 100 caracteres
+- [x] Mensaje claro para nombre repetido (400/409) y `PUT` parcial
 - [ ] Confirmar con el líder los roles y los campos de "quién recibe" en Bodegas
 - [ ] Confirmar formato de listados y parámetro `q` cuando publiquen los CRUD
 - [ ] Confirmar formato de la firma (fase 2)

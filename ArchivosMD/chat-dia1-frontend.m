@@ -340,3 +340,47 @@ Resultado final: **8 archivos, 32 aserciones ✅**.
 **URL para el compañero:** `http://192.168.20.44:5173/`. Si no conecta, permitir el puerto 5173 TCP en el firewall de Windows (red privada).
 
 **Documentación actualizada:** `README.md` con la sección "Ver el frontend desde otra PC de la red".
+
+---
+
+## Mensaje 12 — Usuario (backend: CRUD de Tipos publicado)
+
+> El backend publicó el CRUD de Tipos con este contrato:
+>
+> 1. Campos: `id` (generado), `nombre` (obligatorio al crear, opcional al editar, 1-100 caracteres, se recorta, único sin distinguir mayúsculas).
+> 2. `POST /tipos` → 201 con el registro. `PUT /tipos/5` → 200 con el registro; solo cambia los campos enviados, `null` se ignora. `GET /tipos/5` → 200. `DELETE /tipos/5` → 204 sin cuerpo.
+> 3. `GET /tipos?q=&page=1&limit=10` → `{ data, total, page, limit }`. `total` cuenta todos los filtrados, orden por `id`, `page` empieza en 1, `limit` por defecto 10 y máximo 100 (si se pasa, 422).
+> 4. `q` confirmado: coincidencias parciales sin distinguir mayúsculas.
+> 5. Errores, todos con `detail` texto (incluidos 422): 401 sin token / token vencido, 403 sin permiso, 404 `Tipo no encontrado`, 400 `Ya existe un tipo con ese nombre` (no 409), 422 validación. Los 422 de `page`/`limit` todavía están en inglés, el backend los traducirá.
+> 6. Todos exigen Bearer; solo `admin` y `bodeguero` (cliente → 403).
+> 7. DELETE responde 204 sin cuerpo: no leer JSON.
+>
+> Bodegas: mismo patrón con `nombre` y `direccion`; lo de "quién recibe" espera al líder.
+> Día 4: el backend bloquea con 403, ya existe el mecanismo; falta que el líder confirme roles (propuesta: admin todo; bodeguero tipos, bodegas y órdenes; cliente solo ver y recibir sus órdenes).
+> Día 5: firma propuesta como texto base64 PNG completo (`data:image/png;base64,...`) desde un canvas. Resto de órdenes/factura pendiente del líder.
+> CORS: el proxy de Vite les parece bien, no cambian nada.
+
+## Mensaje 13 — Asistente (ajustes aplicados con OK del usuario)
+
+**Día 3 completado antes de este mensaje:**
+
+- Componentes reutilizables: `DataTable` (Test 9), `FormModal` (Test 10), `ConfirmDelete` (Test 11), `AlertMessage` (Test 12).
+- `TiposView` (Test 13) y `BodegasView` (Test 14): listado con `q`/`page`/`limit`, crear, editar, eliminar con confirmación y alertas. Los mocks se actualizan en local porque no persisten.
+
+**Ajustes al contrato del backend (Test 15, aprobado por el usuario):**
+
+1. `FormModal` hace `trim()` de los valores y valida `maxLength` antes de enviar. Error: `Nombre no puede superar los 100 caracteres.`
+2. `TiposView` y `BodegasView` definen `nombre` con `maxLength: 100`.
+3. El `PUT` envía solo los campos cambiados; si no hay cambios, muestra "No hay cambios para guardar." y no llama a la API. La fila local se fusiona con la respuesta.
+4. Nuevo helper `isDuplicateError()` en `src/api/axios.js`: detecta duplicados en **400 y 409** y muestra "Ya existe un tipo/bodega con ese nombre. Probá con otro."
+
+**No se cambió:** la matriz de roles (espera al líder) ni la firma (Fase 2).
+
+**Verificación:**
+
+- `npm test` → 15 archivos, todos en verde (el usuario confirmó "Pasa" test por test).
+- Prueba real solo de lectura contra `http://192.168.20.44:5173/api`:
+  - Front 200, login OK (`admin`), `GET /tipos?q=ALI&page=1&limit=10` → `{ data: [], total: 0, page: 1, limit: 10 }`, sin token → `401 {"detail":"No ha iniciado sesión"}`.
+  - La tabla `tipos` está vacía en la BD por ahora; no se insertaron datos de prueba.
+
+**Pendiente:** que el líder confirme roles, campos de "quién recibe" y el contrato de órdenes/factura; que el backend traduzca los 422 de `page`/`limit`.

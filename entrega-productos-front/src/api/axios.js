@@ -77,4 +77,21 @@ export function getErrorMessage(error) {
   )
 }
 
+/**
+ * El backend devuelve 400 cuando un nombre ya existe (y 409 si lo unifican).
+ * Lo detectamos por código y por texto para mostrar un mensaje más claro.
+ */
+export function isDuplicateError(error) {
+  const status = error.response?.status
+  if (status !== 400 && status !== 409) return false
+
+  const detail = formatDetail(error.response?.data?.detail).toLowerCase()
+  return (
+    detail.includes('ya existe') ||
+    detail.includes('repetido') ||
+    detail.includes('duplicado') ||
+    detail.includes('duplicate')
+  )
+}
+
 export default api

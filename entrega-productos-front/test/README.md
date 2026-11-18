@@ -24,6 +24,13 @@ npm run test:watch
 | 6 | Componente `PagePlaceholder` | ⏳ Por ejecutar | [page-placeholder.test.js](page-placeholder.test.js) |
 | 7 | `LoginView`: validación y login demo | ⏳ Por ejecutar | [login-view.test.js](login-view.test.js) |
 | 8 | `MainLayout`: menú por rol y logout | ✅ PASÓ | [main-layout.test.js](main-layout.test.js) |
+| 9 | `DataTable`: filas, búsqueda, paginación y acciones | ✅ PASÓ | [data-table.test.js](data-table.test.js) |
+| 10 | `FormModal`: campos, validación y eventos | ✅ PASÓ | [form-modal.test.js](form-modal.test.js) |
+| 11 | `ConfirmDelete`: confirmación antes de borrar | ✅ PASÓ | [confirm-delete.test.js](confirm-delete.test.js) |
+| 12 | `AlertMessage`: tipos y cierre | ✅ PASÓ | [alert-message.test.js](alert-message.test.js) |
+| 13 | `TiposView`: listado y CRUD con componentes | ✅ PASÓ | [tipos-view.test.js](tipos-view.test.js) |
+| 14 | `BodegasView`: listado y CRUD con componentes | ✅ PASÓ | [bodegas-view.test.js](bodegas-view.test.js) |
+| 15 | Validación de formularios: `trim`, máximo y duplicados | ⏳ Por ejecutar | [form-validation.test.js](form-validation.test.js) |
 
 ---
 
