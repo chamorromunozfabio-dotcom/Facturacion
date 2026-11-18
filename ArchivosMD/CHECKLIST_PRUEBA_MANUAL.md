@@ -8,9 +8,15 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 - [ ] `.env` con `VITE_USE_MOCKS=true`, `VITE_API_URL=/api` y `VITE_BACKEND_URL=http://192.168.20.49:8000`.
 - [ ] `npm run dev` y abrir `http://localhost:5173/` (o la IP de red que muestra Vite).
 
-> Con mocks, el login **siempre entra como admin**. Para probar otros roles:
-> DevTools → Application → Local Storage → clave `user` → cambiar `"rol": "admin"` por `"bodeguero"` o `"cliente"` → recargar (F5).
-> Ejemplo: `{"id":2,"nombre":"Usuario Demo","correo":"demo@entrega.com","rol":"bodeguero"}`
+> En el login de modo demo hay botones **Admin / Bodeguero / Cliente** que llenan las credenciales solos.
+>
+> | Rol | Correo | Contraseña |
+> |---|---|---|
+> | admin | `admin@entrega.com` | `Admin123*` |
+> | bodeguero | `luis@entrega.com` | `Bodega123*` |
+> | cliente | `juan@cliente.com` | `Cliente123*` |
+>
+> Cualquier otro correo sigue entrando como admin demo. El rol se conserva al recargar (F5).
 
 ## 1. Login y sesión
 
@@ -97,5 +103,5 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 
 ---
 
-**Estado actual:** 29 archivos de test / 146 aserciones en verde + build correcto.
+**Estado actual:** 30 archivos de test / 149 aserciones en verde + build correcto.
 **Rama:** `main` limpia y pusheada.

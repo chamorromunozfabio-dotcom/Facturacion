@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getErrorMessage, useAuthStore } from '../stores/auth'
+import { MOCK_ACCOUNTS } from '../api/mocks'
 
 const auth = useAuthStore()
 const route = useRoute()
@@ -32,6 +33,11 @@ async function submit() {
     loading.value = false
   }
 }
+
+function usarCuenta(cuenta) {
+  credentials.value = { correo: cuenta.correo, contrasena: cuenta.contrasena }
+  error.value = ''
+}
 </script>
 
 <template>
@@ -58,8 +64,20 @@ async function submit() {
       </button>
 
       <p v-if="isMockMode && !loading" class="hint">
-        Modo demo activo: usa cualquier correo y contraseña.
+        Modo demo activo: elegí un rol o escribí cualquier correo.
       </p>
+
+      <div v-if="isMockMode && !loading" class="demo-accounts">
+        <button
+          v-for="cuenta in MOCK_ACCOUNTS"
+          :key="cuenta.correo"
+          type="button"
+          class="demo-accounts__btn"
+          @click="usarCuenta(cuenta)"
+        >
+          {{ cuenta.pista }}
+        </button>
+      </div>
     </form>
   </div>
 </template>
@@ -154,5 +172,26 @@ button:disabled {
   text-align: center;
   color: #9ca3af;
   font-size: 0.75rem;
+}
+
+.demo-accounts {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.demo-accounts__btn {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.demo-accounts__btn:hover {
+  background: #dbeafe;
 }
 </style>

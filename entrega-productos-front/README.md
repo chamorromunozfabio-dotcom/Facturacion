@@ -22,7 +22,19 @@ Abrir: http://localhost:5173
 2. En la terminal aparece la línea **Network**, por ejemplo:
    `http://192.168.20.44:5173/`
 3. Tu compañero abre esa URL en su navegador (debe estar en la misma Wi-Fi/red).
-4. Login de prueba: `admin@entrega.com` / `Admin123*`.
+4. Login de prueba (modo demo): `admin@entrega.com` / `Admin123*`.
+
+### Cuentas demo por rol (con `VITE_USE_MOCKS=true`)
+
+El login muestra botones **Admin / Bodeguero / Cliente** que llenan las credenciales automáticamente.
+
+| Rol | Correo | Contraseña |
+|---|---|---|
+| admin | `admin@entrega.com` | `Admin123*` |
+| bodeguero | `luis@entrega.com` | `Bodega123*` |
+| cliente | `juan@cliente.com` | `Cliente123*` |
+
+Cualquier otro correo entra como admin demo. El rol se guarda en `localStorage` y se conserva al recargar.
 
 > Si no conecta, revisa el firewall de Windows: debe permitir el **puerto 5173** (TCP) para redes privadas.
 

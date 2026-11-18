@@ -16,6 +16,34 @@ export const mockUser = {
   rol: 'admin',
 }
 
+/** Cuentas de prueba para entrar con cada rol sin esperar al backend. */
+export const MOCK_ACCOUNTS = [
+  {
+    correo: 'admin@entrega.com',
+    contrasena: 'Admin123*',
+    pista: 'Admin',
+    user: { id: 1, nombre: 'Ana Pérez', correo: 'admin@entrega.com', rol: 'admin' },
+  },
+  {
+    correo: 'luis@entrega.com',
+    contrasena: 'Bodega123*',
+    pista: 'Bodeguero',
+    user: { id: 2, nombre: 'Luis Gómez', correo: 'luis@entrega.com', rol: 'bodeguero' },
+  },
+  {
+    correo: 'juan@cliente.com',
+    contrasena: 'Cliente123*',
+    pista: 'Cliente',
+    user: {
+      id: 3,
+      nombre: 'Juan Pérez',
+      correo: 'juan@cliente.com',
+      rol: 'cliente',
+      cliente_id: 3,
+    },
+  },
+]
+
 /** Genera una factura completa (detalle) a partir de los datos mínimos. */
 function factura({ id, numero, estado, cliente, trazabilidad = {} }) {
   return {

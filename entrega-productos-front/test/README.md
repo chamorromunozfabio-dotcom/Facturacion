@@ -45,10 +45,11 @@ npm run test:watch
 | 27 | Badge de estado con color en listado y detalle | ✅ PASÓ | [status-badge.test.js](status-badge.test.js) |
 | 28 | Transiciones en modales y alertas | ✅ PASÓ | [transitions.test.js](transitions.test.js) |
 | 29 | Accesibilidad: Escape, foco y aria-label | ✅ PASÓ | [accessibility.test.js](accessibility.test.js) |
+| 30 | Cuentas demo por rol y atajos en el login | ✅ PASÓ | [mock-accounts.test.js](mock-accounts.test.js) |
 
 ---
 
-**29 archivos de test, 146 aserciones.** Ejecutar todo con `npm test`.
+**30 archivos de test, 149 aserciones.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >

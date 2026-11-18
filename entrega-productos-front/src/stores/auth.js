@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import api, { getErrorMessage } from '../api/axios'
-import { mockUser, wait } from '../api/mocks'
+import { MOCK_ACCOUNTS, mockUser, wait } from '../api/mocks'
 
 const TOKEN_KEY = 'token'
 const USER_KEY = 'user'
@@ -50,8 +50,14 @@ export const useAuthStore = defineStore('auth', () => {
   async function login(credentials) {
     if (USE_MOCKS) {
       await wait(300)
-      saveSession('token-demo', mockUser)
-      return mockUser
+      const correo = String(credentials?.correo ?? '').trim().toLowerCase()
+      const cuenta = MOCK_ACCOUNTS.find(
+        (item) => item.correo.toLowerCase() === correo && item.contrasena === credentials?.contrasena,
+      )
+      // Si no coincide con una cuenta de prueba, seguimos entrando como admin demo.
+      const demoUser = cuenta?.user ?? mockUser
+      saveSession(`token-demo-${demoUser.rol}`, demoUser)
+      return demoUser
     }
 
     const { data } = await api.post('/login', credentials)
@@ -71,8 +77,9 @@ export const useAuthStore = defineStore('auth', () => {
 
     if (USE_MOCKS) {
       await wait(150)
-      user.value = mockUser
-      localStorage.setItem(USER_KEY, JSON.stringify(mockUser))
+      // Respetamos el rol guardado para no volver a admin al recargar.
+      user.value = readStoredUser() || mockUser
+      localStorage.setItem(USER_KEY, JSON.stringify(user.value))
       return user.value
     }
 
