@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 
 const api = vi.hoisted(() => ({
   list: vi.fn(),
@@ -11,12 +12,25 @@ const api = vi.hoisted(() => ({
 vi.mock('../src/api/bodegas', () => ({ default: api }))
 
 import BodegasView from '../src/views/BodegasView.vue'
+import { useAuthStore } from '../src/stores/auth'
 
 describe('Test 14 — BodegasView (CRUD con componentes)', () => {
   beforeEach(() => {
+    localStorage.clear()
+    setActivePinia(createPinia())
+    useAuthStore().saveSession('token-123', { nombre: 'Ana', rol: 'admin' })
     vi.clearAllMocks()
     api.list.mockResolvedValue({
-      data: [{ id: 1, nombre: 'Bodega Central', direccion: 'Calle Principal 123' }],
+      data: [
+        {
+          id: 1,
+          nombre: 'Bodega Central',
+          direccion: 'Calle Principal 123',
+          ciudad: 'Bogotá',
+          telefono: '3001234567',
+          responsable_nombre: 'María Rodríguez',
+        },
+      ],
       total: 1,
       page: 1,
       limit: 10,
@@ -25,16 +39,16 @@ describe('Test 14 — BodegasView (CRUD con componentes)', () => {
     api.remove.mockResolvedValue({ detail: 'Eliminado' })
   })
 
-  it('carga y muestra nombre y dirección', async () => {
+  it('carga y muestra nombre y ciudad', async () => {
     const wrapper = mount(BodegasView)
     await flushPromises()
 
     expect(wrapper.text()).toContain('Bodega Central')
-    expect(wrapper.text()).toContain('Calle Principal 123')
+    expect(wrapper.text()).toContain('Bogotá')
     expect(api.list).toHaveBeenCalledWith({ q: '', page: 1, limit: 10 })
   })
 
-  it('abre el modal con los dos campos', async () => {
+  it('abre el modal con los campos de bodega', async () => {
     const wrapper = mount(BodegasView)
     await flushPromises()
 
@@ -71,7 +85,7 @@ describe('Test 14 — BodegasView (CRUD con componentes)', () => {
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
-    expect(api.create).toHaveBeenCalledWith({ nombre: 'Bodega Norte', direccion: '' })
+    expect(api.create).toHaveBeenCalledWith({ nombre: 'Bodega Norte' })
   })
 
   it('pide confirmación antes de eliminar', async () => {

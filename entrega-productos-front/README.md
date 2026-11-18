@@ -44,8 +44,9 @@ Cuando el backend publique `/login` y los CRUD, cambia `VITE_USE_MOCKS=false` y 
 src/
   api/          axios.js, crud.js, mocks.js y un archivo por módulo
   assets/       estilos globales
-  components/   componentes reutilizables (PagePlaceholder)
-  config/       menú y valores provisionales de roles
+  components/   DataTable, FormModal, ConfirmDelete, AlertMessage,
+                SignaturePad, FacturaDetail, FacturaForm
+  config/       menú y matriz de permisos definitiva (permissions.js)
   layouts/      MainLayout (menú + barra superior)
   router/       rutas y guardas de sesión/rol
   stores/       auth.js (token, usuario, rol)
@@ -60,11 +61,11 @@ src/
 - **Token:** `Authorization: Bearer <token>`, vence a los **60 minutos**.
 - **Recuperar sesión:** `GET /me` con ese header devuelve el mismo `user`. Se llama al arrancar la app.
 - **Errores 401/403:** `{ "detail": "texto" }` (`"Correo o contraseña incorrectos"`, `"No ha iniciado sesión"`, `"Token inválido o vencido"`, `"No tiene permiso para esta acción"`).
-- **Errores 422:** hoy `detail` llega como **lista** de FastAPI. El frontend la normaliza a texto en `getErrorMessage()`; pendiente que el backend lo unifique.
-- **Listados:** formato `{ data, total, page, limit }` **pendiente** (aún no hay endpoints de listado).
-- **Búsqueda:** recomendado `q` con `page` y `limit`; confirmado por el frontend, pendiente de definición en backend.
+- **Errores 422:** `detail` como texto. Si llega como lista, `getErrorMessage()` lo normaliza. Los 422 de `page`/`limit` todavía están en inglés (backend los traducirá).
+- **Listados:** confirmado `{ data, total, page, limit }`, `page` empieza en 1, `limit` por defecto 10 y máximo 100 (exceso → 422).
+- **Búsqueda:** `q` con coincidencia parcial y sin distinguir mayúsculas.
 - CORS habilitado para `http://localhost:5173`; para otras IPs se usa el proxy `/api` de Vite (ver arriba).
-- Endpoints: `/login`, `/me`, `/solo-admin` (temporal), `/tipos`, `/bodegas`, `/usuarios`, `/permisos`, `/roles`.
+- Endpoints publicados: `/login`, `/me`, `/solo-admin` (temporal), `/tipos`. En contrato (a publicar): `/bodegas`, `/usuarios`, `/permisos`, `/roles`, `/facturas`.
 
 ### Tipos (Día 3 — publicado por el backend)
 
@@ -74,26 +75,51 @@ src/
 - `GET /tipos?q=&page=1&limit=10` → `{ data, total, page, limit }`, ordenado por `id`, `limit` máximo 100.
 - `q` busca coincidencias parciales sin distinguir mayúsculas (`q=ALI` → "Alimentos").
 - Errores: `401`, `403`, `404` (`Tipo no encontrado`), `400` (`Ya existe un tipo con ese nombre`; el front también maneja `409`) y `422` con `detail` como texto.
-- Roles: solo `admin` y `bodeguero`; `cliente` recibe `403`.
-- Bodegas seguirá el mismo patrón; los campos de "quién recibe" esperan al líder.
+- Roles: el backend responderá `403` a `POST`/`PUT`/`DELETE` para `bodeguero` (a aplicar). Los `GET` siguen permitidos para `admin` y `bodeguero`.
 
-## Roles provisionales
+### Bodegas (Día 4 — contrato recibido, a publicar por backend)
 
-`admin`, `bodeguero`, `cliente` — **confirmar con el líder**. Se cambian en un solo lugar: `src/config/navigation.js` y `src/router/index.js`.
+- Campos: `nombre` (único, obligatorio), `direccion`, `ciudad`, `telefono`, `responsable_nombre`, `responsable_documento`, `responsable_telefono`, `responsable_correo` (todos opcionales salvo `nombre`).
+- Columnas del listado: Nombre, Ciudad, Responsable, Teléfono. El resto va en el formulario.
+- Validaciones: teléfono 7-20 caracteres (dígitos, espacios, `+`, `-`), correo con formato válido, documento máx. 20 caracteres.
 
-| Rol | Menú permitido |
-|---|---|
-| `admin` | Todo |
-| `bodeguero` | Inicio, Tipos, Bodegas, Órdenes, Factura |
-| `cliente` | Inicio, Órdenes, Factura |
+### Usuarios (Día 4)
+
+- `POST /usuarios` y `PUT /usuarios/{id}` reciben `nombre`, `correo`, `contrasena` (obligatoria al crear, opcional al editar), `rol_id` (1=admin, 2=bodeguero, 3=cliente) y, **solo cuando el rol es cliente**, `tipo_documento` (CC/NIT/CE), `numero_documento`, `telefono`, `direccion`.
+- `GET /usuarios?rol=cliente`: el bodeguero siempre ve solo clientes (el backend fuerza el filtro); el admin puede filtrar por cualquier rol o ver todos.
+
+### Facturas (Día 5 — `CONTRATO_FACTURAS.MD`)
+
+- La orden **es** la factura: un solo módulo en `/facturas`.
+- Listado `{ data, total, page, limit }`; `q` busca por número **y** nombre del cliente; `estado` acepta un solo valor (`creada`, `entregada`, `aceptada`, `rechazada`, `cerrada`).
+- Estados: `creada → entregada → aceptada → cerrada`, o `rechazada`. Acción en estado inválido → `400`.
+- Acciones: `POST /facturas/{id}/entregar`, `/aceptar` (`{ firma }`), `/rechazar` (`{ motivo }`), `/recibir`; `GET /facturas/{id}/pdf`.
+- El cliente solo ve las suyas (el backend filtra por `cliente_id` del token); no ve borradores `creada`.
+- Firma: data URL completa `data:image/png;base64,...`, base64 válido, máx. 500 KB. Se devuelve en `trazabilidad.firma` (solo en el detalle).
+- PDF: `application/pdf` con `Content-Disposition: attachment; filename="FAC-000001.pdf"`. Se descarga con `blob` porque el `<a>` simple no envía el Bearer.
+- Líneas: al menos 1; `cantidad > 0`, `precio_unitario ≥ 0`, `descuento_porcentaje` 0-100, `iva_porcentaje` 0/5/19, `tipo_id` opcional. Los totales los calcula el backend.
+
+## Roles y permisos definitivos
+
+Definidos por el líder en `CONTRATO_FACTURAS.MD`. Se cambian en un solo lugar: `src/config/permissions.js` y `src/config/navigation.js`. El front oculta botones; el backend bloquea con `403`.
+
+| Módulo | admin | bodeguero | cliente |
+|---|---|---|---|
+| Tipos, Bodegas | CRUD | Solo ver | — |
+| Usuarios | CRUD | Solo ver (el backend filtra `rol=cliente`) | — |
+| Roles, Permisos | CRUD | — | — |
+| Facturas | Crear, editar, borrar, entregar, recibir, ver PDF | Igual que admin | Ver las suyas, aceptar con firma y rechazar |
+
+`Órdenes` se quitó del menú: **la orden es la factura**, un solo módulo en `/facturas`. Las rutas viejas `/ordenes` y `/factura` redirigen ahí.
 
 ## Campos confirmados por backend
 
 - `tipos`: `id`, `nombre` (obligatorio, único)
-- `bodegas`: `id`, `nombre` (obligatorio, único), `direccion` (opcional) — pendiente definir "quién recibe"
+- `bodegas`: 8 campos detallados arriba (solo `nombre` obligatorio)
 - `permisos`: `id`, `nombre`, `descripcion`
 - `roles`: `id`, `nombre`, `descripcion` (relación muchos a muchos con permisos)
-- `usuarios`: `id`, `nombre`, `correo`, `contrasena` (solo envío), `rol_id`
+- `usuarios`: `id`, `nombre`, `correo`, `contrasena` (solo envío), `rol_id` + campos de cliente
+- `facturas`: número, estado, emisor, adquiriente, bodega, detalle, totales, observaciones, validación electrónica, software y trazabilidad (ver contrato)
 
 ## Día 1 completado
 
@@ -105,7 +131,7 @@ src/
 - [x] Vistas base y mocks para trabajar sin backend
 - [x] Login adaptado a `correo` + `contrasena`
 - [x] Módulo y ruta `/roles` agregados
-- [x] 8 tests unitarios (34 aserciones) en `test/`
+- [x] 24 archivos de tests unitarios (128 aserciones) en `test/`
 - [x] `GET /me` para recuperar la sesión al recargar
 - [x] Normalización de errores 422 (`detail` lista → texto)
 - [x] Frontend accesible desde la red (`npm run dev` con `--host`)
@@ -114,6 +140,18 @@ src/
 - [x] CRUD de Tipos y Bodegas conectado a los mocks (listo para API real)
 - [x] Validación de `nombre`: `trim` + máximo 100 caracteres
 - [x] Mensaje claro para nombre repetido (400/409) y `PUT` parcial
-- [ ] Confirmar con el líder los roles y los campos de "quién recibe" en Bodegas
-- [ ] Confirmar formato de listados y parámetro `q` cuando publiquen los CRUD
-- [ ] Confirmar formato de la firma (fase 2)
+- [x] Roles y permisos definitivos del líder (matriz en `permissions.js`)
+- [x] Menú sin "Órdenes": un solo módulo **Facturas**
+- [x] Botones Crear/Editar/Eliminar ocultos para `bodeguero`
+- [x] Bodegas con 8 campos, columnas y validaciones confirmadas
+- [x] Usuarios con campos condicionales de cliente y filtro `?rol=`
+- [x] `SignaturePad` con firma PNG y límite de 500 KB
+- [x] Facturas: listado, detalle, formulario de líneas, estados, firma, rechazo y PDF
+- [x] 24 archivos de test en verde y `npm run build` correcto
+
+## Pendiente del backend / líder
+
+- [ ] Publicar los endpoints de `/bodegas`, `/usuarios` y `/facturas`.
+- [ ] Aplicar el `403` a `POST`/`PUT`/`DELETE` de `bodeguero` en `/tipos` y `/bodegas`.
+- [ ] Traducir los 422 de `page`/`limit`.
+- [ ] Definir el diseño visual (¿hay Figma/paleta?) si el líder lo tiene.

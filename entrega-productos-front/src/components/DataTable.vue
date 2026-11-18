@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, useSlots } from 'vue'
 
 /**
  * Tabla reutilizable para todos los CRUD.
@@ -17,9 +17,16 @@ const props = defineProps({
   q: { type: String, default: '' },
   loading: { type: Boolean, default: false },
   searchable: { type: Boolean, default: true },
+  canCreate: { type: Boolean, default: true },
+  canEdit: { type: Boolean, default: true },
+  canDelete: { type: Boolean, default: true },
 })
 
 const emit = defineEmits(['update:q', 'update:page', 'create', 'edit', 'delete'])
+const slots = useSlots()
+
+/** Mostramos la columna de acciones si hay permiso global o un slot personalizado. */
+const showActions = computed(() => props.canEdit || props.canDelete || Boolean(slots.actions))
 
 const totalPages = computed(() => Math.max(1, Math.ceil(props.total / props.limit)))
 const canPrev = computed(() => props.page > 1)
@@ -50,7 +57,13 @@ function goTo(page) {
         />
       </label>
 
-      <button data-test="create" type="button" class="btn btn--primary" @click="emit('create')">
+      <button
+        v-if="canCreate"
+        data-test="create"
+        type="button"
+        class="btn btn--primary"
+        @click="emit('create')"
+      >
         + Nuevo
       </button>
     </header>
@@ -62,7 +75,7 @@ function goTo(page) {
         <thead>
           <tr>
             <th v-for="column in columns" :key="column.key">{{ column.label }}</th>
-            <th class="data-table__actions-head">Acciones</th>
+            <th v-if="showActions" class="data-table__actions-head">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -70,22 +83,33 @@ function goTo(page) {
             <td v-for="column in columns" :key="column.key">
               {{ row[column.key] ?? '—' }}
             </td>
-            <td class="data-table__actions">
-              <button data-test="edit" type="button" class="btn btn--small" @click="emit('edit', row)">
-                Editar
-              </button>
-              <button
-                data-test="delete"
-                type="button"
-                class="btn btn--small btn--danger"
-                @click="emit('delete', row)"
-              >
-                Eliminar
-              </button>
+            <td v-if="showActions" class="data-table__actions">
+              <slot name="actions" :row="row">
+                <button
+                  v-if="canEdit"
+                  data-test="edit"
+                  type="button"
+                  class="btn btn--small"
+                  @click="emit('edit', row)"
+                >
+                  Editar
+                </button>
+                <button
+                  v-if="canDelete"
+                  data-test="delete"
+                  type="button"
+                  class="btn btn--small btn--danger"
+                  @click="emit('delete', row)"
+                >
+                  Eliminar
+                </button>
+              </slot>
             </td>
           </tr>
           <tr v-if="rows.length === 0 && !loading">
-            <td :colspan="columns.length + 1" class="data-table__empty">No hay registros.</td>
+            <td :colspan="columns.length + (showActions ? 1 : 0)" class="data-table__empty">
+              No hay registros.
+            </td>
           </tr>
         </tbody>
       </table>

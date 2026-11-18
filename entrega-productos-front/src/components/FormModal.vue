@@ -19,6 +19,12 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'submit', 'close'])
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function toRegExp(pattern) {
+  return pattern instanceof RegExp ? pattern : new RegExp(pattern)
+}
+
 const form = reactive({ ...props.modelValue })
 const error = ref('')
 
@@ -70,6 +76,20 @@ function handleSubmit() {
     return
   }
 
+  const invalidFormat = props.fields.find((field) => {
+    const value = String(payload[field.key] ?? '')
+    if (!value) return false
+    if (field.type === 'email') return !EMAIL_RE.test(value)
+    if (field.pattern) return !toRegExp(field.pattern).test(value)
+    return false
+  })
+
+  if (invalidFormat) {
+    error.value =
+      invalidFormat.message || `${invalidFormat.label} no tiene un formato válido.`
+    return
+  }
+
   error.value = ''
   emit('update:modelValue', payload)
   emit('submit', payload)
@@ -103,6 +123,18 @@ function handleSubmit() {
             :placeholder="field.placeholder || ''"
             @input="setValue(field.key, $event.target.value)"
           />
+
+          <select
+            v-else-if="field.type === 'select'"
+            :id="`field-${field.key}`"
+            :data-test="`field-${field.key}`"
+            :value="form[field.key] ?? ''"
+            @change="setValue(field.key, $event.target.value)"
+          >
+            <option v-for="option in field.options" :key="option.value" :value="option.value">
+              {{ option.label }}
+            </option>
+          </select>
 
           <input
             v-else
@@ -200,7 +232,8 @@ label span {
 }
 
 input,
-textarea {
+textarea,
+select {
   width: 100%;
   border: 1px solid #d1d5db;
   border-radius: 8px;

@@ -1,11 +1,18 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import AlertMessage from '../components/AlertMessage.vue'
 import ConfirmDelete from '../components/ConfirmDelete.vue'
 import DataTable from '../components/DataTable.vue'
 import FormModal from '../components/FormModal.vue'
 import tiposApi from '../api/tipos'
 import { getErrorMessage, isDuplicateError } from '../api/axios'
+import { useAuthStore } from '../stores/auth'
+import { hasPermission } from '../config/permissions'
+
+const auth = useAuthStore()
+const canCreate = computed(() => hasPermission(auth.role, 'tipos', 'create'))
+const canEdit = computed(() => hasPermission(auth.role, 'tipos', 'edit'))
+const canDelete = computed(() => hasPermission(auth.role, 'tipos', 'delete'))
 
 const columns = [{ key: 'nombre', label: 'Nombre' }]
 const fields = [{ key: 'nombre', label: 'Nombre', required: true, maxLength: 100 }]
@@ -152,6 +159,9 @@ onMounted(load)
       :limit="limit"
       :q="q"
       :loading="loading"
+      :can-create="canCreate"
+      :can-edit="canEdit"
+      :can-delete="canDelete"
       @update:q="q = $event"
       @update:page="page = $event"
       @create="openCreate"

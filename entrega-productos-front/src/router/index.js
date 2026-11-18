@@ -16,7 +16,7 @@ const router = createRouter({
       component: MainLayout,
       children: [
         { path: '', name: 'inicio', component: () => import('../views/DashboardView.vue') },
-        // Roles provisionales: admin, bodeguero, cliente (confirmar con el líder)
+        // Roles y permisos definitivos en src/config/permissions.js
         {
           path: 'tipos',
           name: 'tipos',
@@ -33,7 +33,7 @@ const router = createRouter({
           path: 'usuarios',
           name: 'usuarios',
           component: () => import('../views/UsuariosView.vue'),
-          meta: { roles: ['admin'] },
+          meta: { roles: ['admin', 'bodeguero'] },
         },
         {
           path: 'permisos',
@@ -47,15 +47,12 @@ const router = createRouter({
           component: () => import('../views/RolesView.vue'),
           meta: { roles: ['admin'] },
         },
+        // "Órdenes" se eliminó: la orden es la factura. Redirigimos las rutas viejas.
+        { path: 'ordenes', redirect: { name: 'facturas' } },
+        { path: 'factura', redirect: { name: 'facturas' } },
         {
-          path: 'ordenes',
-          name: 'ordenes',
-          component: () => import('../views/OrdenesView.vue'),
-          meta: { roles: ['admin', 'bodeguero', 'cliente'] },
-        },
-        {
-          path: 'factura',
-          name: 'factura',
+          path: 'facturas',
+          name: 'facturas',
           component: () => import('../views/FacturaView.vue'),
           meta: { roles: ['admin', 'bodeguero', 'cliente'] },
         },

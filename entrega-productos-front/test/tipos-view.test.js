@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 
 const api = vi.hoisted(() => ({
   list: vi.fn(),
@@ -11,9 +12,13 @@ const api = vi.hoisted(() => ({
 vi.mock('../src/api/tipos', () => ({ default: api }))
 
 import TiposView from '../src/views/TiposView.vue'
+import { useAuthStore } from '../src/stores/auth'
 
 describe('Test 13 — TiposView (CRUD con componentes)', () => {
   beforeEach(() => {
+    localStorage.clear()
+    setActivePinia(createPinia())
+    useAuthStore().saveSession('token-123', { nombre: 'Ana', rol: 'admin' })
     vi.clearAllMocks()
     api.list.mockResolvedValue({
       data: [{ id: 1, nombre: 'Alimentos' }],

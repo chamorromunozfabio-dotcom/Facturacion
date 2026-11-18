@@ -47,15 +47,17 @@ describe('Test 8 — MainLayout', () => {
     expect(wrapper.text()).toContain('Rol: admin')
   })
 
-  it('oculta Usuarios y Permisos para el rol bodeguero', () => {
+  it('oculta Permisos y Roles para el bodeguero, pero muestra Usuarios', () => {
     useAuthStore().saveSession('token-123', { nombre: 'Luis', rol: 'bodeguero' })
 
     const wrapper = mountLayout()
     const menu = wrapper.findAll('.menu__item').map((link) => link.text()).join(' ')
 
     expect(menu).toContain('Tipos')
-    expect(menu).not.toContain('Usuarios')
+    expect(menu).toContain('Usuarios')
     expect(menu).not.toContain('Permisos')
+    expect(menu).not.toContain('Roles')
+    expect(menu).not.toContain('Órdenes')
   })
 
   it('muestra Usuarios y Permisos para el rol admin', () => {

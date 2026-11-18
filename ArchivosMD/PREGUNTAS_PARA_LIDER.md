@@ -1,51 +1,38 @@
 # Preguntas para el líder — estado actual
 
 > Equipo: frontend (Vue) + backend (FastAPI). Entrega: lunes 23-11-2026.
-> El backend ya respondió gran parte; acá queda lo resuelto y lo que **todavía necesitamos del líder**.
+> **Actualizado:** 18-11-2026 — ya no hay preguntas bloqueantes. El líder respondió todo en `CONTRATO_FACTURAS.MD` y en su mensaje posterior.
 
 ---
 
-## ✅ Ya resuelto con backend
+## ✅ Todas las decisiones recibidas
 
-| Tema | Respuesta |
+| Tema | Respuesta definitiva |
 |---|---|
-| BD | `entrega_productos` (MySQL/Laragon). La crea el backend al arrancar; no hay `.sql`. |
-| `tipos` | `id`, `nombre` (obligatorio, único) |
-| `bodegas` | `id`, `nombre` (obligatorio, único), `direccion` (opcional) |
-| `permisos` | `id`, `nombre`, `descripcion` |
-| `roles` | `id`, `nombre`, `descripcion` + relación muchos a muchos con permisos |
-| `usuarios` | `id`, `nombre`, `correo`, `contrasena` (solo envío), `rol_id` |
-| Rutas | Sin prefijo: `/tipos`, `/bodegas`, `/usuarios`, `/permisos`, `/roles` |
-| Login | `POST /login` con `{ correo, contrasena }` → `{ access_token, token_type, user }`. No es form-data. |
-| Token | `Bearer`, vence en 60 min. `GET /me` recupera el usuario al recargar. |
-| Roles | Valores exactos: `admin`, `bodeguero`, `cliente` (provisionales). Solo existe `/solo-admin` como restricción temporal; tabla `permisos` vacía. |
-| Errores | 401/403 con `{ "detail": "texto" }`. Los 422 siguen con `detail` lista; el frontend los normaliza. |
-| Listados | Aún sin definir. Búsqueda recomendada `q` + `page` + `limit` (aceptada por el frontend). |
+| Roles | `admin`, `bodeguero`, `cliente`. Matriz completa en `CONTRATO_FACTURAS.MD`. |
+| Menú | Solo **Facturas**. Se quitó "Órdenes" porque la orden es la factura. |
+| Bodeguero en Tipos/Bodegas | Solo ver (`GET` permitido); el backend devolverá `403` en `POST`/`PUT`/`DELETE`. |
+| Bodeguero en Usuarios | Solo ver clientes: `GET /usuarios?rol=cliente` (el backend fuerza el filtro). |
+| Bodegas — "quién recibe" | 8 campos: `nombre`, `direccion`, `ciudad`, `telefono` y 4 `responsable_*`. Solo `nombre` obligatorio. |
+| Usuario cliente | `tipo_documento` (CC/NIT/CE), `numero_documento`, `telefono`, `direccion` en el mismo `POST`/`PUT`; `rol_id` numérico. |
+| Listados y `q` | `{ data, total, page, limit }`. `q` busca por número y nombre del cliente. `estado` un solo valor. |
+| Firma | Data URL PNG completa, base64 válido, máx. 500 KB. Campo `firma`, se devuelve en `trazabilidad.firma`. |
+| Factura y PDF | Entidad única `/facturas`. PDF con `blob` y `Content-Disposition`. Totales los calcula el backend. |
+| Líneas del formulario | `GET /tipos?limit=100`, descripción precargada y editable, cantidades y validaciones confirmadas. |
+| Diseño | Sin Figma por ahora: se armó un diseño limpio propio con CSS. |
 
 ---
 
-## ⏳ Pendiente con el líder (responder hoy si puede)
+## Mensaje que se envió al líder (respondido)
 
-1. **Roles:** confirmar si los valores son `admin`, `bodeguero`, `cliente` (los pusimos como provisional) y qué debe ver cada uno.
-   - Propuesta nuestra: admin = todo; bodeguero = Inicio, Tipos, Bodegas, Órdenes, Factura; cliente = Inicio, Órdenes, Factura.
-2. **Bodegas — "quién recibe":** ¿qué campos lleva (cliente, dirección de entrega, contacto, teléfono, etc.)? El backend dijo que pueden cambiar cuando lo definas.
-3. **Firma (Día 4):** ¿se envía como base64 (data URL PNG)? ¿en qué campo del JSON?
-4. **Factura (Día 5):** ¿endpoint exacto, PDF generado por backend y formato de la "validación electrónica"?
-5. **Diseño:** ¿hay Figma/paleta o armamos un diseño limpio propio?
-
----
-
-## Mensaje listo para el líder
-
-> Hola [líder], el backend ya nos pasó campos, rutas y formato de login, y lo dejamos aplicado en el frontend. Nos faltan 2 decisiones tuyas para no adivinar: (1) confirmar los roles `admin`, `bodeguero`, `cliente` y qué ve cada uno, y (2) definir los campos de "quién recibe" en Bodegas. También necesitamos el formato de la firma para el Día 4. Con eso cerramos el diseño de pantallas. ¡Gracias!
+> Confirmado todo: menú solo con Facturas, bodeguero con permisos de solo lectura en Tipos/Bodegas y solo clientes en Usuarios, filtros del listado, transiciones de estado, firma con data URL PNG de 500 KB, PDF con blob, líneas del formulario y campos nuevos de Bodega y Usuario. Gracias.
 
 ---
 
 ## Notas para nuestro equipo
 
-- Los roles provisionales se cambian en `src/config/navigation.js` y `src/router/index.js`.
-- El login ya usa `correo` + `contrasena`; el store acepta `rol` como string u objeto `{ nombre }`.
-- Agregamos `src/api/roles.js` y la ruta `/roles`.
-- `GET /me` se llama al arrancar si hay token guardado; si venció, el 401 cierra sesión.
-- `getErrorMessage()` convierte el `detail` lista de los 422 en texto.
-- Los tests siguen en verde: `npm test` → 8 archivos, 34 aserciones (fuerzan mocks en `vite.config.js`).
+- Los permisos se cambian en **un solo lugar**: `src/config/permissions.js`.
+- El menú se arma desde `src/config/navigation.js` con `visibleMenuFor(rol)`.
+- El front oculta botones; el backend es quien bloquea con `403`.
+- Los tests están en verde: `npm test` → **24 archivos, 128 aserciones** (fuerzan mocks en `vite.config.js`).
+- `npm run build` compila correctamente.

@@ -28,11 +28,29 @@ describe('Test 4 — guardas del router', () => {
     expect(router.currentRoute.value.name).toBe('usuarios')
   })
 
-  it('con rol bodeguero no permite /usuarios y vuelve al inicio', async () => {
+  it('con rol bodeguero permite /usuarios (solo lectura)', async () => {
     const auth = useAuthStore()
     auth.saveSession('token-123', { nombre: 'Luis', rol: 'bodeguero' })
 
     await router.push('/usuarios')
+
+    expect(router.currentRoute.value.name).toBe('usuarios')
+  })
+
+  it('con rol bodeguero no permite /roles', async () => {
+    const auth = useAuthStore()
+    auth.saveSession('token-123', { nombre: 'Luis', rol: 'bodeguero' })
+
+    await router.push('/roles')
+
+    expect(router.currentRoute.value.name).toBe('inicio')
+  })
+
+  it('con rol cliente no permite /tipos', async () => {
+    const auth = useAuthStore()
+    auth.saveSession('token-123', { nombre: 'Carlos', rol: 'cliente' })
+
+    await router.push('/tipos')
 
     expect(router.currentRoute.value.name).toBe('inicio')
   })

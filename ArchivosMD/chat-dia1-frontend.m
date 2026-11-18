@@ -384,3 +384,46 @@ Resultado final: **8 archivos, 32 aserciones ✅**.
   - La tabla `tipos` está vacía en la BD por ahora; no se insertaron datos de prueba.
 
 **Pendiente:** que el líder confirme roles, campos de "quién recibe" y el contrato de órdenes/factura; que el backend traduzca los 422 de `page`/`limit`.
+
+---
+
+## Mensaje 14 — Usuario (entrega del contrato y respuestas del líder)
+
+> Revisa `CONTRATO_FACTURAS.MD` en la carpeta ArchivosMD.
+>
+> Dame las preguntas para el backend que es el mismo líder y toma las decisiones.
+>
+>¡Hola! Te confirmo todo para que arranques sin volver a preguntar. (Respuestas 1 a 11: menú solo Facturas, bodeguero solo lectura en Tipos/Bodegas y solo clientes en Usuarios, filtros, transiciones, firma data URL PNG de 500 KB, PDF con blob, selector de tipos, campos nuevos de Bodega y Usuario.)
+
+## Mensaje 15 — Asistente (Días 4 y 5 completados)
+
+**Preguntas enviadas (11 puntos).** El líder respondió todas. Se aplicó sin volver a preguntar.
+
+### Día 4 — Roles, permisos, Bodegas y Usuarios
+
+| Test | Cambio |
+|---|---|
+| 16 | `src/config/permissions.js` con la matriz definitiva. Menú sin "Órdenes", Facturas en `/facturas`, rutas viejas redirigen. |
+| 17 | `DataTable` acepta `canCreate`/`canEdit`/`canDelete`; el bodeguero ve listados sin botones de cambio. |
+| 18 | Bodegas con 8 campos, columnas sugeridas y validaciones (teléfono 7-20, correo, documento ≤ 20). `FormModal` soporta `pattern`, `message` y `type: 'email'`. |
+| 19 | Usuarios con `select`, campos condicionales de cliente, `rol_id` numérico, `?rol=cliente` forzado al bodeguero y contraseña opcional al editar. |
+
+### Día 5 — Facturas
+
+| Test | Cambio |
+|---|---|
+| 20 | `SignaturePad`: canvas con eventos `pointer`, data URL PNG, botón Limpiar y límite de 500 KB. |
+| 21 | `src/api/facturas.js`: `entregar`, `aceptar`, `rechazar`, `recibir`, `descargarPdf`, `validateFirma()`, `filenameFromDisposition()` y `triggerDownload()`. Mocks con 5 estados. |
+| 22 | `FacturaDetail`: emisor, adquiriente, bodega, líneas, totales, validación electrónica, software y trazabilidad con firma/motivo. |
+| 23 | `FacturaForm`: líneas dinámicas, precarga de descripción desde `tipos`, fecha de vencimiento condicional y validaciones del backend. |
+| 24 | `FacturaView`: listado con `q`/`estado`, acciones por estado y rol, modales de firma y rechazo, detalle y descarga de PDF. `DataTable` ganó un slot `#actions`. |
+
+**Corrección durante el Test 24:** dos tests fallaron porque montaban la vista con rol `admin` y buscaban los botones Aceptar/Rechazar, que son exclusivos del `cliente`. Se cambió el rol en esos tests; el componente estaba bien.
+
+**Verificación final:**
+
+- `npm test` → **24 archivos, 128 aserciones**, todos en verde (el usuario confirmó "Pasa" test por test).
+- `npm run build` → correcto (126 módulos, `dist/` generado).
+- Rama `main` con commit pendiente de subir.
+
+**Pendiente ahora solo del backend:** publicar Bodegas, Usuarios y Facturas; aplicar el `403` de bodeguero en Tipos/Bodegas; traducir los 422 de `page`/`limit`.

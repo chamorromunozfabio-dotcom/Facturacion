@@ -1,16 +1,14 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { menuItems } from '../config/navigation'
+import { visibleMenuFor } from '../config/navigation'
 import { useAuthStore } from '../stores/auth'
 
 const auth = useAuthStore()
 const router = useRouter()
 const logoUrl = `${import.meta.env.BASE_URL}logo.png`
 
-const visibleMenu = computed(() =>
-  menuItems.filter((item) => !item.roles?.length || item.roles.includes(auth.role)),
-)
+const visibleMenu = computed(() => visibleMenuFor(auth.role))
 
 async function logout() {
   auth.logout()

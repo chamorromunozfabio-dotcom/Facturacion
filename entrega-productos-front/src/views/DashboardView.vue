@@ -1,10 +1,10 @@
 <script setup>
 import { computed } from 'vue'
-import { menuItems } from '../config/navigation'
+import { visibleMenuFor } from '../config/navigation'
 import { useAuthStore } from '../stores/auth'
 
 const auth = useAuthStore()
-const modules = computed(() => menuItems.filter((item) => item.to !== '/'))
+const modules = computed(() => visibleMenuFor(auth.role).filter((item) => item.to !== '/'))
 </script>
 
 <template>

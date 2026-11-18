@@ -1,20 +1,49 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import AlertMessage from '../components/AlertMessage.vue'
 import ConfirmDelete from '../components/ConfirmDelete.vue'
 import DataTable from '../components/DataTable.vue'
 import FormModal from '../components/FormModal.vue'
 import bodegasApi from '../api/bodegas'
 import { getErrorMessage, isDuplicateError } from '../api/axios'
+import { useAuthStore } from '../stores/auth'
+import { hasPermission } from '../config/permissions'
 
+const auth = useAuthStore()
+const canCreate = computed(() => hasPermission(auth.role, 'bodegas', 'create'))
+const canEdit = computed(() => hasPermission(auth.role, 'bodegas', 'edit'))
+const canDelete = computed(() => hasPermission(auth.role, 'bodegas', 'delete'))
+
+// Columnas sugeridas por el líder; el backend devuelve todos los campos.
 const columns = [
   { key: 'nombre', label: 'Nombre' },
-  { key: 'direccion', label: 'Dirección' },
+  { key: 'ciudad', label: 'Ciudad' },
+  { key: 'responsable_nombre', label: 'Responsable' },
+  { key: 'telefono', label: 'Teléfono' },
 ]
+
+const phonePattern = /^[0-9+\- ]{7,20}$/
+const phoneMessage = 'Usa entre 7 y 20 caracteres: dígitos, espacios, + o -.'
+
 const fields = [
   { key: 'nombre', label: 'Nombre', required: true, maxLength: 100 },
-  { key: 'direccion', label: 'Dirección (opcional)', type: 'text' },
+  { key: 'direccion', label: 'Dirección' },
+  { key: 'ciudad', label: 'Ciudad' },
+  { key: 'telefono', label: 'Teléfono', pattern: phonePattern, message: phoneMessage },
+  { key: 'responsable_nombre', label: 'Nombre del responsable' },
+  { key: 'responsable_documento', label: 'Documento del responsable', maxLength: 20 },
+  {
+    key: 'responsable_telefono',
+    label: 'Teléfono del responsable',
+    pattern: phonePattern,
+    message: phoneMessage,
+  },
+  { key: 'responsable_correo', label: 'Correo del responsable', type: 'email' },
 ]
+
+const emptyForm = () => Object.fromEntries(fields.map((field) => [field.key, '']))
+const formFromRow = (row) =>
+  Object.fromEntries(fields.map((field) => [field.key, row[field.key] ?? '']))
 
 const rows = ref([])
 const total = ref(0)
@@ -26,7 +55,7 @@ const alert = ref(null)
 
 const modalOpen = ref(false)
 const editing = ref(null)
-const form = ref({ nombre: '', direccion: '' })
+const form = ref(emptyForm())
 const saving = ref(false)
 
 const confirmOpen = ref(false)
@@ -60,14 +89,21 @@ async function load() {
 
 function openCreate() {
   editing.value = null
-  form.value = { nombre: '', direccion: '' }
+  form.value = emptyForm()
   modalOpen.value = true
 }
 
 function openEdit(row) {
   editing.value = row
-  form.value = { nombre: row.nombre, direccion: row.direccion || '' }
+  form.value = formFromRow(row)
   modalOpen.value = true
+}
+
+// Los campos opcionales vacíos no se envían (evita 422 por cadena vacía).
+function cleanPayload(payload) {
+  return Object.fromEntries(
+    Object.entries(payload).filter(([, value]) => value !== '' && value !== null),
+  )
 }
 
 // El PUT acepta campos parciales: enviamos solo lo que cambió.
@@ -84,9 +120,10 @@ function errorMessage(error, fallback) {
 
 async function save(payload) {
   saving.value = true
+  const clean = cleanPayload(payload)
   try {
     if (editing.value) {
-      const changes = changedFields(payload)
+      const changes = changedFields(clean)
       if (Object.keys(changes).length === 0) {
         modalOpen.value = false
         alert.value = { type: 'info', message: 'No hay cambios para guardar.' }
@@ -97,7 +134,7 @@ async function save(payload) {
       rows.value = rows.value.map((row) => (row.id === merged.id ? merged : row))
       alert.value = { type: 'success', message: 'Bodega actualizada.' }
     } else {
-      const created = await bodegasApi.create(payload)
+      const created = await bodegasApi.create(clean)
       rows.value = [created, ...rows.value]
       total.value += 1
       alert.value = { type: 'success', message: 'Bodega creada.' }
@@ -162,6 +199,9 @@ onMounted(load)
       :limit="limit"
       :q="q"
       :loading="loading"
+      :can-create="canCreate"
+      :can-edit="canEdit"
+      :can-delete="canDelete"
       @update:q="q = $event"
       @update:page="page = $event"
       @create="openCreate"
