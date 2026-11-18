@@ -28,7 +28,7 @@ describe('Test 14 — BodegasView (CRUD con componentes)', () => {
           direccion: 'Calle Principal 123',
           ciudad: 'Bogotá',
           telefono: '3001234567',
-          responsable_nombre: 'María Rodríguez',
+          recibe_nombre: 'María Rodríguez',
         },
       ],
       total: 1,

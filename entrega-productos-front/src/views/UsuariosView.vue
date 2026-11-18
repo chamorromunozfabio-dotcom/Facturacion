@@ -25,6 +25,7 @@ const documentOptions = [
   { value: 'CC', label: 'CC' },
   { value: 'NIT', label: 'NIT' },
   { value: 'CE', label: 'CE' },
+  { value: 'PA', label: 'PA' },
 ]
 const phonePattern = /^[0-9+\- ]{7,20}$/
 const phoneMessage = 'Usa entre 7 y 20 caracteres: dígitos, espacios, + o -.'
@@ -42,17 +43,18 @@ const baseFields = [
   { key: 'contrasena', label: 'Contraseña', type: 'password', required: true },
   { key: 'rol_id', label: 'Rol', type: 'select', options: roleOptions, required: true },
 ]
+// El backend los acepta como opcionales para todos los roles (PA incluido).
 const clienteFields = [
   {
     key: 'tipo_documento',
     label: 'Tipo de documento',
     type: 'select',
     options: documentOptions,
-    required: true,
   },
-  { key: 'numero_documento', label: 'Número de documento', required: true, maxLength: 20 },
-  { key: 'telefono', label: 'Teléfono', required: true, pattern: phonePattern, message: phoneMessage },
-  { key: 'direccion', label: 'Dirección', required: true },
+  { key: 'numero_documento', label: 'Número de documento', maxLength: 20 },
+  { key: 'telefono', label: 'Teléfono', pattern: phonePattern, message: phoneMessage },
+  { key: 'direccion', label: 'Dirección' },
+  { key: 'ciudad', label: 'Ciudad' },
 ]
 
 const rows = ref([])
@@ -134,6 +136,7 @@ function openEdit(row) {
     numero_documento: row.numero_documento ?? '',
     telefono: row.telefono ?? '',
     direccion: row.direccion ?? '',
+    ciudad: row.ciudad ?? '',
   }
   modalOpen.value = true
 }

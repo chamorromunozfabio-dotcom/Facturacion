@@ -49,18 +49,18 @@ El navegador llama a `/api` en el **mismo origen** del frontend (por ejemplo `ht
 | `VITE_API_URL` | `/api` | Ruta que usa Axios; Vite la reenvía al backend |
 | `VITE_BACKEND_URL` | `http://192.168.20.49:8000` | IP real de FastAPI (la usa solo el proxy de Vite) |
 | `VITE_USE_MOCKS` | `true` / `false` | `true` usa datos falsos en todo; `false` usa la API real |
-| `VITE_FACTURAS_MOCKS` | `true` / `false` | Permite dejar solo Facturas con mocks mientras el backend publica `/facturas` |
+| `VITE_FACTURAS_MOCKS` | `true` / `false` | `false` usa `/facturas` real; `true` solo para trabajar sin backend |
 
-### Modo híbrido (backend ya publicó los catálogos)
+### Integración completa (todo contra la API real)
 
-El backend ya tiene `/login`, `/me`, `/tipos`, `/bodegas`, `/usuarios`, `/roles` y `/permisos`, pero todavía **no `/facturas`**. Por eso la configuración actual es:
+El backend ya publicó todos los módulos, incluido `/facturas` con el contrato definitivo. La configuración actual es:
 
 ```env
 VITE_USE_MOCKS=false
-VITE_FACTURAS_MOCKS=true
+VITE_FACTURAS_MOCKS=false
 ```
 
-Así: login, Tipos, Bodegas, Usuarios, Roles y Permisos usan la API real; Facturas sigue con datos falsos. Cuando el backend publique `/facturas`, poner `VITE_FACTURAS_MOCKS=false` y reiniciar `npm run dev`. Los tests fuerzan mocks en `vite.config.js`, así que no se ven afectados.
+Los tests fuerzan mocks en `vite.config.js`, así que siguen siendo estables aunque tu `.env` apunte a la API real. Si cambiás `.env`, reiniciá `npm run dev` (Vite no recarga variables en caliente).
 
 ## Estructura
 
@@ -79,17 +79,19 @@ src/
 
 ## Contrato acordado con backend
 
+> El contrato original está en `ArchivosMD/CONTRATO_FACTURAS.md`. Los cambios definitivos del backend están en `ArchivosMD/CAMBIOS_PARA_FRONTEND.md` (estados `emitida/firmada/recibida`, número `FE-0001` y campos `recibe_*`) y ya están aplicados en este frontend.
+
 - **Login:** `POST /login` con JSON `{ "correo": "admin@entrega.com", "contrasena": "Admin123*" }` (no form-data).
 - **Respuesta login:** `{ "access_token": "<jwt>", "token_type": "bearer", "user": { "id": 1, "nombre": "Administrador", "correo": "admin@entrega.com", "rol": "admin" } }`.
 - `user.rol` llega como **texto** (`admin`, `bodeguero`, `cliente`).
 - **Token:** `Authorization: Bearer <token>`, vence a los **60 minutos**.
 - **Recuperar sesión:** `GET /me` con ese header devuelve el mismo `user`. Se llama al arrancar la app.
 - **Errores 401/403:** `{ "detail": "texto" }` (`"Correo o contraseña incorrectos"`, `"No ha iniciado sesión"`, `"Token inválido o vencido"`, `"No tiene permiso para esta acción"`).
-- **Errores 422:** `detail` como texto. Si llega como lista, `getErrorMessage()` lo normaliza. Los 422 de `page`/`limit` todavía están en inglés (backend los traducirá).
+- **Errores 422:** `detail` como texto y en español, también para `page`/`limit` (`page: debe ser mayor o igual a 1`). Si llega como lista, `getErrorMessage()` lo normaliza.
 - **Listados:** confirmado `{ data, total, page, limit }`, `page` empieza en 1, `limit` por defecto 10 y máximo 100 (exceso → 422).
 - **Búsqueda:** `q` con coincidencia parcial y sin distinguir mayúsculas.
 - CORS habilitado para `http://localhost:5173`; para otras IPs se usa el proxy `/api` de Vite (ver arriba).
-- Endpoints publicados y en uso: `/login`, `/me`, `/tipos`, `/bodegas`, `/usuarios`, `/roles`, `/permisos` (más `/solo-admin`, temporal). Falta: `/facturas` y sus acciones.
+- Endpoints publicados y en uso: `/login`, `/me`, `/tipos`, `/bodegas`, `/usuarios`, `/roles`, `/permisos` y `/facturas` con sus acciones y PDF (más `/solo-admin`, temporal).
 
 ### Tipos (Día 3 — publicado por el backend)
 
@@ -99,30 +101,34 @@ src/
 - `GET /tipos?q=&page=1&limit=10` → `{ data, total, page, limit }`, ordenado por `id`, `limit` máximo 100.
 - `q` busca coincidencias parciales sin distinguir mayúsculas (`q=ALI` → "Alimentos").
 - Errores: `401`, `403`, `404` (`Tipo no encontrado`), `400` (`Ya existe un tipo con ese nombre`; el front también maneja `409`) y `422` con `detail` como texto.
-- Roles: los `GET` están permitidos para admin y bodeguero. **Pendiente en backend:** responder `403` a `POST`/`PUT`/`DELETE` de Tipos y Bodegas para `bodeguero` (hoy lo permite). Ver `ArchivosMD/INTEGRACION_BACKEND.md`.
+- Roles: los `GET` están permitidos para admin y bodeguero; `POST`/`PUT`/`DELETE` devuelven `403` al bodeguero. Ya aplicado por el backend.
 
-### Bodegas (Día 4 — contrato recibido, a publicar por backend)
+### Bodegas (Día 4 — contrato definitivo)
 
-- Campos: `nombre` (único, obligatorio), `direccion`, `ciudad`, `telefono`, `responsable_nombre`, `responsable_documento`, `responsable_telefono`, `responsable_correo` (todos opcionales salvo `nombre`).
+- Campos: `nombre` (único, obligatorio), `codigo`, `direccion`, `ciudad`, `departamento`, `telefono`, `correo`, `recibe_nombre`, `recibe_documento`, `recibe_cargo` y `recibe_telefono` (todos opcionales salvo `nombre`).
+- Ojo: el backend ya no usa `responsable_*`. Ahora es `recibe_*` y el correo es `correo` de la bodega.
 - Columnas del listado: Nombre, Ciudad, Responsable, Teléfono. El resto va en el formulario.
 - Validaciones: teléfono 7-20 caracteres (dígitos, espacios, `+`, `-`), correo con formato válido, documento máx. 20 caracteres.
 
 ### Usuarios (Día 4)
 
-- `POST /usuarios` y `PUT /usuarios/{id}` reciben `nombre`, `correo`, `contrasena` (obligatoria al crear, opcional al editar), `rol_id` (1=admin, 2=bodeguero, 3=cliente) y, **solo cuando el rol es cliente**, `tipo_documento` (CC/NIT/CE), `numero_documento`, `telefono`, `direccion`.
+- `POST /usuarios` y `PUT /usuarios/{id}` reciben `nombre`, `correo`, `contrasena` (obligatoria al crear, opcional al editar), `rol_id` (1=admin, 2=bodeguero, 3=cliente).
+- `tipo_documento` (CC/NIT/CE/**PA**), `numero_documento`, `telefono`, `direccion` y `ciudad` son **opcionales para todos los roles**; el front los muestra solo al elegir cliente.
 - `GET /usuarios?rol=cliente`: el bodeguero siempre ve solo clientes (el backend fuerza el filtro); el admin puede filtrar por cualquier rol o ver todos.
 
 ### Facturas (Día 5 — `CONTRATO_FACTURAS.MD`)
 
 - La orden **es** la factura: un solo módulo en `/facturas`.
-- Listado `{ data, total, page, limit }`; `q` busca por número **y** nombre del cliente; `estado` acepta un solo valor (`creada`, `entregada`, `aceptada`, `rechazada`, `cerrada`).
-- Estados: `creada → entregada → aceptada → cerrada`, o `rechazada`. Acción en estado inválido → `400`.
+- Número: **`FE-0001`** (ya no `FAC-000001`).
+- Listado `{ data, total, page, limit }`; `q` busca por número **y** nombre del cliente; cada fila trae `cliente_id`, `cliente_nombre`, `bodega_nombre` y `total`.
+- Estados definitivos: **`emitida` → `entregada` → `firmada` → `recibida`**, o `rechazada`. Acción en estado inválido → `400`.
 - Acciones: `POST /facturas/{id}/entregar`, `/aceptar` (`{ firma }`), `/rechazar` (`{ motivo }`), `/recibir`; `GET /facturas/{id}/pdf`.
-- El cliente solo ve las suyas (el backend filtra por `cliente_id` del token); no ve borradores `creada`.
+- El cliente solo ve las suyas (el backend filtra por el token); no ve borradores `emitida`.
 - Firma: data URL completa `data:image/png;base64,...`, base64 válido, máx. 500 KB. Se devuelve en `trazabilidad.firma` (solo en el detalle).
-- PDF: `application/pdf` con `Content-Disposition: attachment; filename="FAC-000001.pdf"`. Se descarga con `blob` porque el `<a>` simple no envía el Bearer.
-- Líneas: al menos 1; `cantidad > 0`, `precio_unitario ≥ 0`, `descuento_porcentaje` 0-100, `iva_porcentaje` 0/5/19, `tipo_id` opcional. Los totales los calcula el backend.
-- Interfaz: el estado se muestra con `StatusBadge.vue` (mismo componente en listado y detalle). Colores: gris `creada`, ámbar `entregada`, verde `aceptada`, rojo `rechazada`, azul `cerrada`. `DataTable` admite slots `cell-<key>` para personalizar celdas.
+- PDF: `application/pdf` con `Content-Disposition: attachment; filename="FE-0001.pdf"`. Se descarga con `blob` porque el `<a>` simple no envía el Bearer.
+- Líneas: al menos 1; `cantidad > 0`, `precio_unitario ≥ 0`, `descuento_porcentaje` 0-100, `iva_porcentaje` 0/5/19, `tipo_id` y `unidad_medida` opcionales (por defecto `UND`). Los totales los calcula el backend.
+- `forma_pago`: `contado`, `credito` o `crédito`; con crédito, `fecha_vencimiento` es obligatoria.
+- Interfaz: el estado se muestra con `StatusBadge.vue` (mismo componente en listado y detalle). Colores: gris `emitida`, ámbar `entregada`, verde `firmada`, rojo `rechazada`, azul `recibida`. `DataTable` admite slots `cell-<key>` para personalizar celdas.
 
 ## Roles y permisos definitivos
 

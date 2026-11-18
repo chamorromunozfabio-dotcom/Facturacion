@@ -51,7 +51,7 @@ const software = computed(() => props.factura.software ?? {})
       <section>
         <h3>Bodega</h3>
         <p>{{ bodega.nombre }}</p>
-        <p>Responsable: {{ bodega.responsable_nombre }}</p>
+        <p>Responsable: {{ bodega.recibe_nombre }}</p>
       </section>
 
       <section>

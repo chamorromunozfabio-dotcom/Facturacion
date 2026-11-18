@@ -53,8 +53,8 @@ const layoutOptions = {
 }
 
 const filas = [
-  { id: 1, numero: 'FAC-000001', estado: 'creada', cliente_nombre: 'Juan Pérez', total: 100 },
-  { id: 2, numero: 'FAC-000002', estado: 'entregada', cliente_nombre: 'Juan Pérez', total: 200 },
+  { id: 1, numero: 'FE-0001', estado: 'emitida', cliente_nombre: 'Juan Pérez', total: 100 },
+  { id: 2, numero: 'FE-0002', estado: 'entregada', cliente_nombre: 'Juan Pérez', total: 200 },
 ]
 
 const login = (role) => useAuthStore().saveSession('token-123', { nombre: 'Ana', rol: role })
@@ -107,10 +107,10 @@ describe('Test 26 — Iconos en acciones y color por rol', () => {
 
   it('las acciones de factura llevan iconos según el permiso del rol', async () => {
     const admin = await mountFacturas('admin')
-    const creada = admin.findAll('tbody tr')[0]
+    const emitida = admin.findAll('tbody tr')[0]
 
     for (const test of ['ver', 'edit', 'delete', 'entregar', 'pdf']) {
-      expect(creada.find(`[data-test="${test}"] svg`).exists()).toBe(true)
+      expect(emitida.find(`[data-test="${test}"] svg`).exists()).toBe(true)
     }
 
     const cliente = await mountFacturas('cliente')

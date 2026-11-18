@@ -35,7 +35,7 @@ import FacturaDetail from '../src/components/FacturaDetail.vue'
 import FacturaView from '../src/views/FacturaView.vue'
 import { useAuthStore } from '../src/stores/auth'
 
-const ESTADOS = ['creada', 'entregada', 'aceptada', 'rechazada', 'cerrada']
+const ESTADOS = ['emitida', 'entregada', 'firmada', 'rechazada', 'recibida']
 
 describe('Test 27 — Badge de estado con color', () => {
   beforeEach(() => {
@@ -76,7 +76,7 @@ describe('Test 27 — Badge de estado con color', () => {
 
   it('el listado de facturas usa el badge en cada fila', async () => {
     api.list.mockResolvedValue({
-      data: ESTADOS.map((estado, index) => ({ id: index + 1, estado, numero: `FAC-${index}` })),
+      data: ESTADOS.map((estado, index) => ({ id: index + 1, estado, numero: `FE-${index + 1}` })),
       total: ESTADOS.length,
       page: 1,
       limit: 10,
@@ -95,7 +95,7 @@ describe('Test 27 — Badge de estado con color', () => {
 
   it('el detalle mantiene su data-test y usa el mismo badge', () => {
     const factura = {
-      numero: 'FAC-000001',
+      numero: 'FE-0001',
       estado: 'rechazada',
       fecha_emision: '2026-11-18',
       emisor: {},

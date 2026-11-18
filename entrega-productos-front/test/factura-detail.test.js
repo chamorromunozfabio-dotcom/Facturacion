@@ -4,8 +4,8 @@ import FacturaDetail from '../src/components/FacturaDetail.vue'
 
 const base = {
   id: 1,
-  numero: 'FAC-000001',
-  estado: 'aceptada',
+  numero: 'FE-0001',
+  estado: 'firmada',
   fecha_emision: '2026-11-18T10:30:00',
   fecha_vencimiento: null,
   forma_pago: 'contado',
@@ -13,7 +13,7 @@ const base = {
   moneda: 'COP',
   emisor: { razon_social: 'Entrega S.A.S.', nit: '900123456-1', direccion: 'Calle 1', telefono: '3000000000', correo: 'fact@entrega.com' },
   adquiriente: { id: 3, nombre: 'Juan Pérez', tipo_documento: 'CC', numero_documento: '1020304050', direccion: 'Calle 10', telefono: '3001234567', correo: 'juan@cliente.com' },
-  bodega: { id: 1, nombre: 'Bodega Central', responsable_nombre: 'María Rodríguez' },
+  bodega: { id: 1, nombre: 'Bodega Central', recibe_nombre: 'María Rodríguez' },
   detalle: [
     { linea: 1, descripcion: 'Arroz 500 g', cantidad: 10, precio_unitario: 3500, descuento_porcentaje: 0, iva_porcentaje: 5, total_linea: 36750 },
   ],
@@ -35,8 +35,8 @@ describe('Test 22 — FacturaDetail (detalle completo)', () => {
   it('muestra número, estado, cliente, bodega y líneas', () => {
     const wrapper = mount(FacturaDetail, { props: { factura: base } })
 
-    expect(wrapper.find('[data-test="detail-numero"]').text()).toBe('FAC-000001')
-    expect(wrapper.find('[data-test="detail-estado"]').text()).toBe('aceptada')
+    expect(wrapper.find('[data-test="detail-numero"]').text()).toBe('FE-0001')
+    expect(wrapper.find('[data-test="detail-estado"]').text()).toBe('firmada')
     expect(wrapper.find('[data-test="detail-cliente"]').text()).toBe('Juan Pérez')
     expect(wrapper.text()).toContain('Bodega Central')
     expect(wrapper.findAll('[data-test="detail-linea"]')).toHaveLength(1)

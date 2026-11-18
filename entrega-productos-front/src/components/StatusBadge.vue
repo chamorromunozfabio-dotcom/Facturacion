@@ -39,7 +39,7 @@ const clases = computed(() => `status-badge status-badge--${props.estado}`)
   flex-shrink: 0;
 }
 
-.status-badge--creada {
+.status-badge--emitida {
   background: #f3f4f6;
   color: #4b5563;
 }
@@ -49,7 +49,7 @@ const clases = computed(() => `status-badge status-badge--${props.estado}`)
   color: #92400e;
 }
 
-.status-badge--aceptada {
+.status-badge--firmada {
   background: #dcfce7;
   color: #166534;
 }
@@ -59,7 +59,7 @@ const clases = computed(() => `status-badge status-badge--${props.estado}`)
   color: #991b1b;
 }
 
-.status-badge--cerrada {
+.status-badge--recibida {
   background: #dbeafe;
   color: #1e40af;
 }

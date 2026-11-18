@@ -18,7 +18,7 @@ const canDelete = computed(() => hasPermission(auth.role, 'bodegas', 'delete'))
 const columns = [
   { key: 'nombre', label: 'Nombre' },
   { key: 'ciudad', label: 'Ciudad' },
-  { key: 'responsable_nombre', label: 'Responsable' },
+  { key: 'recibe_nombre', label: 'Responsable' },
   { key: 'telefono', label: 'Teléfono' },
 ]
 
@@ -27,18 +27,21 @@ const phoneMessage = 'Usa entre 7 y 20 caracteres: dígitos, espacios, + o -.'
 
 const fields = [
   { key: 'nombre', label: 'Nombre', required: true, maxLength: 100 },
+  { key: 'codigo', label: 'Código', maxLength: 50 },
   { key: 'direccion', label: 'Dirección' },
   { key: 'ciudad', label: 'Ciudad' },
+  { key: 'departamento', label: 'Departamento' },
   { key: 'telefono', label: 'Teléfono', pattern: phonePattern, message: phoneMessage },
-  { key: 'responsable_nombre', label: 'Nombre del responsable' },
-  { key: 'responsable_documento', label: 'Documento del responsable', maxLength: 20 },
+  { key: 'correo', label: 'Correo de la bodega', type: 'email' },
+  { key: 'recibe_nombre', label: 'Nombre de quien recibe' },
+  { key: 'recibe_documento', label: 'Documento de quien recibe', maxLength: 20 },
+  { key: 'recibe_cargo', label: 'Cargo de quien recibe', maxLength: 50 },
   {
-    key: 'responsable_telefono',
-    label: 'Teléfono del responsable',
+    key: 'recibe_telefono',
+    label: 'Teléfono de quien recibe',
     pattern: phonePattern,
     message: phoneMessage,
   },
-  { key: 'responsable_correo', label: 'Correo del responsable', type: 'email' },
 ]
 
 const emptyForm = () => Object.fromEntries(fields.map((field) => [field.key, '']))

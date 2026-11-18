@@ -20,10 +20,10 @@ const row = {
   direccion: 'Calle Principal 123',
   ciudad: 'Bogotá',
   telefono: '3001234567',
-  responsable_nombre: 'María Rodríguez',
-  responsable_documento: '1020304050',
-  responsable_telefono: '3109876543',
-  responsable_correo: 'maria@bodega.com',
+  recibe_nombre: 'María Rodríguez',
+  recibe_documento: '1020304050',
+  recibe_telefono: '3109876543',
+  correo: 'bodega@entrega.com',
 }
 
 describe('Test 18 — Campos nuevos de Bodega', () => {
@@ -48,20 +48,23 @@ describe('Test 18 — Campos nuevos de Bodega', () => {
     expect(wrapper.text()).toContain('María Rodríguez')
   })
 
-  it('el formulario incluye los 8 campos', async () => {
+  it('el formulario incluye los campos del contrato definitivo', async () => {
     const wrapper = mount(BodegasView)
     await flushPromises()
     await wrapper.find('[data-test="create"]').trigger('click')
 
     for (const key of [
       'nombre',
+      'codigo',
       'direccion',
       'ciudad',
+      'departamento',
       'telefono',
-      'responsable_nombre',
-      'responsable_documento',
-      'responsable_telefono',
-      'responsable_correo',
+      'correo',
+      'recibe_nombre',
+      'recibe_documento',
+      'recibe_cargo',
+      'recibe_telefono',
     ]) {
       expect(wrapper.find(`[data-test="field-${key}"]`).exists()).toBe(true)
     }
@@ -82,33 +85,33 @@ describe('Test 18 — Campos nuevos de Bodega', () => {
     expect(api.create).not.toHaveBeenCalled()
   })
 
-  it('rechaza un correo del responsable inválido', async () => {
+  it('rechaza un correo de la bodega inválido', async () => {
     const wrapper = mount(BodegasView)
     await flushPromises()
     await wrapper.find('[data-test="create"]').trigger('click')
 
     await wrapper.find('[data-test="field-nombre"]').setValue('Bodega Norte')
-    await wrapper.find('[data-test="field-responsable_correo"]').setValue('no-es-correo')
+    await wrapper.find('[data-test="field-correo"]').setValue('no-es-correo')
     await wrapper.find('form').trigger('submit')
 
     expect(wrapper.find('[data-test="error"]').text()).toBe(
-      'Correo del responsable no tiene un formato válido.',
+      'Correo de la bodega no tiene un formato válido.',
     )
   })
 
-  it('limita el documento del responsable a 20 caracteres', async () => {
+  it('limita el documento de quien recibe a 20 caracteres', async () => {
     const wrapper = mount(BodegasView)
     await flushPromises()
     await wrapper.find('[data-test="create"]').trigger('click')
 
     await wrapper.find('[data-test="field-nombre"]').setValue('Bodega Norte')
     await wrapper
-      .find('[data-test="field-responsable_documento"]')
+      .find('[data-test="field-recibe_documento"]')
       .setValue('123456789012345678901')
     await wrapper.find('form').trigger('submit')
 
     expect(wrapper.find('[data-test="error"]').text()).toBe(
-      'Documento del responsable no puede superar los 20 caracteres.',
+      'Documento de quien recibe no puede superar los 20 caracteres.',
     )
   })
 

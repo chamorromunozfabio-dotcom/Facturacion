@@ -53,9 +53,9 @@ export function triggerDownload(blob, filename) {
 
 const PATCHES = {
   entregar: { estado: 'entregada' },
-  aceptar: { estado: 'aceptada' },
+  aceptar: { estado: 'firmada' },
   rechazar: { estado: 'rechazada' },
-  recibir: { estado: 'cerrada' },
+  recibir: { estado: 'recibida' },
 }
 
 async function accion(id, path, body) {

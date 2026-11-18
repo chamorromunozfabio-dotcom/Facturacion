@@ -39,11 +39,11 @@ import { useAuthStore } from '../src/stores/auth'
 const FIRMA = 'data:image/png;base64,YWJj'
 
 const filas = [
-  { id: 1, numero: 'FAC-000001', estado: 'creada', cliente_nombre: 'Juan Pérez', fecha_emision: '2026-11-18', total: 36750 },
-  { id: 2, numero: 'FAC-000002', estado: 'entregada', cliente_nombre: 'Juan Pérez', fecha_emision: '2026-11-18', total: 10000 },
-  { id: 3, numero: 'FAC-000003', estado: 'aceptada', cliente_nombre: 'Juan Pérez', fecha_emision: '2026-11-18', total: 20000 },
-  { id: 4, numero: 'FAC-000004', estado: 'rechazada', cliente_nombre: 'Juan Pérez', fecha_emision: '2026-11-18', total: 30000 },
-  { id: 5, numero: 'FAC-000005', estado: 'cerrada', cliente_nombre: 'Juan Pérez', fecha_emision: '2026-11-18', total: 40000 },
+  { id: 1, numero: 'FE-0001', estado: 'emitida', cliente_nombre: 'Juan Pérez', fecha_emision: '2026-11-18', total: 36750 },
+  { id: 2, numero: 'FE-0002', estado: 'entregada', cliente_nombre: 'Juan Pérez', fecha_emision: '2026-11-18', total: 10000 },
+  { id: 3, numero: 'FE-0003', estado: 'firmada', cliente_nombre: 'Juan Pérez', fecha_emision: '2026-11-18', total: 20000 },
+  { id: 4, numero: 'FE-0004', estado: 'rechazada', cliente_nombre: 'Juan Pérez', fecha_emision: '2026-11-18', total: 30000 },
+  { id: 5, numero: 'FE-0005', estado: 'recibida', cliente_nombre: 'Juan Pérez', fecha_emision: '2026-11-18', total: 40000 },
 ]
 
 const mountView = async (rol = 'admin') => {
@@ -61,10 +61,10 @@ describe('Test 24 — FacturaView (listado, detalle y acciones)', () => {
     api.list.mockResolvedValue({ data: filas, total: filas.length, page: 1, limit: 10 })
     api.get.mockResolvedValue({ ...filas[0], detalle: [], totales: { total: 0 } })
     api.entregar.mockResolvedValue({ id: 1, estado: 'entregada' })
-    api.aceptar.mockResolvedValue({ id: 2, estado: 'aceptada' })
+    api.aceptar.mockResolvedValue({ id: 2, estado: 'firmada' })
     api.rechazar.mockResolvedValue({ id: 2, estado: 'rechazada' })
-    api.recibir.mockResolvedValue({ id: 3, estado: 'cerrada' })
-    api.descargarPdf.mockResolvedValue('FAC-000001.pdf')
+    api.recibir.mockResolvedValue({ id: 3, estado: 'recibida' })
+    api.descargarPdf.mockResolvedValue('FE-0001.pdf')
   })
 
   it('muestra el listado con las columnas del contrato y el filtro de estados', async () => {
@@ -79,7 +79,7 @@ describe('Test 24 — FacturaView (listado, detalle y acciones)', () => {
     expect(api.list).toHaveBeenCalledWith({ q: '', page: 1, limit: 10 })
 
     const opciones = wrapper.findAll('[data-test="estado-filter"] option').map((o) => o.text())
-    expect(opciones).toEqual(['Todos', 'creada', 'entregada', 'aceptada', 'rechazada', 'cerrada'])
+    expect(opciones).toEqual(['Todos', 'emitida', 'entregada', 'firmada', 'rechazada', 'recibida'])
   })
 
   it('el admin ve acciones distintas según el estado', async () => {
@@ -110,7 +110,7 @@ describe('Test 24 — FacturaView (listado, detalle y acciones)', () => {
 
     expect(wrapper.find('[data-test="create"]').exists()).toBe(false)
     const opciones = wrapper.findAll('[data-test="estado-filter"] option').map((o) => o.text())
-    expect(opciones).not.toContain('creada')
+    expect(opciones).not.toContain('emitida')
 
     const entregada = wrapper.findAll('tbody tr')[1]
     expect(entregada.find('[data-test="aceptar"]').exists()).toBe(true)
@@ -170,8 +170,8 @@ describe('Test 24 — FacturaView (listado, detalle y acciones)', () => {
     await flushPromises()
 
     expect(api.recibir).toHaveBeenCalledWith(3)
-    expect(api.descargarPdf).toHaveBeenCalledWith(1, 'FAC-000001')
-    expect(wrapper.text()).toContain('Descargando FAC-000001.pdf.')
+    expect(api.descargarPdf).toHaveBeenCalledWith(1, 'FE-0001')
+    expect(wrapper.text()).toContain('Descargando FE-0001.pdf.')
   })
 
   it('Ver carga el detalle completo', async () => {

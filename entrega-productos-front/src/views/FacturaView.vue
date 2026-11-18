@@ -37,9 +37,9 @@ const canRechazar = computed(() => hasPermission(auth.role, 'facturas', 'rechaza
 const canPdf = computed(() => hasPermission(auth.role, 'facturas', 'pdf'))
 const esCliente = computed(() => auth.role === 'cliente')
 
-const ESTADOS = ['creada', 'entregada', 'aceptada', 'rechazada', 'cerrada']
+const ESTADOS = ['emitida', 'entregada', 'firmada', 'rechazada', 'recibida']
 const estadoOptions = computed(() =>
-  esCliente.value ? ESTADOS.filter((estado) => estado !== 'creada') : ESTADOS,
+  esCliente.value ? ESTADOS.filter((estado) => estado !== 'emitida') : ESTADOS,
 )
 
 const columns = [
@@ -149,7 +149,7 @@ function entregar(row) {
 }
 
 function recibir(row) {
-  return simpleAction(facturasApi.recibir, row.id, { estado: 'cerrada' }, 'Factura cerrada.')
+  return simpleAction(facturasApi.recibir, row.id, { estado: 'recibida' }, 'Factura recibida.')
 }
 
 async function openDetail(row) {
@@ -180,7 +180,7 @@ async function confirmarAceptar() {
   firmaSaving.value = true
   try {
     await facturasApi.aceptar(firmaFactura.value.id, firma.value)
-    patchRow(firmaFactura.value.id, { estado: 'aceptada' })
+    patchRow(firmaFactura.value.id, { estado: 'firmada' })
     firmaOpen.value = false
     success('Factura aceptada con firma.')
   } catch (error) {
@@ -366,7 +366,7 @@ onMounted(load)
           <span>Ver</span>
         </button>
         <button
-          v-if="canEdit && row.estado === 'creada'"
+          v-if="canEdit && row.estado === 'emitida'"
           data-test="edit"
           type="button"
           class="btn btn--small"
@@ -376,7 +376,7 @@ onMounted(load)
           <span>Editar</span>
         </button>
         <button
-          v-if="canDelete && row.estado === 'creada'"
+          v-if="canDelete && row.estado === 'emitida'"
           data-test="delete"
           type="button"
           class="btn btn--small btn--danger"
@@ -386,7 +386,7 @@ onMounted(load)
           <span>Eliminar</span>
         </button>
         <button
-          v-if="canEntregar && row.estado === 'creada'"
+          v-if="canEntregar && row.estado === 'emitida'"
           data-test="entregar"
           type="button"
           class="btn btn--small"
@@ -416,7 +416,7 @@ onMounted(load)
           <span>Rechazar</span>
         </button>
         <button
-          v-if="canRecibir && row.estado === 'aceptada'"
+          v-if="canRecibir && row.estado === 'firmada'"
           data-test="recibir"
           type="button"
           class="btn btn--small"

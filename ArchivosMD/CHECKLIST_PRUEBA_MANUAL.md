@@ -5,7 +5,7 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 ## 0. Preparación
 
 - [ ] `npm install` dentro de `entrega-productos-front`.
-- [ ] `.env` con `VITE_API_URL=/api`, `VITE_BACKEND_URL=http://192.168.20.49:8000`, `VITE_USE_MOCKS=false` y `VITE_FACTURAS_MOCKS=true` (modo híbrido: catálogos reales, Facturas con mocks).
+- [ ] `.env` con `VITE_API_URL=/api`, `VITE_BACKEND_URL=http://192.168.20.49:8000`, `VITE_USE_MOCKS=false` y `VITE_FACTURAS_MOCKS=false` (todo contra la API real).
 - [ ] Reiniciar `npm run dev` después de cambiar `.env` (Vite no recarga variables en caliente).
 - [ ] Abrir `http://localhost:5173/` (o la IP de red que muestra Vite).
 
@@ -15,7 +15,8 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 > |---|---|---|
 > | admin | `admin@entrega.com` | `Admin123*` |
 > | bodeguero | `luis@entrega.com` | `Bodega123*` |
-> | cliente | `juan@cliente.com` | `Cliente123*` |
+> | cliente (demo) | `juan@cliente.com` | `Cliente123*` |
+> | cliente (API real) | `cliente@entrega.com` | `Cliente123*` |
 >
 > Cualquier otro correo sigue entrando como admin demo. El rol se conserva al recargar (F5).
 
@@ -54,9 +55,10 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 ## 4. Bodegas y Usuarios
 
 - [ ] Admin: crear, buscar, editar y eliminar bodega (solo `nombre` obligatorio).
+- [ ] El formulario ofrece `codigo`, `departamento`, `correo` y los campos `recibe_*`.
 - [ ] Bodega muestra columnas Nombre, Ciudad, Responsable, Teléfono.
 - [ ] Admin: crear usuario con `rol_id` 1/2/3.
-- [ ] Al elegir **cliente** aparecen tipo/número de documento, teléfono y dirección (obligatorios).
+- [ ] Al elegir **cliente** aparecen tipo/número de documento, teléfono, dirección y ciudad (todos opcionales; `PA` disponible).
 - [ ] Al elegir admin o bodeguero esos campos NO aparecen.
 - [ ] Bodeguero: solo ver en ambos módulos; en Usuarios solo ve clientes.
 
@@ -64,21 +66,21 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 
 ### Admin / bodeguero
 
-- [ ] Crear factura con 1 o más líneas; el total se calcula solo.
-- [ ] El estado sale en badge con color: gris/ámbar/verde/rojo/azul.
-- [ ] En `creada`: Editar, Eliminar y Entregar.
-- [ ] En `entregada`: **no** aparecen Aceptar ni Rechazar.
-- [ ] En `aceptada`: aparece Recibir → pasa a `cerrada`.
-- [ ] En `rechazada` / `cerrada`: no hay acciones que cambien el estado, pero sí PDF.
-- [ ] Buscar por número (`FAC-000001`) y por nombre del cliente.
+- [ ] Crear factura con 1 o más líneas; el total se calcula solo y el número sale `FE-0001`.
+- [ ] El estado sale en badge con color: gris `emitida`, ámbar `entregada`, verde `firmada`, rojo `rechazada`, azul `recibida`.
+- [ ] En `emitida`: Editar, Eliminar y Entregar.
+- [ ] En `entregada`: **no** aparecen Aceptar ni Rechazar (para admin/bodeguero).
+- [ ] En `firmada`: aparece Recibir → pasa a `recibida`.
+- [ ] En `rechazada` / `recibida`: no hay acciones que cambien el estado, pero sí PDF.
+- [ ] Buscar por número (`FE-0001`) y por nombre del cliente.
 - [ ] Filtro de estado acepta un solo valor exacto.
-- [ ] Descargar PDF → archivo `FAC-000001.pdf`.
+- [ ] Descargar PDF → archivo `FE-0001.pdf`.
 - [ ] El bodeguero **no** ve Aceptar/Rechazar.
 
 ### Cliente
 
 - [ ] Solo ve Inicio y Facturas.
-- [ ] En `entregada`: Aceptar (con firma) y Rechazar (con motivo).
+- [ ] En `entregada`: Aceptar (con firma) → `firmada`, y Rechazar (con motivo) → `rechazada`.
 - [ ] Dibujar la firma → se ve la vista previa; `Limpiar` la borra.
 - [ ] Aceptar sin firma → error “imagen PNG”.
 - [ ] Rechazar sin motivo → error.
@@ -99,19 +101,18 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 - [ ] Admin: crear un permiso “editar_factura” → sale “Permiso creado.”
 - [ ] Bodeguero: no ve botones Crear/Editar/Eliminar en Roles ni Permisos.
 
-## 8. Integración real (modo híbrido)
+## 8. Integración real (todo contra la API)
 
-- [ ] Login real con `admin@entrega.com` / `Admin123*` (bodeguero: `bodeguero@entrega.com` / `Bodega123*`).
+- [ ] Login real con `admin@entrega.com` / `Admin123*` (bodeguero: `bodeguero@entrega.com` / `Bodega123*`; cliente: `cliente@entrega.com` / `Cliente123*`).
 - [ ] Recargar la página → `GET /me` mantiene la sesión.
 - [ ] Tipos: crear “Alimentos”, buscar `ali`, editar y eliminar contra la API.
-- [ ] Bodegas: listar y crear contra la API (el backend hoy guarda solo `nombre`, `direccion` y `estado`).
-- [ ] Usuarios: listar como admin y crear con `rol_id` 1/2/3 (los campos de cliente aún no los guarda el backend).
-- [ ] Como bodeguero, `/usuarios` debe dar `403` (confirmar el permiso pendiente del backend).
-- [ ] Facturas siguen con mocks hasta que se publique `/facturas`.
+- [ ] Bodegas: crear con `codigo`, `departamento`, `correo` y `recibe_*` (ya no `responsable_*`).
+- [ ] Usuarios: crear cliente con datos opcionales (incluye `PA` y `ciudad`).
+- [ ] Como bodeguero: no puede escribir Tipos/Bodegas y solo ve clientes en Usuarios.
+- [ ] Facturas: crear `FE-0001` en `emitida`, entregar, aceptar con firma → `firmada`, recibir → `recibida` y descargar `FE-0001.pdf`.
 - [ ] **No tocar CORS del backend**: seguimos llamando a `/api` (proxy de Vite).
-- [ ] Pendientes detallados en `ArchivosMD/INTEGRACION_BACKEND.md`.
 
 ---
 
-**Estado actual:** 32 archivos de test / 157 aserciones en verde + build correcto.
-**Rama:** pendiente de merge del Test 32.
+**Estado actual:** 33 archivos de test / 162 aserciones en verde + build correcto.
+**Rama:** pendiente de merge del Test 33.

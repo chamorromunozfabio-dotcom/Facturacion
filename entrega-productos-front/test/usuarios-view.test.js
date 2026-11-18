@@ -75,9 +75,14 @@ describe('Test 19 — UsuariosView (roles y campos condicionales)', () => {
     expect(wrapper.find('[data-test="field-numero_documento"]').exists()).toBe(true)
     expect(wrapper.find('[data-test="field-telefono"]').exists()).toBe(true)
     expect(wrapper.find('[data-test="field-direccion"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="field-ciudad"]').exists()).toBe(true)
+    const tipos = wrapper
+      .findAll('[data-test="field-tipo_documento"] option')
+      .map((option) => option.text())
+    expect(tipos).toEqual(['CC', 'NIT', 'CE', 'PA'])
   })
 
-  it('exige los campos obligatorios del cliente', async () => {
+  it('crea un cliente sin exigir los datos opcionales', async () => {
     useAuthStore().saveSession('token-123', { nombre: 'Ana', rol: 'admin' })
     const wrapper = mount(UsuariosView)
     await flushPromises()
@@ -88,9 +93,14 @@ describe('Test 19 — UsuariosView (roles y campos condicionales)', () => {
     await wrapper.find('[data-test="field-contrasena"]').setValue('Clave123*')
     await wrapper.find('[data-test="field-rol_id"]').setValue('3')
     await wrapper.find('form').trigger('submit')
+    await flushPromises()
 
-    expect(wrapper.find('[data-test="error"]').text()).toBe('Completa los campos obligatorios.')
-    expect(api.create).not.toHaveBeenCalled()
+    expect(api.create).toHaveBeenCalledWith({
+      nombre: 'Pedro',
+      correo: 'pedro@cliente.com',
+      contrasena: 'Clave123*',
+      rol_id: 3,
+    })
   })
 
   it('crea un usuario admin enviando rol_id como número', async () => {
