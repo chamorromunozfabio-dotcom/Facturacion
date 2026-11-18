@@ -1,5 +1,6 @@
 <script setup>
 import { computed, reactive, ref, watch } from 'vue'
+import { useModalA11y } from '../composables/useModalA11y'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -11,6 +12,7 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
 })
 const emit = defineEmits(['update:modelValue', 'submit', 'close'])
+const { panelRef } = useModalA11y(computed(() => props.open), () => emit('close'))
 
 const IVAS = [0, 5, 19]
 const formaPagoOptions = [
@@ -138,10 +140,16 @@ function handleSubmit() {
   <Transition name="modal">
     <div v-if="open" data-test="factura-form" class="modal">
     <div class="modal__backdrop" @click="emit('close')"></div>
-    <div class="modal__panel" role="dialog" aria-modal="true" :aria-label="titulo">
+    <div ref="panelRef" tabindex="-1" class="modal__panel" role="dialog" aria-modal="true" :aria-label="titulo">
       <header class="modal__header">
         <h2>{{ titulo }}</h2>
-        <button data-test="close-x" type="button" class="modal__close" @click="emit('close')">×</button>
+        <button
+          data-test="close-x"
+          type="button"
+          class="modal__close"
+          aria-label="Cerrar formulario"
+          @click="emit('close')"
+        >×</button>
       </header>
 
       <form class="modal__body" @submit.prevent="handleSubmit">

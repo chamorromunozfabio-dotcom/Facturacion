@@ -1,9 +1,12 @@
 <script setup>
+import { computed } from 'vue'
+import { useModalA11y } from '../composables/useModalA11y'
+
 /**
  * Confirmación antes de eliminar. Es solo visual: el padre decide qué borrar.
  * Escucha confirm y cancel.
  */
-defineProps({
+const props = defineProps({
   open: { type: Boolean, default: false },
   title: { type: String, default: 'Confirmar eliminación' },
   message: { type: String, default: '¿Estás seguro de eliminar este registro?' },
@@ -12,6 +15,7 @@ defineProps({
 })
 
 const emit = defineEmits(['confirm', 'cancel'])
+const { panelRef } = useModalA11y(computed(() => props.open), () => emit('cancel'))
 </script>
 
 <template>
@@ -19,7 +23,7 @@ const emit = defineEmits(['confirm', 'cancel'])
     <div v-if="open" data-test="confirm-delete" class="confirm">
     <div class="confirm__backdrop" @click="emit('cancel')"></div>
 
-    <div class="confirm__panel" role="alertdialog" aria-modal="true" :aria-label="title">
+    <div ref="panelRef" tabindex="-1" class="confirm__panel" role="alertdialog" aria-modal="true" :aria-label="title">
       <div class="confirm__icon">!</div>
 
       <h2>{{ title }}</h2>

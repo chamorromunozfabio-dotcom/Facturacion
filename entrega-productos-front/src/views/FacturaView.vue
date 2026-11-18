@@ -17,6 +17,7 @@ import FacturaDetail from '../components/FacturaDetail.vue'
 import FacturaForm from '../components/FacturaForm.vue'
 import SignaturePad from '../components/SignaturePad.vue'
 import StatusBadge from '../components/StatusBadge.vue'
+import { useModalA11y } from '../composables/useModalA11y'
 import facturasApi, { validateFirma } from '../api/facturas'
 import usuariosApi from '../api/usuarios'
 import bodegasApi from '../api/bodegas'
@@ -79,6 +80,16 @@ const rechazoOpen = ref(false)
 const motivo = ref('')
 const rechazoError = ref('')
 const rechazoSaving = ref(false)
+
+const { panelRef: detailPanelRef } = useModalA11y(computed(() => detailOpen.value), () => {
+  detailOpen.value = false
+})
+const { panelRef: firmaPanelRef } = useModalA11y(computed(() => firmaOpen.value), () => {
+  firmaOpen.value = false
+})
+const { panelRef: rechazoPanelRef } = useModalA11y(computed(() => rechazoOpen.value), () => {
+  rechazoOpen.value = false
+})
 
 const confirmOpen = ref(false)
 const deleting = ref(null)
@@ -442,10 +453,23 @@ onMounted(load)
     <Transition name="modal">
     <div v-if="detailOpen" data-test="detail-modal" class="modal">
       <div class="modal__backdrop" @click="detailOpen = false"></div>
-      <div class="modal__panel" role="dialog" aria-modal="true" aria-label="Detalle de factura">
+      <div
+        ref="detailPanelRef"
+        tabindex="-1"
+        class="modal__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Detalle de factura"
+      >
         <header class="modal__header">
           <h2>Detalle de factura</h2>
-          <button data-test="detail-close" type="button" class="modal__close" @click="detailOpen = false">×</button>
+          <button
+            data-test="detail-close"
+            type="button"
+            class="modal__close"
+            aria-label="Cerrar detalle"
+            @click="detailOpen = false"
+          >×</button>
         </header>
         <div class="modal__body">
           <p v-if="detailLoading">Cargando detalle...</p>
@@ -458,10 +482,17 @@ onMounted(load)
     <Transition name="modal">
     <div v-if="firmaOpen" data-test="firma-modal" class="modal">
       <div class="modal__backdrop" @click="firmaOpen = false"></div>
-      <div class="modal__panel modal__panel--small" role="dialog" aria-modal="true" aria-label="Aceptar con firma">
+      <div
+        ref="firmaPanelRef"
+        tabindex="-1"
+        class="modal__panel modal__panel--small"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Aceptar con firma"
+      >
         <header class="modal__header">
           <h2>Aceptar {{ firmaFactura?.numero }}</h2>
-          <button type="button" class="modal__close" @click="firmaOpen = false">×</button>
+          <button type="button" class="modal__close" aria-label="Cerrar firma" @click="firmaOpen = false">×</button>
         </header>
         <div class="modal__body">
           <p>Firma con el mouse o el dedo para aceptar la recepción.</p>
@@ -487,10 +518,17 @@ onMounted(load)
     <Transition name="modal">
     <div v-if="rechazoOpen" data-test="rechazo-modal" class="modal">
       <div class="modal__backdrop" @click="rechazoOpen = false"></div>
-      <div class="modal__panel modal__panel--small" role="dialog" aria-modal="true" aria-label="Rechazar factura">
+      <div
+        ref="rechazoPanelRef"
+        tabindex="-1"
+        class="modal__panel modal__panel--small"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Rechazar factura"
+      >
         <header class="modal__header">
           <h2>Rechazar {{ rechazoFactura?.numero }}</h2>
-          <button type="button" class="modal__close" @click="rechazoOpen = false">×</button>
+          <button type="button" class="modal__close" aria-label="Cerrar rechazo" @click="rechazoOpen = false">×</button>
         </header>
         <div class="modal__body">
           <label>

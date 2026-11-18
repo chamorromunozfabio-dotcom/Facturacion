@@ -1,5 +1,6 @@
 <script setup>
-import { reactive, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
+import { useModalA11y } from '../composables/useModalA11y'
 
 /**
  * Modal reutilizable para crear o editar cualquier registro.
@@ -18,6 +19,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'submit', 'close'])
+
+const { panelRef } = useModalA11y(computed(() => props.open), () => emit('close'))
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -101,10 +104,16 @@ function handleSubmit() {
     <div v-if="open" data-test="modal" class="modal">
     <div class="modal__backdrop" @click="emit('close')"></div>
 
-    <div class="modal__panel" role="dialog" aria-modal="true" :aria-label="title">
+    <div ref="panelRef" tabindex="-1" class="modal__panel" role="dialog" aria-modal="true" :aria-label="title">
       <header class="modal__header">
         <h2>{{ title }}</h2>
-        <button data-test="close-x" type="button" class="modal__close" @click="emit('close')">
+        <button
+          data-test="close-x"
+          type="button"
+          class="modal__close"
+          aria-label="Cerrar ventana"
+          @click="emit('close')"
+        >
           ×
         </button>
       </header>

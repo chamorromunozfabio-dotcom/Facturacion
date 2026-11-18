@@ -88,6 +88,8 @@ function clear() {
     <canvas
       ref="canvasRef"
       data-test="signature-canvas"
+      role="img"
+      aria-label="Área para dibujar la firma con el mouse o el dedo"
       width="480"
       height="180"
       @pointerdown.prevent="start"
