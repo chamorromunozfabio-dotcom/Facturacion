@@ -39,11 +39,11 @@ describe('Test 7 — LoginView', () => {
     expect(useAuthStore().isAuthenticated).toBe(false)
   })
 
-  it('hace login demo y redirige al inicio', async () => {
+  it('hace login demo con credenciales válidas y redirige al inicio', async () => {
     const wrapper = mount(LoginView)
 
-    await wrapper.find('input[type="email"]').setValue('demo@entrega.com')
-    await wrapper.find('input[type="password"]').setValue('1234')
+    await wrapper.find('input[type="email"]').setValue('admin@entrega.com')
+    await wrapper.find('input[type="password"]').setValue('Admin123*')
     await wrapper.find('form').trigger('submit')
     await new Promise((resolve) => setTimeout(resolve, 350))
     await flushPromises()

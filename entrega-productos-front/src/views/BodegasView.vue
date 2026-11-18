@@ -175,13 +175,13 @@ onMounted(load)
     <header class="crud-page__header">
       <div>
         <h1>Bodegas</h1>
-        <p>Gestiona las bodegas y su dirección.</p>
+        <p>Administra las bodegas y sus datos de contacto.</p>
       </div>
-      <span class="badge">Día 3</span>
+      <span class="badge">Inventario</span>
     </header>
 
     <p class="notice">
-      Pendiente con el líder: los campos de "quién recibe" el producto.
+      Los datos de quién recibe el producto se confirmarán con el líder.
     </p>
 
     <Transition name="alert">
@@ -201,6 +201,7 @@ onMounted(load)
       :limit="limit"
       :q="q"
       :loading="loading"
+      create-label="Nueva bodega"
       :can-create="canCreate"
       :can-edit="canEdit"
       :can-delete="canDelete"
@@ -216,6 +217,7 @@ onMounted(load)
       :title="editing ? 'Editar bodega' : 'Nueva bodega'"
       :fields="fields"
       :model-value="form"
+      :submit-label="editing ? 'Guardar cambios' : 'Crear bodega'"
       :loading="saving"
       @update:model-value="form = $event"
       @submit="save"
@@ -225,6 +227,7 @@ onMounted(load)
     <ConfirmDelete
       :open="confirmOpen"
       title="Eliminar bodega"
+      message="La bodega se eliminará de forma permanente. Esta acción no se puede deshacer."
       :item-label="deleting?.nombre || ''"
       :loading="removing"
       @confirm="confirmDelete"

@@ -19,6 +19,8 @@ const props = defineProps({
   q: { type: String, default: '' },
   loading: { type: Boolean, default: false },
   searchable: { type: Boolean, default: true },
+  /** Texto del botón principal: cada vista indica qué va a crear. */
+  createLabel: { type: String, default: 'Nuevo' },
   canCreate: { type: Boolean, default: true },
   canEdit: { type: Boolean, default: true },
   canDelete: { type: Boolean, default: true },
@@ -68,7 +70,7 @@ function goTo(page) {
         @click="emit('create')"
       >
         <Plus :size="16" aria-hidden="true" />
-        <span>Nuevo</span>
+        <span>{{ createLabel }}</span>
       </button>
     </header>
 
@@ -124,7 +126,9 @@ function goTo(page) {
     </div>
 
     <footer class="data-table__footer">
-      <span>Mostrando {{ firstRow }}-{{ lastRow }} de {{ total }}</span>
+      <span>
+        {{ total === 0 ? 'Sin resultados' : `Mostrando ${firstRow}-${lastRow} de ${total}` }}
+      </span>
       <div class="data-table__pager">
         <button
           data-test="prev"

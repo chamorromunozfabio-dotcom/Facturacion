@@ -22,7 +22,7 @@ npm run test:watch
 | 4 | Guardas del router: sin token y por rol | ✅ PASÓ (actualizado) | [router-guards.test.js](router-guards.test.js) |
 | 5 | CRUD con mocks: paginación y búsqueda | ⏳ Por ejecutar | [mocks-crud.test.js](mocks-crud.test.js) |
 | 6 | Componente `PagePlaceholder` | ⏳ Por ejecutar | [page-placeholder.test.js](page-placeholder.test.js) |
-| 7 | `LoginView`: validación y login demo | ⏳ Por ejecutar | [login-view.test.js](login-view.test.js) |
+| 7 | `LoginView`: validación y login demo | ✅ PASÓ (actualizado) | [login-view.test.js](login-view.test.js) |
 | 8 | `MainLayout`: menú por rol y logout | ✅ PASÓ | [main-layout.test.js](main-layout.test.js) |
 | 9 | `DataTable`: filas, búsqueda, paginación y acciones | ✅ PASÓ | [data-table.test.js](data-table.test.js) |
 | 10 | `FormModal`: campos, validación y eventos | ✅ PASÓ | [form-modal.test.js](form-modal.test.js) |
@@ -46,10 +46,11 @@ npm run test:watch
 | 28 | Transiciones en modales y alertas | ✅ PASÓ | [transitions.test.js](transitions.test.js) |
 | 29 | Accesibilidad: Escape, foco y aria-label | ✅ PASÓ | [accessibility.test.js](accessibility.test.js) |
 | 30 | Cuentas demo por rol y atajos en el login | ✅ PASÓ | [mock-accounts.test.js](mock-accounts.test.js) |
+| 31 | Mensajes claros: validación, botones y títulos | ✅ PASÓ | [ux-messages.test.js](ux-messages.test.js) |
 
 ---
 
-**30 archivos de test, 149 aserciones.** Ejecutar todo con `npm test`.
+**31 archivos de test, 154 aserciones.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >

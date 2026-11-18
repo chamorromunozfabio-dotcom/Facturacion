@@ -213,9 +213,9 @@ onMounted(load)
     <header class="crud-page__header">
       <div>
         <h1>Usuarios</h1>
-        <p>Gestiona los usuarios y su rol.</p>
+        <p>Crea usuarios y asigna su rol de acceso.</p>
       </div>
-      <span class="badge">Día 4</span>
+      <span class="badge">Accesos</span>
     </header>
 
     <p v-if="isBodeguero" class="notice">
@@ -249,6 +249,7 @@ onMounted(load)
       :limit="limit"
       :q="q"
       :loading="loading"
+      create-label="Nuevo usuario"
       :can-create="canCreate"
       :can-edit="canEdit"
       :can-delete="canDelete"
@@ -264,6 +265,7 @@ onMounted(load)
       :title="editing ? 'Editar usuario' : 'Nuevo usuario'"
       :fields="fields"
       :model-value="form"
+      :submit-label="editing ? 'Guardar cambios' : 'Crear usuario'"
       :loading="saving"
       @update:model-value="form = $event"
       @submit="save"
@@ -273,6 +275,7 @@ onMounted(load)
     <ConfirmDelete
       :open="confirmOpen"
       title="Eliminar usuario"
+      message="El usuario perderá el acceso. Esta acción no se puede deshacer."
       :item-label="deleting?.nombre || ''"
       :loading="removing"
       @confirm="confirmDelete"

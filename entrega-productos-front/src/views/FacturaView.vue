@@ -319,9 +319,9 @@ onMounted(load)
     <header class="facturas-page__header">
       <div>
         <h1>Facturas</h1>
-        <p>La orden y la factura son el mismo documento.</p>
+        <p>Consulta el estado de tus facturas y gestiona la entrega.</p>
       </div>
-      <span class="badge">Día 5</span>
+      <span class="badge">Documentos</span>
     </header>
 
     <Transition name="alert">
@@ -445,6 +445,7 @@ onMounted(load)
       :clientes="catalogos.clientes"
       :bodegas="catalogos.bodegas"
       :tipos="catalogos.tipos"
+      :submit-label="editingId ? 'Guardar cambios' : 'Crear factura'"
       :loading="saving"
       @submit="save"
       @close="formOpen = false"
@@ -556,6 +557,7 @@ onMounted(load)
     <ConfirmDelete
       :open="confirmOpen"
       title="Eliminar factura"
+      message="La factura se eliminará de forma permanente. Esta acción no se puede deshacer."
       :item-label="deleting?.numero || ''"
       :loading="removing"
       @confirm="confirmDelete"

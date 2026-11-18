@@ -133,10 +133,11 @@ Definidos por el líder en `CONTRATO_FACTURAS.MD`. Se cambian en un solo lugar: 
 - Los iconos son componentes SVG de **`@lucide/vue`** (paquete oficial de Lucide; `lucide-vue-next` quedó deprecated). Están declarados en `src/config/navigation.js` y se pintan con `<component :is="item.icon" />`.
 - No se agregó ninguna librería de animación: el cambio de vista usa `<Transition name="fade" mode="out-in">` en `MainLayout.vue` y las tarjetas del dashboard usan una animación CSS escalonada.
 - Si el sistema pide “reducir movimiento”, las animaciones CSS se desactivan automáticamente (`prefers-reduced-motion`).
-- Los botones (`Nuevo`, `Editar`, `Eliminar`, `Ver`, `Entregar`, `Aceptar`, `Rechazar`, `Recibir`, `PDF` y paginación) también llevan iconos Lucide. Siguen emitiendo los mismos eventos y teniendo los mismos `data-test`.
+- Los botones (`Nuevo tipo`, `Nueva bodega`, `Nuevo usuario`, `Editar`, `Eliminar`, `Ver`, `Entregar`, `Aceptar`, `Rechazar`, `Recibir`, `PDF` y paginación) también llevan iconos Lucide. Siguen emitiendo los mismos eventos y teniendo los mismos `data-test`. El texto de creación se define con la prop `createLabel` de `DataTable`.
 - Cada rol tiene un color de acento: admin violeta, bodeguero verde y cliente ámbar. Se define con una variable CSS `--accent` en `MainLayout.vue` (`data-role`) y la hereda el dashboard. En pantallas chicas el menú se vuelve horizontal y se muestra compacto.
 - Las alertas y todos los modales (generales y de facturas: detalle, firma y rechazo) entran y salen con `<Transition>`: `name="alert"` y `name="modal"`. Las clases CSS viven en `src/assets/main.css` y respetan `prefers-reduced-motion`.
 - Accesibilidad: el composable `useModalA11y.js` mueve el foco al panel al abrir y cierra con **Escape**. Los botones de cierre tienen `aria-label` y el canvas de firma tiene `role="img"` con etiqueta. El foco se limpia al desmontar el modal.
+- Mensajes para el usuario: el login valida correo y contraseña por separado (obligatorios, formato de correo y mínimo 8 caracteres), deshabilita **Ingresar** hasta que todo sea válido y explica qué falta. Los diálogos de eliminación avisan que la acción no se puede deshacer y los formularios dicen `Crear …` o `Guardar cambios` según corresponda.
 
 ## Campos confirmados por backend
 

@@ -20,7 +20,9 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 
 ## 1. Login y sesión
 
-- [ ] Ingresar con cualquier correo/contraseña (mocks) → aparece el nombre y `Rol: admin`.
+- [ ] Con campos vacíos, **Ingresar** queda deshabilitado y dice qué completar.
+- [ ] Correo mal escrito o contraseña corta → mensaje debajo de cada campo y botón sigue deshabilitado.
+- [ ] Ingresar con credenciales válidas → aparece el nombre y el rol correspondiente.
 - [ ] Recargar la página → la sesión sigue activa.
 - [ ] Cerrar sesión → vuelve a `/login` y `localStorage` queda limpio.
 - [ ] Sin sesión, intentar abrir `/facturas` → redirige al login.
@@ -103,5 +105,5 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 
 ---
 
-**Estado actual:** 30 archivos de test / 149 aserciones en verde + build correcto.
+**Estado actual:** 31 archivos de test / 154 aserciones en verde + build correcto.
 **Rama:** `main` limpia y pusheada.

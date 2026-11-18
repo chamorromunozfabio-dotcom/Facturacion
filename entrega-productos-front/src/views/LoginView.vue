@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getErrorMessage, useAuthStore } from '../stores/auth'
 import { MOCK_ACCOUNTS } from '../api/mocks'
@@ -10,16 +10,56 @@ const router = useRouter()
 const isMockMode = import.meta.env.VITE_USE_MOCKS === 'true'
 const logoUrl = `${import.meta.env.BASE_URL}logo.png`
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const MIN_PASSWORD = 8
+
 // Acordado con backend: POST /login con { correo, contrasena }
 const credentials = ref({ correo: '', contrasena: '' })
+const touched = ref({ correo: false, contrasena: false })
+const intentado = ref(false)
 const error = ref('')
 const loading = ref(false)
 
+/** Un mensaje por campo: el usuario sabe cuál corregir sin adivinar. */
+const errores = computed(() => ({
+  correo: !credentials.value.correo.trim()
+    ? 'El correo es obligatorio.'
+    : !EMAIL_RE.test(credentials.value.correo.trim())
+      ? 'Ingresa un correo válido (ejemplo: nombre@correo.com).'
+      : '',
+  contrasena: !credentials.value.contrasena
+    ? 'La contraseña es obligatoria.'
+    : credentials.value.contrasena.length < MIN_PASSWORD
+      ? `La contraseña debe tener al menos ${MIN_PASSWORD} caracteres.`
+      : '',
+}))
+
+const puedeEnviar = computed(
+  () => !errores.value.correo && !errores.value.contrasena && !loading.value,
+)
+
+const avisoBoton = computed(() => {
+  if (loading.value || puedeEnviar.value) return ''
+  if (!credentials.value.correo.trim() || !credentials.value.contrasena) {
+    return 'Completa correo y contraseña para continuar.'
+  }
+  return 'Corrige los campos marcados para continuar.'
+})
+
+function mostrarError(campo) {
+  return (touched.value[campo] || intentado.value) && Boolean(errores.value[campo])
+}
+
 async function submit() {
+  intentado.value = true
   error.value = ''
 
   if (!credentials.value.correo || !credentials.value.contrasena) {
     error.value = 'Ingresa correo y contraseña.'
+    return
+  }
+  if (!puedeEnviar.value) {
+    error.value = 'Corrige los campos marcados para continuar.'
     return
   }
 
@@ -36,6 +76,8 @@ async function submit() {
 
 function usarCuenta(cuenta) {
   credentials.value = { correo: cuenta.correo, contrasena: cuenta.contrasena }
+  touched.value = { correo: true, contrasena: true }
+  intentado.value = false
   error.value = ''
 }
 </script>
@@ -48,23 +90,47 @@ function usarCuenta(cuenta) {
       <p class="subtitle">Entrega de Productos</p>
 
       <label>
-        Correo electrónico
-        <input v-model="credentials.correo" type="email" autocomplete="email" />
+        Correo electrónico <span class="required">*</span>
+        <input
+          v-model="credentials.correo"
+          type="email"
+          autocomplete="email"
+          placeholder="nombre@correo.com"
+          :aria-invalid="mostrarError('correo')"
+          :aria-describedby="mostrarError('correo') ? 'error-correo' : undefined"
+          @blur="touched.correo = true"
+        />
+        <span v-if="mostrarError('correo')" id="error-correo" class="field-error">
+          {{ errores.correo }}
+        </span>
       </label>
 
       <label>
-        Contraseña
-        <input v-model="credentials.contrasena" type="password" autocomplete="current-password" />
+        Contraseña <span class="required">*</span>
+        <input
+          v-model="credentials.contrasena"
+          type="password"
+          autocomplete="current-password"
+          placeholder="Mínimo 8 caracteres"
+          :aria-invalid="mostrarError('contrasena')"
+          :aria-describedby="mostrarError('contrasena') ? 'error-contrasena' : undefined"
+          @blur="touched.contrasena = true"
+        />
+        <span v-if="mostrarError('contrasena')" id="error-contrasena" class="field-error">
+          {{ errores.contrasena }}
+        </span>
       </label>
 
       <div v-if="error" class="error" role="alert">{{ error }}</div>
 
-      <button type="submit" :disabled="loading">
+      <button type="submit" :disabled="!puedeEnviar" :title="avisoBoton || undefined">
         {{ loading ? 'Ingresando...' : 'Ingresar' }}
       </button>
 
+      <p v-if="!puedeEnviar && !loading" class="hint hint--button">{{ avisoBoton }}</p>
+
       <p v-if="isMockMode && !loading" class="hint">
-        Modo demo activo: elegí un rol o escribí cualquier correo.
+        Modo demo activo: elige un rol o escribe cualquier correo.
       </p>
 
       <div v-if="isMockMode && !loading" class="demo-accounts">
@@ -143,6 +209,25 @@ input:focus {
   border-color: #2563eb;
 }
 
+input[aria-invalid='true'] {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
+.required {
+  color: #dc2626;
+}
+
+.field-error {
+  color: #b91c1c;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.hint--button {
+  color: #b45309;
+}
+
 button {
   background: #2563eb;
   color: #fff;
@@ -155,7 +240,7 @@ button {
 
 button:disabled {
   opacity: 0.6;
-  cursor: wait;
+  cursor: not-allowed;
 }
 
 .error {

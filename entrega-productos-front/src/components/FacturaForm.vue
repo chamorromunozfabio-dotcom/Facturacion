@@ -9,6 +9,7 @@ const props = defineProps({
   clientes: { type: Array, default: () => [] },
   bodegas: { type: Array, default: () => [] },
   tipos: { type: Array, default: () => [] },
+  submitLabel: { type: String, default: 'Guardar' },
   loading: { type: Boolean, default: false },
 })
 const emit = defineEmits(['update:modelValue', 'submit', 'close'])
@@ -270,7 +271,7 @@ function handleSubmit() {
         <footer class="modal__footer">
           <button data-test="cancel" type="button" class="btn" @click="emit('close')">Cancelar</button>
           <button data-test="submit" type="submit" class="btn btn--primary" :disabled="loading">
-            {{ loading ? 'Guardando...' : 'Guardar' }}
+            {{ loading ? 'Guardando...' : submitLabel }}
           </button>
         </footer>
       </form>

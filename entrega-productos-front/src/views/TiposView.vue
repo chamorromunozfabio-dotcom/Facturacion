@@ -139,9 +139,9 @@ onMounted(load)
     <header class="crud-page__header">
       <div>
         <h1>Tipos de producto</h1>
-        <p>Gestiona las categorías de los productos.</p>
+        <p>Crea y edita las categorías disponibles para las facturas.</p>
       </div>
-      <span class="badge">Día 3</span>
+      <span class="badge">Catálogo</span>
     </header>
 
     <Transition name="alert">
@@ -161,6 +161,7 @@ onMounted(load)
       :limit="limit"
       :q="q"
       :loading="loading"
+      create-label="Nuevo tipo"
       :can-create="canCreate"
       :can-edit="canEdit"
       :can-delete="canDelete"
@@ -176,6 +177,7 @@ onMounted(load)
       :title="editing ? 'Editar tipo' : 'Nuevo tipo'"
       :fields="fields"
       :model-value="form"
+      :submit-label="editing ? 'Guardar cambios' : 'Crear tipo'"
       :loading="saving"
       @update:model-value="form = $event"
       @submit="save"
@@ -185,6 +187,7 @@ onMounted(load)
     <ConfirmDelete
       :open="confirmOpen"
       title="Eliminar tipo"
+      message="El tipo se eliminará de forma permanente. Esta acción no se puede deshacer."
       :item-label="deleting?.nombre || ''"
       :loading="removing"
       @confirm="confirmDelete"

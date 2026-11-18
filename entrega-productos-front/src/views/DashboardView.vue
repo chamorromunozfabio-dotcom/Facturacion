@@ -17,7 +17,7 @@ const roleMessage = computed(() => roleMessages[auth.role] || 'Bienvenido al sis
 
 <template>
   <section>
-    <h1>Hola, {{ auth.userName || 'usuario' }} 👋</h1>
+    <h1>Hola, {{ auth.userName || 'usuario' }}</h1>
     <p class="subtitle">{{ roleMessage }}</p>
 
     <div class="grid">
