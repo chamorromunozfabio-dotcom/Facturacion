@@ -70,7 +70,7 @@ const ACCIONES_POR_MODULO = Object.fromEntries(
 )
 
 /**
- * Lista cerrada que ve el admin en el desplegable.
+ * Lista cerrada que ve el admin en la matriz de checks.
  * `nombre` es el valor que pedimos al backend en /permisos para resolver su id.
  */
 export const CATALOGO_PERMISOS = MODULOS_PERMISO.flatMap((modulo) =>

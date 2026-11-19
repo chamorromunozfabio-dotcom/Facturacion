@@ -55,12 +55,12 @@ npm run test:watch
 | 37 | Facturas: mensajes descriptivos por dato y alerta sobre el modal | ✅ PASÓ | [facturas-mensajes-descriptivos.test.js](facturas-mensajes-descriptivos.test.js) |
 | 38 | Errores 422 del backend traducidos a mensajes junto al campo | ✅ PASÓ | [facturas-errores-backend.test.js](facturas-errores-backend.test.js) |
 | 39 | Bodegas con 11 datos obligatorios y avisos cortos por campo | ✅ PASÓ | [bodegas-obligatorias.test.js](bodegas-obligatorias.test.js) |
-| 40 | Permisos funcionales por usuario desde desplegable fijo (sin alta) | ✅ PASÓ | [permisos-desplegable.test.js](permisos-desplegable.test.js) |
-| 41 | Menú, botones y rutas con los permisos reales de la sesión | ⏳ Por ejecutar | [permisos-sesion-real.test.js](permisos-sesion-real.test.js) |
+| 40 | Permisos por usuario con buscador y tarjetas de funciones (sin alta) | ⏳ Por ejecutar | [permisos-matriz.test.js](permisos-matriz.test.js) |
+| 41 | Menú, botones y rutas con los permisos reales de la sesión | ✅ PASÓ | [permisos-sesion-real.test.js](permisos-sesion-real.test.js) |
 
 ---
 
-**41 archivos de test, 208 pruebas.** Ejecutar todo con `npm test`.
+**41 archivos de test, 212 pruebas.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >

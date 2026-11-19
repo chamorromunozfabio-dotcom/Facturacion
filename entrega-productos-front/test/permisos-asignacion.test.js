@@ -51,6 +51,20 @@ const catalogoBackend = () =>
 
 const nombrePorId = (id) => CATALOGO_PERMISOS[Number(id) - 1]?.nombre
 
+const USUARIOS = [
+  { id: 1, nombre: 'Ana' },
+  { id: 2, nombre: 'Luis' },
+  { id: 5, nombre: 'Juan' },
+]
+
+async function consultar(wrapper, id) {
+  const usuario = USUARIOS.find((item) => item.id === id)
+  await wrapper.find('[data-test="user-search"]').setValue(usuario.nombre)
+  await flushPromises()
+  await wrapper.find(`[data-test="usuario-${id}"]`).trigger('click')
+  await flushPromises()
+}
+
 describe('Test 36 — Permisos por usuario (contrato publicado por el backend)', () => {
   let permisosPorUsuario
 
@@ -115,24 +129,24 @@ describe('Test 36 — Permisos por usuario (contrato publicado por el backend)',
   it('carga usuarios y muestra los permisos del usuario seleccionado', async () => {
     const wrapper = mount(PermisosView)
     await flushPromises()
+    await consultar(wrapper, 1)
 
     expect(usuarios.list).toHaveBeenCalledWith({ page: 1, limit: 100 })
     expect(usuarios.listPermisos).toHaveBeenCalledWith(1)
     expect(wrapper.find('[data-test="assignment-affected"]').text()).toContain('Ana')
     expect(wrapper.find('[data-test="permisos-actuales"]').text()).toContain('Facturación — Ver')
-    expect(wrapper.find('[data-test="opcion-facturas:view"]').text()).toContain('ya lo tiene')
+    expect(wrapper.find('[data-test="check-facturas:view"]').element.checked).toBe(true)
   })
 
   it('al elegir otro usuario carga SUS permisos, no los del anterior', async () => {
     const wrapper = mount(PermisosView)
     await flushPromises()
 
-    await wrapper.find('[data-test="assignment-user"]').setValue('5')
-    await flushPromises()
+    await consultar(wrapper, 5)
 
     expect(usuarios.listPermisos).toHaveBeenCalledWith(5)
     expect(wrapper.find('[data-test="assignment-affected"]').text()).toContain('Juan')
-    expect(wrapper.find('[data-test="opcion-facturas:view"]').text()).not.toContain('ya lo tiene')
+    expect(wrapper.find('[data-test="check-facturas:view"]').element.checked).toBe(false)
     expect(wrapper.find('[data-test="permisos-actuales"]').text()).toContain(
       'todavía no tiene permisos',
     )
@@ -141,11 +155,9 @@ describe('Test 36 — Permisos por usuario (contrato publicado por el backend)',
   it('dar un permiso usa POST /usuarios/{id}/permisos/{permiso_id}', async () => {
     const wrapper = mount(PermisosView)
     await flushPromises()
+    await consultar(wrapper, 1)
 
-    await wrapper.find('[data-test="permiso-select"]').setValue('facturas:create')
-    expect(wrapper.find('[data-test="toggle-permiso"]').text()).toContain('Dar permiso')
-
-    await wrapper.find('[data-test="toggle-permiso"]').trigger('click')
+    await wrapper.find('[data-test="check-facturas:create"]').setValue(true)
     await flushPromises()
 
     expect(usuarios.addPermiso).toHaveBeenCalledWith(1, 2)
@@ -157,11 +169,9 @@ describe('Test 36 — Permisos por usuario (contrato publicado por el backend)',
   it('quitar un permiso usa DELETE /usuarios/{id}/permisos/{permiso_id}', async () => {
     const wrapper = mount(PermisosView)
     await flushPromises()
+    await consultar(wrapper, 1)
 
-    await wrapper.find('[data-test="permiso-select"]').setValue('facturas:view')
-    expect(wrapper.find('[data-test="toggle-permiso"]').text()).toContain('Quitar permiso')
-
-    await wrapper.find('[data-test="toggle-permiso"]').trigger('click')
+    await wrapper.find('[data-test="check-facturas:view"]').setValue(false)
     await flushPromises()
 
     expect(usuarios.removePermiso).toHaveBeenCalledWith(1, 1)
@@ -169,11 +179,12 @@ describe('Test 36 — Permisos por usuario (contrato publicado por el backend)',
     expect(wrapper.text()).toContain('Permiso "Facturación — Ver" quitado a "Ana".')
   })
 
-  it('el botón Quitar de la lista saca solo ese permiso del usuario', async () => {
+  it('destildar un check saca solo ese permiso del usuario', async () => {
     const wrapper = mount(PermisosView)
     await flushPromises()
+    await consultar(wrapper, 1)
 
-    await wrapper.find('[data-test="quitar-facturas:view"]').trigger('click')
+    await wrapper.find('[data-test="check-facturas:view"]').setValue(false)
     await flushPromises()
 
     expect(usuarios.removePermiso).toHaveBeenCalledWith(1, 1)
