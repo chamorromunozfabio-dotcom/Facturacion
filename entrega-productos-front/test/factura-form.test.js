@@ -15,17 +15,34 @@ const mountForm = (props = {}) =>
 async function llenarEncabezado(wrapper) {
   await wrapper.find('[data-test="field-cliente_id"]').setValue('3')
   await wrapper.find('[data-test="field-bodega_id"]').setValue('1')
+  await wrapper.find('[data-test="field-forma_pago"]').setValue('contado')
+  await wrapper.find('[data-test="field-medio_pago"]').setValue('transferencia')
+  await wrapper.find('[data-test="field-fecha_vencimiento"]').setValue('2026-12-31')
+}
+
+async function llenarLinea(wrapper) {
+  await wrapper.find('[data-test="linea-tipo_id-0"]').setValue('5')
+  await wrapper.find('[data-test="linea-descripcion-0"]').setValue('Arroz 500 g')
+  await wrapper.find('[data-test="linea-unidad_medida-0"]').setValue('UND')
+  await wrapper.find('[data-test="linea-cantidad-0"]').setValue('10')
+  await wrapper.find('[data-test="linea-precio_unitario-0"]').setValue('3500')
+  await wrapper.find('[data-test="linea-descuento_porcentaje-0"]').setValue('0')
+  await wrapper.find('[data-test="linea-iva_porcentaje-0"]').setValue('5')
 }
 
 describe('Test 23 — FacturaForm (líneas y validaciones)', () => {
-  it('arranca con una línea y valores iniciales del contrato', () => {
+  it('arranca con una línea y todos los datos vacíos, salvo observaciones', () => {
     const wrapper = mountForm()
 
     expect(wrapper.findAll('[data-test="linea"]')).toHaveLength(1)
-    expect(wrapper.find('[data-test="linea-cantidad-0"]').element.value).toBe('1')
-    expect(wrapper.find('[data-test="linea-precio_unitario-0"]').element.value).toBe('0')
-    expect(wrapper.find('[data-test="linea-descuento_porcentaje-0"]').element.value).toBe('0')
-    expect(wrapper.find('[data-test="linea-iva_porcentaje-0"]').element.value).toBe('19')
+    expect(wrapper.find('[data-test="field-forma_pago"]').element.value).toBe('')
+    expect(wrapper.find('[data-test="field-medio_pago"]').element.value).toBe('')
+    expect(wrapper.find('[data-test="field-fecha_vencimiento"]').element.value).toBe('')
+    expect(wrapper.find('[data-test="linea-cantidad-0"]').element.value).toBe('')
+    expect(wrapper.find('[data-test="linea-precio_unitario-0"]').element.value).toBe('')
+    expect(wrapper.find('[data-test="linea-descuento_porcentaje-0"]').element.value).toBe('')
+    expect(wrapper.find('[data-test="linea-iva_porcentaje-0"]').element.value).toBe('')
+    expect(wrapper.find('[data-test="field-observaciones"]').element.value).toBe('')
     expect(wrapper.find('[data-test="remove-linea"]').attributes('disabled')).toBeDefined()
   })
 
@@ -49,29 +66,29 @@ describe('Test 23 — FacturaForm (líneas y validaciones)', () => {
     expect(wrapper.find('[data-test="linea-descripcion-0"]').element.value).toBe('Arroz 500 g')
   })
 
-  it('pide fecha de vencimiento cuando es crédito', async () => {
+  it('pide la fecha de vencimiento siempre, también con contado', async () => {
     const wrapper = mountForm()
-    expect(wrapper.find('[data-test="field-fecha_vencimiento"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="field-fecha_vencimiento"]').exists()).toBe(true)
 
     await llenarEncabezado(wrapper)
-    await wrapper.find('[data-test="field-forma_pago"]').setValue('credito')
+    await wrapper.find('[data-test="field-cliente_id"]').setValue('')
+    await wrapper.find('[data-test="field-fecha_vencimiento"]').setValue('')
 
-    expect(wrapper.find('[data-test="field-fecha_vencimiento"]').exists()).toBe(true)
     await wrapper.find('form').trigger('submit')
-    expect(wrapper.find('[data-test="form-error"]').text()).toBe(
-      'La fecha de vencimiento es obligatoria con crédito.',
+    expect(wrapper.find('[data-test="form-error"]').text()).toContain(
+      'Falta la fecha de vencimiento: escribe la fecha límite de pago (AAAA-MM-DD).',
     )
   })
 
-  it('rechaza cantidad 0', async () => {
+  it('rechaza cantidad 0 con un mensaje que dice qué dato revisar', async () => {
     const wrapper = mountForm()
     await llenarEncabezado(wrapper)
     await wrapper.find('[data-test="linea-cantidad-0"]').setValue('0')
 
     await wrapper.find('form').trigger('submit')
 
-    expect(wrapper.find('[data-test="form-error"]').text()).toBe(
-      'La línea 1 debe tener cantidad mayor a 0.',
+    expect(wrapper.find('[data-test="form-error"]').text()).toContain(
+      'La cantidad de la línea 1 debe ser mayor que 0: revisa el valor escrito.',
     )
   })
 
@@ -81,22 +98,22 @@ describe('Test 23 — FacturaForm (líneas y validaciones)', () => {
 
     await wrapper.find('[data-test="linea-descuento_porcentaje-0"]').setValue('120')
     await wrapper.find('form').trigger('submit')
-    expect(wrapper.find('[data-test="form-error"]').text()).toContain('entre 0 y 100')
+    expect(wrapper.find('[data-test="form-error"]').text()).toContain(
+      'El descuento de la línea 1 debe estar entre 0 y 100: revisa el valor escrito.',
+    )
 
     await wrapper.find('[data-test="linea-descuento_porcentaje-0"]').setValue('10')
-    await wrapper.find('[data-test="linea-iva_porcentaje-0"]').setValue('7')
+    await wrapper.find('[data-test="linea-iva_porcentaje-0"]').setValue('')
     await wrapper.find('form').trigger('submit')
-    expect(wrapper.find('[data-test="form-error"]').text()).toContain('0, 5 o 19')
+    expect(wrapper.find('[data-test="form-error"]').text()).toContain(
+      'Falta el IVA en la línea 1: selecciona 0, 5 o 19.',
+    )
   })
 
-  it('emite el payload exacto del contrato', async () => {
+  it('emite el payload completo del contrato', async () => {
     const wrapper = mountForm()
     await llenarEncabezado(wrapper)
-    await wrapper.find('[data-test="linea-tipo_id-0"]').setValue('5')
-    await wrapper.find('[data-test="linea-descripcion-0"]').setValue('Arroz 500 g')
-    await wrapper.find('[data-test="linea-cantidad-0"]').setValue('10')
-    await wrapper.find('[data-test="linea-precio_unitario-0"]').setValue('3500')
-    await wrapper.find('[data-test="linea-iva_porcentaje-0"]').setValue('5')
+    await llenarLinea(wrapper)
     await wrapper.find('[data-test="field-observaciones"]').setValue('  Entregar en portería  ')
 
     await wrapper.find('form').trigger('submit')
@@ -106,12 +123,13 @@ describe('Test 23 — FacturaForm (líneas y validaciones)', () => {
       bodega_id: 1,
       forma_pago: 'contado',
       medio_pago: 'transferencia',
-      fecha_vencimiento: null,
+      fecha_vencimiento: '2026-12-31',
       observaciones: 'Entregar en portería',
       detalle: [
         {
           tipo_id: 5,
           descripcion: 'Arroz 500 g',
+          unidad_medida: 'UND',
           cantidad: 10,
           precio_unitario: 3500,
           descuento_porcentaje: 0,
@@ -121,13 +139,21 @@ describe('Test 23 — FacturaForm (líneas y validaciones)', () => {
     })
   })
 
-  it('envía tipo_id null cuando no se elige tipo', async () => {
+  it('no emite nada si falta el tipo de producto', async () => {
     const wrapper = mountForm()
     await llenarEncabezado(wrapper)
     await wrapper.find('[data-test="linea-descripcion-0"]').setValue('Producto genérico')
+    await wrapper.find('[data-test="linea-unidad_medida-0"]').setValue('UND')
+    await wrapper.find('[data-test="linea-cantidad-0"]').setValue('1')
+    await wrapper.find('[data-test="linea-precio_unitario-0"]').setValue('100')
+    await wrapper.find('[data-test="linea-descuento_porcentaje-0"]').setValue('0')
+    await wrapper.find('[data-test="linea-iva_porcentaje-0"]').setValue('19')
 
     await wrapper.find('form').trigger('submit')
 
-    expect(wrapper.emitted('submit')[0][0].detalle[0].tipo_id).toBeNull()
+    expect(wrapper.find('[data-test="error-linea-0-tipo"]').text()).toContain(
+      'Falta el tipo de producto en la línea 1: selecciona un tipo de la lista.',
+    )
+    expect(wrapper.emitted('submit')).toBeUndefined()
   })
 })

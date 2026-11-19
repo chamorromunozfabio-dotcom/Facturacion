@@ -1,7 +1,7 @@
 # Mensaje para el backend — contrato v2 aplicado
 
 > Listo para copiar y pegar. Fecha: 18-11-2026 (actualizado).
-> Estado del frontend: **36 archivos de test / 177 aserciones en verde y build correcto.**
+> Estado del frontend: **37 archivos de test / 183 pruebas en verde y build correcto.**
 
 ---
 
@@ -68,3 +68,33 @@ Hola, necesitamos cambiar el modelo de permisos. Hoy `PUT /roles/{id}/permisos` 
 En cuanto estén publicados los endpoints, cambiamos `PermisosView`: el usuario ya se puede elegir en el selector y los checks ya están; solo reemplazamos la llamada `PUT /roles/{id}/permisos` por `PUT /usuarios/{id}/permisos` y mostramos los `permisos` que devuelve cada usuario. No tocamos CORS ni el proxy `/api`.
 
 Si ves algo distinto en una prueba manual, me pasás **rol + pasos + mensaje de consola (F12)** y lo ajustamos. ¡Gracias! 🚀
+
+---
+
+## 🧾 Facturas: todos los datos obligatorios salvo `observaciones` (19-11-2026)
+
+> Confirmado por el equipo de frontend. Ya lo aplicamos en `FacturaForm.vue`; necesitamos que el contrato del backend coincida.
+
+Hola, según lo que acordamos, en `POST /facturas` y `PUT /facturas/{id}` queremos que **todos los campos sean obligatorios y el único opcional sea `observaciones`**:
+
+- **Cabecera:** `cliente_id`, `bodega_id`, `forma_pago`, `medio_pago`, `fecha_vencimiento`.
+- **Detalle:** al menos 1 línea con `tipo_id`, `descripcion`, `unidad_medida`, `cantidad`, `precio_unitario`, `descuento_porcentaje`, `iva_porcentaje`.
+- **`observaciones`:** opcional (aceptamos `null` o texto).
+
+Hoy `/openapi.json` marca `forma_pago` (default `contado`), `medio_pago`, `fecha_vencimiento`, `tipo_id`, `unidad_medida` (default `UND`), `descuento_porcentaje` (default `0`) e `iva_porcentaje` (default `19`) como opcionales o con valores por defecto. Si van a mantener esos defaults, avísenos para no exigirlos en el formulario; si pueden pasarlos a obligatorios, mejor para que el mensaje sea idéntico en ambos lados.
+
+También confirmamos que `fecha_vencimiento` debe ser obligatoria **siempre**, no solo cuando `forma_pago` es `credito`/`crédito`.
+
+Cuando falte un dato, ¿podemos recibir un `422` con un mensaje en español por campo? Ejemplo:
+
+```json
+{
+  "detail": {
+    "cliente_id": "Falta seleccionar el cliente: elige quién recibe la factura.",
+    "detalle[0].descripcion": "Falta la descripción del producto en la línea 1: escribe qué producto se está entregando.",
+    "detalle[0].iva_porcentaje": "Falta el IVA en la línea 1: selecciona 0, 5 o 19."
+  }
+}
+```
+
+Si prefieren el formato `loc`/`msg` de FastAPI, mándenlo y lo adaptamos del lado del front sin cambiar el texto visible para el usuario.

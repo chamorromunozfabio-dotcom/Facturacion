@@ -255,13 +255,14 @@ async function openEdit(row) {
     formModel.value = {
       cliente_id: factura.cliente_id,
       bodega_id: factura.bodega?.id ?? '',
-      forma_pago: factura.forma_pago,
-      medio_pago: factura.medio_pago,
+      forma_pago: factura.forma_pago === 'crédito' ? 'credito' : (factura.forma_pago ?? ''),
+      medio_pago: factura.medio_pago ?? '',
       fecha_vencimiento: factura.fecha_vencimiento?.slice(0, 10) ?? '',
       observaciones: factura.observaciones ?? '',
       detalle: (factura.detalle ?? []).map((linea) => ({
         tipo_id: linea.tipo_id ?? '',
         descripcion: linea.descripcion,
+        unidad_medida: linea.unidad_medida ?? '',
         cantidad: linea.cantidad,
         precio_unitario: linea.precio_unitario,
         descuento_porcentaje: linea.descuento_porcentaje,
@@ -328,14 +329,16 @@ onMounted(load)
       <span class="badge">Documentos</span>
     </header>
 
-    <Transition name="alert">
-      <AlertMessage
-        v-if="alert"
-        :type="alert.type"
-        :message="alert.message"
-        @close="alert = null"
-      />
-    </Transition>
+    <div class="alert-flotante" data-test="alert-flotante">
+      <Transition name="alert">
+        <AlertMessage
+          v-if="alert"
+          :type="alert.type"
+          :message="alert.message"
+          @close="alert = null"
+        />
+      </Transition>
+    </div>
 
     <label class="estado-filter">
       Estado
@@ -578,6 +581,9 @@ p { margin: 4px 0 0; color: #6b7280; font-size: 0.9rem; }
 .estado-filter { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
 .estado-filter select { border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 10px; }
 .badge { background: #e0e7ff; color: #3730a3; border-radius: 999px; padding: 4px 10px; font-size: 0.8rem; font-weight: 600; }
+/* La alerta flota por encima de los modales (z-index 50). */
+.alert-flotante { position: fixed; top: 16px; right: 16px; left: 16px; z-index: 100; max-width: 480px; margin-inline: auto; pointer-events: none; }
+.alert-flotante :deep(.alert) { pointer-events: auto; margin-bottom: 0; box-shadow: 0 10px 30px rgb(0 0 0 / 15%); }
 .modal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 50; }
 .modal__backdrop { position: absolute; inset: 0; background: rgb(17 24 39 / 50%); }
 .modal__panel { position: relative; width: 100%; max-width: 860px; max-height: 92vh; overflow-y: auto; background: #fff; border-radius: 12px; box-shadow: 0 10px 30px rgb(0 0 0 / 20%); }
