@@ -145,7 +145,7 @@ onMounted(load)
     <header class="crud-page__header">
       <div>
         <h1>Roles</h1>
-        <p>Crea roles y asígnales permisos desde el módulo Permisos.</p>
+        <p>Crea roles y asígnalos a una persona desde el módulo Usuarios.</p>
       </div>
       <span class="badge">Accesos</span>
     </header>

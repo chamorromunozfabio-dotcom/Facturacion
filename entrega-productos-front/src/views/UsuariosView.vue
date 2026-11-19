@@ -4,6 +4,7 @@ import AlertMessage from '../components/AlertMessage.vue'
 import ConfirmDelete from '../components/ConfirmDelete.vue'
 import DataTable from '../components/DataTable.vue'
 import FormModal from '../components/FormModal.vue'
+import rolesApi from '../api/roles'
 import usuariosApi from '../api/usuarios'
 import { getErrorMessage, isDuplicateError } from '../api/axios'
 import { useAuthStore } from '../stores/auth'
@@ -15,12 +16,33 @@ const canCreate = computed(() => tienePermiso(auth.permisos, auth.role, 'usuario
 const canEdit = computed(() => tienePermiso(auth.permisos, auth.role, 'usuarios', 'edit'))
 const canDelete = computed(() => tienePermiso(auth.permisos, auth.role, 'usuarios', 'delete'))
 
-const roleOptions = [
+// Los roles NO son fijos: el admin puede crear otros y el backend los devuelve en GET /roles.
+const ROLES_POR_DEFECTO = [
   { value: 1, label: 'admin' },
   { value: 2, label: 'bodeguero' },
   { value: 3, label: 'cliente' },
 ]
-const roleIdByNombre = { admin: 1, bodeguero: 2, cliente: 3 }
+const IDS_POR_DEFECTO = Object.fromEntries(
+  ROLES_POR_DEFECTO.map((rol) => [rol.label, rol.value]),
+)
+const rolesDisponibles = ref([])
+
+const roleOptions = computed(() => {
+  const activos = rolesDisponibles.value
+    .filter((rol) => rol.estado !== false)
+    .map((rol) => ({ value: rol.id, label: rol.nombre }))
+  return activos.length ? activos : ROLES_POR_DEFECTO
+})
+
+function nombreRol(id) {
+  return roleOptions.value.find((rol) => rol.value === Number(id))?.label ?? ''
+}
+
+function resolveRolId(row) {
+  if (row.rol_id !== undefined && row.rol_id !== null && row.rol_id !== '') return row.rol_id
+  return roleOptions.value.find((rol) => rol.label === row.rol)?.value ?? IDS_POR_DEFECTO[row.rol] ?? ''
+}
+
 const documentOptions = [
   { value: 'CC', label: 'CC' },
   { value: 'NIT', label: 'NIT' },
@@ -41,7 +63,7 @@ const baseFields = [
   { key: 'nombre', label: 'Nombre', required: true, maxLength: 100 },
   { key: 'correo', label: 'Correo', type: 'email', required: true },
   { key: 'contrasena', label: 'Contraseña', type: 'password', required: true },
-  { key: 'rol_id', label: 'Rol', type: 'select', options: roleOptions, required: true },
+  { key: 'rol_id', label: 'Rol', type: 'select', required: true },
 ]
 // El backend los acepta como opcionales para todos los roles (PA incluido).
 const clienteFields = [
@@ -78,8 +100,10 @@ const removing = ref(false)
 const effectiveRole = computed(() => (isBodeguero.value ? 'cliente' : roleFilter.value))
 
 const fields = computed(() => {
-  const list = baseFields.map((field) => ({ ...field }))
-  if (Number(form.value.rol_id) === 3) list.push(...clienteFields)
+  const list = baseFields.map((field) =>
+    field.key === 'rol_id' ? { ...field, options: roleOptions.value } : { ...field },
+  )
+  if (nombreRol(form.value.rol_id) === 'cliente') list.push(...clienteFields)
   if (editing.value) {
     const password = list.find((field) => field.key === 'contrasena')
     password.required = false
@@ -100,6 +124,16 @@ watch([q, roleFilter], () => {
 
 watch(page, () => load())
 
+/** Trae los roles reales del backend, incluidos los creados después del despliegue. */
+async function cargarRoles() {
+  try {
+    const result = await rolesApi.list({ page: 1, limit: 100 })
+    if (result.data?.length) rolesDisponibles.value = result.data
+  } catch {
+    // Si falla, seguimos con los tres roles por defecto para no bloquear el formulario.
+  }
+}
+
 async function load() {
   loading.value = true
   try {
@@ -119,19 +153,21 @@ function emptyForm() {
   return Object.fromEntries(fields.value.map((field) => [field.key, '']))
 }
 
-function openCreate() {
+async function openCreate() {
+  await cargarRoles()
   editing.value = null
   form.value = emptyForm()
   modalOpen.value = true
 }
 
-function openEdit(row) {
+async function openEdit(row) {
+  await cargarRoles()
   editing.value = row
   form.value = {
     nombre: row.nombre ?? '',
     correo: row.correo ?? '',
     contrasena: '',
-    rol_id: row.rol_id ?? roleIdByNombre[row.rol] ?? '',
+    rol_id: resolveRolId(row),
     tipo_documento: row.tipo_documento ?? '',
     numero_documento: row.numero_documento ?? '',
     telefono: row.telefono ?? '',
@@ -208,7 +244,10 @@ async function confirmDelete() {
   }
 }
 
-onMounted(load)
+onMounted(() => {
+  cargarRoles()
+  load()
+})
 </script>
 
 <template>
@@ -229,9 +268,14 @@ onMounted(load)
       Filtrar por rol
       <select v-model="roleFilter" data-test="role-filter">
         <option value="">Todos</option>
-        <option value="admin">admin</option>
-        <option value="bodeguero">bodeguero</option>
-        <option value="cliente">cliente</option>
+        <option
+          v-for="rol in roleOptions"
+          :key="rol.value"
+          :value="rol.label"
+          :data-test="`role-filter-option-${rol.value}`"
+        >
+          {{ rol.label }}
+        </option>
       </select>
     </label>
 

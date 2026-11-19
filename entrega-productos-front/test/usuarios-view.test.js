@@ -9,7 +9,10 @@ const api = vi.hoisted(() => ({
   remove: vi.fn(),
 }))
 
+const roles = vi.hoisted(() => ({ list: vi.fn() }))
+
 vi.mock('../src/api/usuarios', () => ({ default: api }))
+vi.mock('../src/api/roles', () => ({ default: roles }))
 
 import UsuariosView from '../src/views/UsuariosView.vue'
 import { useAuthStore } from '../src/stores/auth'
@@ -33,6 +36,16 @@ describe('Test 19 — UsuariosView (roles y campos condicionales)', () => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
     api.list.mockResolvedValue({ data: [adminRow, clientRow], total: 2, page: 1, limit: 10 })
+    roles.list.mockResolvedValue({
+      data: [
+        { id: 1, nombre: 'admin' },
+        { id: 2, nombre: 'bodeguero' },
+        { id: 3, nombre: 'cliente' },
+      ],
+      total: 3,
+      page: 1,
+      limit: 100,
+    })
     api.create.mockResolvedValue({ id: 4, nombre: 'Nuevo' })
     api.update.mockResolvedValue({ id: 3, nombre: 'Juan Actualizado' })
   })

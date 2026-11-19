@@ -18,8 +18,11 @@ const usuarios = vi.hoisted(() => ({
   remove: vi.fn(),
 }))
 
+const roles = vi.hoisted(() => ({ list: vi.fn() }))
+
 vi.mock('../src/api/bodegas', () => ({ default: bodegas }))
 vi.mock('../src/api/usuarios', () => ({ default: usuarios }))
+vi.mock('../src/api/roles', () => ({ default: roles }))
 
 import { resolveApiModes } from '../src/config/apiModes'
 import facturasApi from '../src/api/facturas'
@@ -37,6 +40,16 @@ describe('Test 33 — Contrato definitivo del backend', () => {
 
     bodegas.list.mockResolvedValue({ data: [], total: 0, page: 1, limit: 10 })
     usuarios.list.mockResolvedValue({ data: [], total: 0, page: 1, limit: 10 })
+    roles.list.mockResolvedValue({
+      data: [
+        { id: 1, nombre: 'admin' },
+        { id: 2, nombre: 'bodeguero' },
+        { id: 3, nombre: 'cliente' },
+      ],
+      total: 3,
+      page: 1,
+      limit: 100,
+    })
     bodegas.create.mockResolvedValue({ id: 2, nombre: 'Bodega Sur' })
     usuarios.create.mockResolvedValue({ id: 4, nombre: 'Nuevo' })
   })
