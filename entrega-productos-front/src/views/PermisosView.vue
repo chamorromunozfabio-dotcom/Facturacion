@@ -199,13 +199,20 @@ function cambiarUsuario() {
   mensaje.value = null
 }
 
-/** El check solo prepara el cambio; se aplica con Confirmar. */
-function togglePermiso(opcion) {
-  if (!usuarioSeleccionado.value || guardando.value || !opcion.idBackend) return
-  mensaje.value = null
-  const pendientes = new Map(cambiosPendientes.value)
-  const deseado = !estadoCheck(opcion)
+/** Solo se puede cambiar lo que el backend ya publicó en su catálogo. */
+const opcionesCambiables = computed(() =>
+  modulosConPermisos.value
+    .flatMap((modulo) => modulo.opciones)
+    .filter((opcion) => opcion.idBackend != null),
+)
 
+const todosMarcados = computed(
+  () =>
+    opcionesCambiables.value.length > 0 &&
+    opcionesCambiables.value.every((opcion) => estadoCheck(opcion)),
+)
+
+function prepararCambio(pendientes, opcion, deseado) {
   if (deseado === opcion.asignado) {
     pendientes.delete(opcion.clave)
   } else {
@@ -217,7 +224,44 @@ function togglePermiso(opcion) {
       asignado: deseado,
     })
   }
+}
+
+/** El check solo prepara el cambio; se aplica con Confirmar. */
+function togglePermiso(opcion) {
+  if (!usuarioSeleccionado.value || guardando.value || !opcion.idBackend) return
+  mensaje.value = null
+  const pendientes = new Map(cambiosPendientes.value)
+  prepararCambio(pendientes, opcion, !estadoCheck(opcion))
   cambiosPendientes.value = pendientes
+}
+
+/** Las acciones masivas usan la misma regla: preparar y confirmar después. */
+function aplicarMasivo(deseadoPorOpcion) {
+  if (!usuarioSeleccionado.value || guardando.value) return
+  mensaje.value = null
+  const pendientes = new Map(cambiosPendientes.value)
+  for (const opcion of opcionesCambiables.value) {
+    prepararCambio(pendientes, opcion, deseadoPorOpcion(opcion))
+  }
+  cambiosPendientes.value = pendientes
+}
+
+function marcarTodos() {
+  aplicarMasivo(() => true)
+}
+
+function desmarcarTodos() {
+  aplicarMasivo(() => false)
+}
+
+function aplicarRol() {
+  const delRol = new Set(plantillaSeleccionada.value)
+  aplicarMasivo((opcion) => delRol.has(opcion.clave))
+}
+
+function toggleTodos() {
+  if (todosMarcados.value) desmarcarTodos()
+  else marcarTodos()
 }
 
 function descartarCambios() {
@@ -390,7 +434,7 @@ onMounted(cargarPagina)
 
         <p class="nota" data-test="plantilla-rol">
           Referencia del rol: {{ plantillaSeleccionada.length }} permisos predefinidos. No se aplican
-          automáticamente.
+          automáticamente, pero podés usar el botón “Por defecto del rol”.
         </p>
 
         <p v-if="faltanEnBackend" class="aviso" data-test="permisos-pendientes">
@@ -405,6 +449,37 @@ onMounted(cargarPagina)
             <h3>Funciones permitidas</h3>
             <p>Tildá lo que {{ usuarioSeleccionado.nombre }} puede hacer en cada área.</p>
           </div>
+        </div>
+
+        <div class="acciones-masivas" data-test="acciones-masivas">
+          <label class="acciones-masivas__check">
+            <input
+              type="checkbox"
+              data-test="check-todos"
+              :checked="todosMarcados"
+              :disabled="guardando || !opcionesCambiables.length"
+              @change="toggleTodos"
+            />
+            <span>Marcar todos</span>
+          </label>
+          <button
+            type="button"
+            class="btn btn--suave"
+            data-test="aplicar-rol"
+            :disabled="guardando || !opcionesCambiables.length"
+            @click="aplicarRol"
+          >
+            Por defecto del rol
+          </button>
+          <button
+            type="button"
+            class="btn btn--suave"
+            data-test="desmarcar-todos"
+            :disabled="guardando || !opcionesCambiables.length"
+            @click="desmarcarTodos"
+          >
+            Desmarcar todos
+          </button>
         </div>
 
         <div class="modulos" data-test="matriz-permisos">
@@ -863,6 +938,40 @@ h4 {
   background: #fffbeb;
   color: #92400e;
   font-size: 0.84rem;
+}
+
+.acciones-masivas {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px solid #e0e7ff;
+  border-radius: 12px;
+  background: #f8faff;
+}
+
+.acciones-masivas__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #3730a3;
+  cursor: pointer;
+}
+
+.acciones-masivas__check input {
+  width: 16px;
+  height: 16px;
+  accent-color: #4f46e5;
+  cursor: pointer;
+}
+
+.acciones-masivas .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .modulos {

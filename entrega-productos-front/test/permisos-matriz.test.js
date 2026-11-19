@@ -161,7 +161,9 @@ describe('Test 40 — Permisos por usuario con buscador y tarjetas de funciones'
       .map((nodo) => nodo.find('h4').text())
     expect(titulos).toEqual(MODULOS_PERMISO.map((modulo) => modulo.etiqueta))
     expect(wrapper.findAll('[data-test^="modulo-"]')).toHaveLength(MODULOS_PERMISO.length)
-    expect(wrapper.findAll('input[type="checkbox"]')).toHaveLength(CATALOGO_PERMISOS.length)
+    expect(
+      wrapper.findAll('[data-test="matriz-permisos"] input[type="checkbox"]'),
+    ).toHaveLength(CATALOGO_PERMISOS.length)
     expect(wrapper.findAll('[data-test="modulo-facturas"] input[type="checkbox"]')).toHaveLength(9)
     expect(wrapper.findAll('[data-test="modulo-usuarios"] input[type="checkbox"]')).toHaveLength(4)
     expect(wrapper.find('[data-test="check-facturas:pdf"]').attributes('aria-label')).toContain(
@@ -242,6 +244,84 @@ describe('Test 40 — Permisos por usuario con buscador y tarjetas de funciones'
       'todavía no tiene permisos',
     )
     expect(usuarios.addPermiso).not.toHaveBeenCalled()
+  })
+
+  it('la casilla Marcar todos prepara todos los cambios y luego los deshace', async () => {
+    const wrapper = mount(PermisosView)
+    await flushPromises()
+    await consultar(wrapper, 5)
+    const marcados = () =>
+      wrapper
+        .findAll('[data-test="matriz-permisos"] input[type="checkbox"]')
+        .filter((check) => check.element.checked)
+
+    expect(wrapper.find('[data-test="check-todos"]').element.checked).toBe(false)
+    expect(marcados()).toHaveLength(0)
+
+    await wrapper.find('[data-test="check-todos"]').setValue(true)
+    await flushPromises()
+
+    expect(wrapper.find('[data-test="check-todos"]').element.checked).toBe(true)
+    expect(marcados()).toHaveLength(CATALOGO_PERMISOS.length)
+    expect(wrapper.find('[data-test="confirmar-bar"]').text()).toContain(
+      `${CATALOGO_PERMISOS.length} cambios listos`,
+    )
+    expect(usuarios.addPermiso).not.toHaveBeenCalled()
+
+    await wrapper.find('[data-test="check-todos"]').setValue(false)
+    await flushPromises()
+
+    expect(wrapper.find('[data-test="check-todos"]').element.checked).toBe(false)
+    expect(marcados()).toHaveLength(0)
+    expect(wrapper.find('[data-test="confirmar-bar"]').exists()).toBe(false)
+    expect(usuarios.addPermiso).not.toHaveBeenCalled()
+  })
+
+  it('Desmarcar todos quita los permisos guardados solo al confirmar', async () => {
+    permisosPorUsuario.set(5, [
+      { id: 1, nombre: 'facturas_view' },
+      { id: 2, nombre: 'facturas_create' },
+    ])
+    const wrapper = mount(PermisosView)
+    await flushPromises()
+    await consultar(wrapper, 5)
+
+    await wrapper.find('[data-test="desmarcar-todos"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('[data-test="check-facturas:view"]').element.checked).toBe(false)
+    expect(wrapper.find('[data-test="confirmar-bar"]').text()).toContain('2 cambios listos')
+    expect(usuarios.removePermiso).not.toHaveBeenCalled()
+
+    await wrapper.find('[data-test="confirmar-permisos"]').trigger('click')
+    await flushPromises()
+
+    expect(usuarios.removePermiso).toHaveBeenCalledTimes(2)
+    expect(wrapper.find('[data-test="permisos-actuales"]').text()).toContain(
+      'todavía no tiene permisos',
+    )
+  })
+
+  it('Por defecto del rol marca solo los permisos predefinidos', async () => {
+    const wrapper = mount(PermisosView)
+    await flushPromises()
+    await consultar(wrapper, 5)
+
+    await wrapper.find('[data-test="aplicar-rol"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('[data-test="plantilla-rol"]').text()).toContain('4 permisos predefinidos')
+    expect(wrapper.find('[data-test="check-facturas:view"]').element.checked).toBe(true)
+    expect(wrapper.find('[data-test="check-facturas:aceptar"]').element.checked).toBe(true)
+    expect(wrapper.find('[data-test="check-bodegas:view"]').element.checked).toBe(false)
+    expect(wrapper.find('[data-test="confirmar-bar"]').text()).toContain('4 cambios listos')
+    expect(usuarios.addPermiso).not.toHaveBeenCalled()
+
+    await wrapper.find('[data-test="confirmar-permisos"]').trigger('click')
+    await flushPromises()
+
+    expect(usuarios.addPermiso).toHaveBeenCalledTimes(4)
+    expect(wrapper.find('[data-test="confirmar-bar"]').exists()).toBe(false)
   })
 
   it('el mismo check prepara el alta y la baja, y cada Confirmar la aplica', async () => {

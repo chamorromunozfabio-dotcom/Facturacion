@@ -62,10 +62,11 @@ npm run test:watch
 | 44 | Tipos por bodega y buscador de tipos en facturas | ✅ PASÓ | [tipos-por-bodega.test.js](tipos-por-bodega.test.js) |
 | 45 | Eliminación de facturas emitidas tras confirmación | ✅ PASÓ | [factura-view.test.js](factura-view.test.js) |
 | 46 | Facturas propias por usuario y bloqueo 404 de ajenas | ✅ PASÓ | [facturas-por-usuario.test.js](facturas-por-usuario.test.js) |
+| 47 | Permisos: marcar todos, desmarcar todos y plantilla del rol | ⏳ Por ejecutar | [permisos-matriz.test.js](permisos-matriz.test.js) |
 
 ---
 
-**45 archivos de test, 241 pruebas.** Ejecutar todo con `npm test`.
+**45 archivos de test, 244 pruebas.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >
