@@ -35,6 +35,32 @@ const canAceptar = computed(() => tienePermiso(auth.permisos, auth.role, 'factur
 const canRechazar = computed(() => tienePermiso(auth.permisos, auth.role, 'facturas', 'rechazar'))
 const canPdf = computed(() => tienePermiso(auth.permisos, auth.role, 'facturas', 'pdf'))
 const esCliente = computed(() => auth.role === 'cliente')
+const esAdmin = computed(() => auth.role === 'admin')
+const esBodeguero = computed(() => auth.role === 'bodeguero')
+const idUsuario = computed(() => Number(auth.user?.id) || null)
+
+// Texto simple para que cada usuario sepa por qué ve esa lista.
+const textoAlcance = computed(() => {
+  if (esAdmin.value) return 'Ves todas las facturas.'
+  if (esBodeguero.value) return 'Solo ves las facturas que creaste.'
+  return 'Solo ves tus facturas.'
+})
+
+function creadorDe(fila) {
+  const valor = fila?.creado_por_id ?? fila?.creada_por_id
+  const numero = Number(valor)
+  return Number.isFinite(numero) && numero > 0 ? numero : null
+}
+
+// El backend filtra por el token. Este filtro extra es solo una red de seguridad
+// cuando la respuesta ya trae el creador. Si todavía no lo envía, mostramos lo
+// que devuelve el backend para no romper la pantalla durante la transición.
+const filasVisibles = computed(() => {
+  const filas = rows.value ?? []
+  if (!esBodeguero.value || !idUsuario.value) return filas
+  if (!filas.some((fila) => creadorDe(fila) !== null)) return filas
+  return filas.filter((fila) => creadorDe(fila) === idUsuario.value)
+})
 
 const ESTADOS = ['emitida', 'entregada', 'firmada', 'rechazada', 'recibida']
 const estadoOptions = computed(() =>
@@ -297,7 +323,11 @@ async function save(payload) {
       success('Factura actualizada. Los cambios ya están guardados.')
     } else {
       const created = await facturasApi.create(payload)
-      rows.value = [created, ...rows.value]
+      // La fila nueva también debe quedar visible para el bodeguero.
+      const creada = esBodeguero.value && idUsuario.value
+        ? { ...created, creado_por_id: created.creado_por_id ?? idUsuario.value }
+        : created
+      rows.value = [creada, ...rows.value]
       total.value += 1
       success(
         `Factura creada. ${created.numero ? `La ${created.numero} ya está en la lista.` : 'Ya está en la lista.'}`,
@@ -346,6 +376,8 @@ onMounted(load)
       <span class="badge">Documentos</span>
     </header>
 
+    <p class="aviso-alcance" data-test="aviso-alcance">{{ textoAlcance }}</p>
+
     <div class="alert-flotante" data-test="alert-flotante">
       <Transition name="alert">
         <AlertMessage
@@ -367,7 +399,7 @@ onMounted(load)
 
     <DataTable
       :columns="columns"
-      :rows="rows"
+      :rows="filasVisibles"
       :total="total"
       :page="page"
       :limit="limit"
@@ -599,6 +631,7 @@ p { margin: 4px 0 0; color: #6b7280; font-size: 0.9rem; }
 .estado-filter { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
 .estado-filter select { border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 10px; }
 .badge { background: #e0e7ff; color: #3730a3; border-radius: 999px; padding: 4px 10px; font-size: 0.8rem; font-weight: 600; }
+.aviso-alcance { background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 8px 12px; color: #3730a3; font-size: 0.9rem; }
 /* La alerta flota por encima de los modales (z-index 50). */
 .alert-flotante { position: fixed; top: 16px; right: 16px; left: 16px; z-index: 100; max-width: 480px; margin-inline: auto; pointer-events: none; }
 .alert-flotante :deep(.alert) { pointer-events: auto; margin-bottom: 0; box-shadow: 0 10px 30px rgb(0 0 0 / 15%); }

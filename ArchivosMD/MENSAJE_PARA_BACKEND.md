@@ -202,3 +202,55 @@ Gracias, quedó claro y ya adaptamos el front:
 - **Verificación en vivo**: creé un tipo temporal en la bodega del bodeguero de prueba → `201` con `bodega_id`/`bodega_nombre`; lo vio el admin filtrando y el propio bodeguero; una bodega ajena devolvió `total: 0`; lo borré (`204`). No quedaron datos.
 
 Todo en verde: 44 archivos / 234 pruebas y build correcto. Si el catálogo de facturas debe mostrar también tipos inactivos en algún caso, avisen y lo ajustamos.
+
+---
+
+## Pedido (19-11-2026) — cada usuario solo sus propias facturas
+
+Hola 👋 Confirmamos la regla de propiedad con el líder. Hoy `GET /facturas` devuelve **las 5 facturas** al admin, al bodeguero y al cliente (lo verificamos en vivo): el filtro actual solo aplica al rol `cliente` por `cliente_id`. Queremos esto:
+
+### Regla de dueño
+
+| Rol | Facturas que debe ver |
+|---|---|
+| **Admin** | Todas (sin cambio, se mantiene la excepción actual). |
+| **Bodeguero** | Solo las que **él creó**. |
+| **Cliente** | Las que **él creó** + las que tienen su `cliente_id` (y nunca las `emitida`, como hoy). |
+
+### Alcance (importante)
+
+Que el filtro se aplique en **todos** los endpoints de facturas, no solo en el listado: `GET /facturas/{id}`, `PUT`, `DELETE`, PDF, entregar, recibir, aceptar y rechazar. Si la factura no es suya, queremos **404** aunque tenga el link directo (es lo que eligió el líder). El admin sigue teniendo acceso a todas.
+
+### Dato que necesitamos del backend
+
+Hoy el listado trae `cliente_id`, `cliente_nombre`, `bodega_nombre`, etc., pero **no trae quién creó la factura**. En el detalle aparece `trazabilidad.creada_por: "Administrador"` (texto) y `trazabilidad.bodeguero_id: 1`, que es ambiguo: en esa factura el `1` es el admin, no un bodeguero.
+
+Por eso pedimos una de dos opciones:
+
+1. **Ideal:** agregar `creado_por_id` (numérico) a cada fila de `GET /facturas` y al `FacturaOut`, y filtrar por él según el token.
+2. **Si ya existe ese dato con otro nombre:** decinos el nombre exacto y lo devolvés también en el listado, lo adaptamos sin drama.
+
+No hace falta un parámetro nuevo en la URL: el dueño se deduce del token, para que nadie pueda pedir facturas ajenas cambiando un filtro.
+
+### Facturas viejas
+
+Las 5 facturas actuales parecen creadas por el admin. ¿Se pueden backfillear con su creador real? Si no es posible, la regla por defecto que nos sirve es: **sin creador conocido → solo admin**. Así no le aparecen facturas ajenas al bodeguero de prueba.
+
+### De nuestro lado (front)
+
+Preparamos el aviso por rol (“Ves todas” / “Solo las que creaste” / “Solo tus facturas”) y una prueba que verifica que el front muestra exactamente lo que devuelve el backend y que un `404` al abrir una factura ajena no deja la pantalla rota. El front **no envía ningún flag de “ver todas”**: confiamos en el filtro del token, que es lo seguro.
+
+Mientras publican esto, el front sigue funcionando con el comportamiento actual. Cuando esté listo, lo verificamos en vivo con los tres usuarios de prueba. Gracias 🚀
+
+### Respuesta recibida (19-11-2026) — `RESPUESTA_DUENO_FACTURAS.md` ✅ adoptado
+
+Gracias, quedó clarísimo y ya lo verificamos contra el servidor real:
+
+- **Admin:** 5 facturas.
+- **Bodeguero Prueba (id 2):** 3 (`FE-0001`, `FE-0006`, `FE-0007`).
+- **Cliente Prueba (id 5):** 5.
+- Cada fila trae `creado_por_id` y `creado_por_nombre` como indicaron.
+
+Adaptamos el front: el aviso por rol ya está, el filtro de seguridad usa `creado_por_id` (y ya no dependemos del viejo `bodeguero_id`), y dejamos una prueba con el escenario real de los 5/3/5. También confirmamos que el `404` de una factura ajena cierra el detalle y muestra el error, sin pantalla rota.
+
+No hicieron falta backfills ni cambios de parámetros. Todo en verde: 45 archivos / 240 pruebas y build correcto. Gracias 🚀

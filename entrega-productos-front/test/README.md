@@ -60,10 +60,12 @@ npm run test:watch
 | 42 | Roles nuevos del backend disponibles al crear/editar usuarios | ✅ PASÓ | [roles-nuevos-usuarios.test.js](roles-nuevos-usuarios.test.js) |
 | 43 | Rutas que se abren según el permiso real, aunque el rol sea otro | ✅ PASÓ | [permisos-rutas-cruzadas.test.js](permisos-rutas-cruzadas.test.js) |
 | 44 | Tipos por bodega y buscador de tipos en facturas | ✅ PASÓ | [tipos-por-bodega.test.js](tipos-por-bodega.test.js) |
+| 45 | Eliminación de facturas emitidas tras confirmación | ✅ PASÓ | [factura-view.test.js](factura-view.test.js) |
+| 46 | Facturas propias por usuario y bloqueo 404 de ajenas | ✅ PASÓ | [facturas-por-usuario.test.js](facturas-por-usuario.test.js) |
 
 ---
 
-**44 archivos de test, 235 pruebas.** Ejecutar todo con `npm test`.
+**45 archivos de test, 241 pruebas.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >
