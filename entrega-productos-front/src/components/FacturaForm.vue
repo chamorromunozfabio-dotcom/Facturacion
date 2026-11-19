@@ -11,6 +11,7 @@ const props = defineProps({
   tipos: { type: Array, default: () => [] },
   submitLabel: { type: String, default: 'Guardar' },
   loading: { type: Boolean, default: false },
+  serverErrors: { type: Object, default: () => ({}) },
 })
 const emit = defineEmits(['update:modelValue', 'submit', 'close'])
 const { panelRef } = useModalA11y(computed(() => props.open), () => emit('close'))
@@ -81,6 +82,7 @@ watch(
 )
 
 const tieneTipo = computed(() => props.tipos.length > 0)
+const esCredito = computed(() => form.forma_pago === 'credito')
 
 function addLinea() {
   form.detalle.push(emptyLinea())
@@ -95,6 +97,70 @@ function onTipoChange(linea, value) {
   const tipo = props.tipos.find((item) => String(item.id) === String(value))
   if (tipo) linea.descripcion = tipo.nombre
 }
+
+const ETIQUETAS_LINEA = {
+  tipo_id: 'el tipo de producto',
+  descripcion: 'la descripción del producto',
+  unidad_medida: 'la unidad de medida',
+  cantidad: 'la cantidad',
+  precio_unitario: 'el precio unitario',
+  descuento_porcentaje: 'el descuento porcentual',
+  iva_porcentaje: 'el IVA',
+}
+const CLAVES_LINEA = {
+  tipo_id: 'tipo',
+  descripcion: 'descripcion',
+  unidad_medida: 'unidad_medida',
+  cantidad: 'cantidad',
+  precio_unitario: 'precio_unitario',
+  descuento_porcentaje: 'descuento_porcentaje',
+  iva_porcentaje: 'iva_porcentaje',
+}
+const ETIQUETAS_CABECERA = {
+  cliente_id: 'el cliente',
+  bodega_id: 'la bodega',
+  forma_pago: 'la forma de pago',
+  medio_pago: 'el medio de pago',
+  fecha_vencimiento: 'la fecha de vencimiento',
+  detalle: 'las líneas de producto',
+  general: 'el cuerpo de la factura',
+}
+
+function traducirClave(clave) {
+  const coincidencia = clave.match(/^detalle\[(\d+)\]\.(.+)$/)
+  if (!coincidencia) return clave
+  const campo = CLAVES_LINEA[coincidencia[2]] || coincidencia[2]
+  return `linea_${coincidencia[1]}_${campo}`
+}
+
+function mensajeAmigable(clave, mensajeBackend) {
+  const razon = String(mensajeBackend || '').replace(/\.$/, '')
+  const coincidencia = clave.match(/^detalle\[(\d+)\]\.(.+)$/)
+  if (coincidencia) {
+    const numero = Number(coincidencia[1]) + 1
+    const etiqueta = ETIQUETAS_LINEA[coincidencia[2]] || coincidencia[2]
+    return `Revisa ${etiqueta} de la línea ${numero}: ${razon}.`
+  }
+  return `Revisa ${ETIQUETAS_CABECERA[clave] || clave}: ${razon}.`
+}
+
+function aplicarErroresServidor(nuevos = {}) {
+  const convertidos = {}
+  for (const [clave, mensaje] of Object.entries(nuevos)) {
+    convertidos[traducirClave(clave)] = mensajeAmigable(clave, mensaje)
+  }
+  Object.assign(errores, convertidos)
+  const mensajes = Object.values(errores)
+  resumen.value = mensajes.length ? `Revisa estos datos: ${mensajes.join(' ')}` : ''
+}
+
+watch(() => props.serverErrors, aplicarErroresServidor, { deep: true, immediate: true })
+watch(esCredito, (credito) => {
+  if (credito) return
+  delete errores.fecha_vencimiento
+  const mensajes = Object.values(errores)
+  resumen.value = mensajes.length ? `Revisa estos datos: ${mensajes.join(' ')}` : ''
+})
 
 function validar() {
   const nuevos = {}
@@ -111,7 +177,7 @@ function validar() {
   if (!form.medio_pago) {
     nuevos.medio_pago = 'Falta seleccionar el medio de pago: elige efectivo, transferencia o tarjeta.'
   }
-  if (!String(form.fecha_vencimiento ?? '').trim()) {
+  if (esCredito.value && !String(form.fecha_vencimiento ?? '').trim()) {
     nuevos.fecha_vencimiento = 'Falta la fecha de vencimiento: escribe la fecha límite de pago (AAAA-MM-DD).'
   }
   if (!form.detalle.length) {
@@ -181,7 +247,7 @@ function handleSubmit() {
     bodega_id: Number(form.bodega_id),
     forma_pago: form.forma_pago,
     medio_pago: form.medio_pago,
-    fecha_vencimiento: form.fecha_vencimiento,
+    fecha_vencimiento: esCredito.value ? form.fecha_vencimiento : null,
     observaciones: String(form.observaciones ?? '').trim() || null,
     detalle: form.detalle.map((linea) => ({
       tipo_id: Number(linea.tipo_id),
@@ -261,7 +327,7 @@ function handleSubmit() {
               <small v-if="errores.medio_pago" data-test="error-medio_pago" class="campo-error">{{ errores.medio_pago }}</small>
             </label>
 
-            <label>
+            <label v-if="esCredito">
               Fecha de vencimiento *
               <input v-model="form.fecha_vencimiento" data-test="field-fecha_vencimiento" type="date" />
               <small v-if="errores.fecha_vencimiento" data-test="error-fecha_vencimiento" class="campo-error">{{ errores.fecha_vencimiento }}</small>

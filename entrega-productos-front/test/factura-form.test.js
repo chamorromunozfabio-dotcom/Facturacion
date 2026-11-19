@@ -12,11 +12,14 @@ const tipos = [
 const mountForm = (props = {}) =>
   mount(FacturaForm, { props: { open: true, clientes, bodegas, tipos, ...props } })
 
-async function llenarEncabezado(wrapper) {
+async function llenarEncabezado(wrapper, formaPago = 'contado') {
   await wrapper.find('[data-test="field-cliente_id"]').setValue('3')
   await wrapper.find('[data-test="field-bodega_id"]').setValue('1')
-  await wrapper.find('[data-test="field-forma_pago"]').setValue('contado')
+  await wrapper.find('[data-test="field-forma_pago"]').setValue(formaPago)
   await wrapper.find('[data-test="field-medio_pago"]').setValue('transferencia')
+}
+
+async function completarFecha(wrapper) {
   await wrapper.find('[data-test="field-fecha_vencimiento"]').setValue('2026-12-31')
 }
 
@@ -37,7 +40,7 @@ describe('Test 23 — FacturaForm (líneas y validaciones)', () => {
     expect(wrapper.findAll('[data-test="linea"]')).toHaveLength(1)
     expect(wrapper.find('[data-test="field-forma_pago"]').element.value).toBe('')
     expect(wrapper.find('[data-test="field-medio_pago"]').element.value).toBe('')
-    expect(wrapper.find('[data-test="field-fecha_vencimiento"]').element.value).toBe('')
+    expect(wrapper.find('[data-test="field-fecha_vencimiento"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="linea-cantidad-0"]').element.value).toBe('')
     expect(wrapper.find('[data-test="linea-precio_unitario-0"]').element.value).toBe('')
     expect(wrapper.find('[data-test="linea-descuento_porcentaje-0"]').element.value).toBe('')
@@ -66,13 +69,15 @@ describe('Test 23 — FacturaForm (líneas y validaciones)', () => {
     expect(wrapper.find('[data-test="linea-descripcion-0"]').element.value).toBe('Arroz 500 g')
   })
 
-  it('pide la fecha de vencimiento siempre, también con contado', async () => {
+  it('oculta la fecha con contado y solo la pide con crédito', async () => {
     const wrapper = mountForm()
-    expect(wrapper.find('[data-test="field-fecha_vencimiento"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="field-fecha_vencimiento"]').exists()).toBe(false)
 
     await llenarEncabezado(wrapper)
-    await wrapper.find('[data-test="field-cliente_id"]').setValue('')
-    await wrapper.find('[data-test="field-fecha_vencimiento"]').setValue('')
+    expect(wrapper.find('[data-test="field-fecha_vencimiento"]').exists()).toBe(false)
+
+    await wrapper.find('[data-test="field-forma_pago"]').setValue('credito')
+    expect(wrapper.find('[data-test="field-fecha_vencimiento"]').exists()).toBe(true)
 
     await wrapper.find('form').trigger('submit')
     expect(wrapper.find('[data-test="form-error"]').text()).toContain(
@@ -112,7 +117,8 @@ describe('Test 23 — FacturaForm (líneas y validaciones)', () => {
 
   it('emite el payload completo del contrato', async () => {
     const wrapper = mountForm()
-    await llenarEncabezado(wrapper)
+    await llenarEncabezado(wrapper, 'credito')
+    await completarFecha(wrapper)
     await llenarLinea(wrapper)
     await wrapper.find('[data-test="field-observaciones"]').setValue('  Entregar en portería  ')
 
@@ -121,7 +127,7 @@ describe('Test 23 — FacturaForm (líneas y validaciones)', () => {
     expect(wrapper.emitted('submit')[0][0]).toEqual({
       cliente_id: 3,
       bodega_id: 1,
-      forma_pago: 'contado',
+      forma_pago: 'credito',
       medio_pago: 'transferencia',
       fecha_vencimiento: '2026-12-31',
       observaciones: 'Entregar en portería',
@@ -137,6 +143,17 @@ describe('Test 23 — FacturaForm (líneas y validaciones)', () => {
         },
       ],
     })
+  })
+
+  it('envía fecha_vencimiento null cuando es contado', async () => {
+    const wrapper = mountForm()
+    await llenarEncabezado(wrapper)
+    await llenarLinea(wrapper)
+
+    await wrapper.find('form').trigger('submit')
+
+    expect(wrapper.emitted('submit')[0][0].fecha_vencimiento).toBeNull()
+    expect(wrapper.find('[data-test="field-fecha_vencimiento"]').exists()).toBe(false)
   })
 
   it('no emite nada si falta el tipo de producto', async () => {

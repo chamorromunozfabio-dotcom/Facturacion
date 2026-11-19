@@ -78,6 +78,16 @@ export function getErrorMessage(error) {
 }
 
 /**
+ * Los 422 de facturas mantienen `detail` como texto y agregan `errores`
+ * con un mensaje por campo. Lo devolvemos tal cual para que cada pantalla
+ * lo traduzca a un texto amigable junto al control correspondiente.
+ */
+export function getFieldErrors(error) {
+  const errores = error?.response?.data?.errores
+  return errores && typeof errores === 'object' && !Array.isArray(errores) ? errores : {}
+}
+
+/**
  * El backend devuelve 400 cuando un nombre ya existe (y 409 si lo unifican).
  * Lo detectamos por código y por texto para mostrar un mensaje más claro.
  */

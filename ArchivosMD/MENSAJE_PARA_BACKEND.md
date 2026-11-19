@@ -1,7 +1,7 @@
 # Mensaje para el backend — contrato v2 aplicado
 
 > Listo para copiar y pegar. Fecha: 18-11-2026 (actualizado).
-> Estado del frontend: **37 archivos de test / 183 pruebas en verde y build correcto.**
+> Estado del frontend: **38 archivos de test / 187 pruebas en verde y build correcto.**
 
 ---
 
@@ -98,3 +98,12 @@ Cuando falte un dato, ¿podemos recibir un `422` con un mensaje en español por 
 ```
 
 Si prefieren el formato `loc`/`msg` de FastAPI, mándenlo y lo adaptamos del lado del front sin cambiar el texto visible para el usuario.
+
+### Respuesta recibida (19-11-2026) — ✅ adaptado
+
+Gracias por `RESPUESTA_FORMULARIO_FACTURAS.md`. Confirmado: dejamos `detail` como texto y usamos la clave nueva `errores`. El front ya lee claves como `detalle[0].descripcion` y las convierte en mensajes amigables al lado de cada campo, por ejemplo:
+
+- `cliente_id: es obligatorio` → `Revisa el cliente: es obligatorio.`
+- `detalle[0].descripcion: es obligatorio` → `Revisa la descripción del producto de la línea 1: es obligatorio.`
+
+También respetamos que `bodega_id` debe ser una de las bodegas del bodeguero y que `unidad_medida` se guarda en MAYÚSCULAS. Sobre `fecha_vencimiento`: quedó **solo con `credito`**, como indican en su respuesta. Con `contado` el campo ni se muestra y enviamos `null`. Si antes quedó guardada en alguna factura de contado, el próximo `PUT` la limpiará.

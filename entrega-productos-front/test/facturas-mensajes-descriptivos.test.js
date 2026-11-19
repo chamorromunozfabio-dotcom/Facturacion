@@ -63,6 +63,8 @@ describe('Test 37 — Facturas: mensajes descriptivos y alerta visible', () => {
   it('dice exactamente qué dato falta en la cabecera', async () => {
     const wrapper = mountForm()
 
+    expect(wrapper.find('[data-test="field-fecha_vencimiento"]').exists()).toBe(false)
+
     await wrapper.find('form').trigger('submit')
 
     expect(wrapper.find('[data-test="error-cliente_id"]').text()).toContain(
@@ -77,10 +79,7 @@ describe('Test 37 — Facturas: mensajes descriptivos y alerta visible', () => {
     expect(wrapper.find('[data-test="error-medio_pago"]').text()).toContain(
       'Falta seleccionar el medio de pago: elige efectivo, transferencia o tarjeta.',
     )
-    expect(wrapper.find('[data-test="error-fecha_vencimiento"]').text()).toContain(
-      'Falta la fecha de vencimiento: escribe la fecha límite de pago (AAAA-MM-DD).',
-    )
-    expect(wrapper.find('[data-test="form-error"]').text()).toContain('Faltan 12 dato(s)')
+    expect(wrapper.find('[data-test="form-error"]').text()).toContain('Faltan 11 dato(s)')
   })
 
   it('nombra el dato y la línea en cada campo del producto', async () => {

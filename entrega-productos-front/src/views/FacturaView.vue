@@ -21,7 +21,7 @@ import { useModalA11y } from '../composables/useModalA11y'
 import facturasApi, { validateFirma } from '../api/facturas'
 import bodegasApi from '../api/bodegas'
 import tiposApi from '../api/tipos'
-import { getErrorMessage } from '../api/axios'
+import { getErrorMessage, getFieldErrors } from '../api/axios'
 import { useAuthStore } from '../stores/auth'
 import { hasPermission } from '../config/permissions'
 
@@ -65,6 +65,7 @@ const detailLoading = ref(false)
 const formOpen = ref(false)
 const editingId = ref(null)
 const formModel = ref({})
+const formErrors = ref({})
 const saving = ref(false)
 const catalogos = ref({ clientes: [], bodegas: [], tipos: [] })
 
@@ -243,12 +244,14 @@ async function loadCatalogos() {
 function openCreate() {
   editingId.value = null
   formModel.value = {}
+  formErrors.value = {}
   formOpen.value = true
   loadCatalogos().catch((error) => failure(error, 'No se pudieron cargar los catálogos.'))
 }
 
 async function openEdit(row) {
   editingId.value = row.id
+  formErrors.value = {}
   formOpen.value = true
   try {
     const [factura] = await Promise.all([facturasApi.get(row.id), loadCatalogos()])
@@ -288,8 +291,10 @@ async function save(payload) {
       total.value += 1
       success('Factura creada.')
     }
+    formErrors.value = {}
     formOpen.value = false
   } catch (error) {
+    formErrors.value = getFieldErrors(error)
     failure(error, 'No se pudo guardar la factura.')
   } finally {
     saving.value = false
@@ -454,6 +459,7 @@ onMounted(load)
       :tipos="catalogos.tipos"
       :submit-label="editingId ? 'Guardar cambios' : 'Crear factura'"
       :loading="saving"
+      :server-errors="formErrors"
       @submit="save"
       @close="formOpen = false"
     />

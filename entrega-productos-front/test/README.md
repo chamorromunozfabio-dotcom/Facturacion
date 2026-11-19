@@ -52,11 +52,12 @@ npm run test:watch
 | 34 | Permisos reales del bodeguero: CRUD de Tipos y facturas de su bodega | ✅ PASÓ | [permisos-bodeguero.test.js](permisos-bodeguero.test.js) |
 | 35 | Contrato v2: bodegas propias, sin Usuarios y selector `/facturas/clientes` | ✅ PASÓ | [contrato-v2.test.js](contrato-v2.test.js) |
 | 36 | Permisos por usuario: `PUT /usuarios/{id}/permisos`, checks y sesión | ✅ PASÓ | [permisos-asignacion.test.js](permisos-asignacion.test.js) |
-| 37 | Facturas: mensajes descriptivos por dato y alerta sobre el modal | ⏳ Por ejecutar | [facturas-mensajes-descriptivos.test.js](facturas-mensajes-descriptivos.test.js) |
+| 37 | Facturas: mensajes descriptivos por dato y alerta sobre el modal | ✅ PASÓ | [facturas-mensajes-descriptivos.test.js](facturas-mensajes-descriptivos.test.js) |
+| 38 | Errores 422 del backend traducidos a mensajes junto al campo | ⏳ Por ejecutar | [facturas-errores-backend.test.js](facturas-errores-backend.test.js) |
 
 ---
 
-**37 archivos de test, 183 pruebas.** Ejecutar todo con `npm test`.
+**38 archivos de test, 187 pruebas.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >
