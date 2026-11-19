@@ -14,10 +14,11 @@ const auth = useAuthStore()
 const canCreate = computed(() => tienePermiso(auth.permisos, auth.role, 'bodegas', 'create'))
 const canEdit = computed(() => tienePermiso(auth.permisos, auth.role, 'bodegas', 'edit'))
 const canDelete = computed(() => tienePermiso(auth.permisos, auth.role, 'bodegas', 'delete'))
+// Solo el admin asigna el dueño; el backend filtra el resto de los roles.
 const esAdmin = computed(() => auth.role === 'admin')
 const bodegueroOptions = ref([])
 
-// El admin ve el dueño; el bodeguero solo gestiona las suyas (el backend filtra).
+// El admin ve todas las bodegas y su dueño; los demás solo ven las suyas.
 const columns = computed(() => [
   { key: 'nombre', label: 'Nombre' },
   ...(esAdmin.value ? [{ key: 'bodeguero_nombre', label: 'Bodeguero' }] : []),
@@ -59,7 +60,7 @@ const fields = [
   },
 ]
 
-// Solo el admin puede asignar/cambiar el dueño; al crear, el backend se lo asigna al bodeguero.
+// Solo el admin puede asignar/cambiar el dueño; si no, el backend se lo asigna al creador.
 const formFields = computed(() =>
   esAdmin.value
     ? [
@@ -191,18 +192,21 @@ async function save(payload) {
       const changes = changedFields(clean)
       if (Object.keys(changes).length === 0) {
         modalOpen.value = false
-        alert.value = { type: 'info', message: 'No hay cambios para guardar.' }
+        alert.value = { type: 'info', message: 'No hay cambios: la bodega ya estaba guardada.' }
         return
       }
       const updated = await bodegasApi.update(editing.value.id, changes)
       const merged = { ...editing.value, ...updated }
       rows.value = rows.value.map((row) => (row.id === merged.id ? merged : row))
-      alert.value = { type: 'success', message: 'Bodega actualizada.' }
+      alert.value = { type: 'success', message: 'Bodega actualizada. Los cambios ya están guardados.' }
     } else {
       const created = await bodegasApi.create(clean)
       rows.value = [created, ...rows.value]
       total.value += 1
-      alert.value = { type: 'success', message: 'Bodega creada.' }
+      alert.value = {
+        type: 'success',
+        message: `Bodega creada. "${created.nombre ?? payload.nombre}" ya está en la lista.`,
+      }
     }
     modalOpen.value = false
   } catch (error) {
@@ -224,7 +228,7 @@ async function confirmDelete() {
     rows.value = rows.value.filter((row) => row.id !== deleting.value.id)
     total.value = Math.max(0, total.value - 1)
     confirmOpen.value = false
-    alert.value = { type: 'success', message: 'Bodega eliminada.' }
+    alert.value = { type: 'success', message: 'Bodega eliminada. Ya no aparece en la lista.' }
   } catch (error) {
     alert.value = { type: 'error', message: getErrorMessage(error) }
   } finally {

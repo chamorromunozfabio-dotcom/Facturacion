@@ -34,14 +34,20 @@ const emit = defineEmits(['close'])
 
 <style scoped>
 .alert {
+  position: fixed;
+  top: 74px;
+  right: 20px;
+  z-index: 80;
   display: flex;
   align-items: center;
   gap: 10px;
-  border-radius: 8px;
-  padding: 10px 14px;
-  margin-bottom: 16px;
+  width: max-content;
+  max-width: min(440px, calc(100vw - 32px));
+  border-radius: 10px;
+  padding: 12px 14px;
   font-size: 0.95rem;
   border: 1px solid transparent;
+  box-shadow: 0 10px 28px rgb(15 23 42 / 18%);
 }
 
 .alert--success {
@@ -96,5 +102,15 @@ const emit = defineEmits(['close'])
 
 .alert__close:hover {
   opacity: 1;
+}
+
+@media (max-width: 640px) {
+  .alert {
+    top: 12px;
+    right: 16px;
+    left: 16px;
+    width: auto;
+    max-width: none;
+  }
 }
 </style>

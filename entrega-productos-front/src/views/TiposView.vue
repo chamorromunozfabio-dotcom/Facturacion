@@ -90,18 +90,21 @@ async function save(payload) {
       const changes = changedFields(payload)
       if (Object.keys(changes).length === 0) {
         modalOpen.value = false
-        alert.value = { type: 'info', message: 'No hay cambios para guardar.' }
+        alert.value = { type: 'info', message: 'No hay cambios: el tipo ya estaba guardado.' }
         return
       }
       const updated = await tiposApi.update(editing.value.id, changes)
       const merged = { ...editing.value, ...updated }
       rows.value = rows.value.map((row) => (row.id === merged.id ? merged : row))
-      alert.value = { type: 'success', message: 'Tipo actualizado.' }
+      alert.value = { type: 'success', message: 'Tipo actualizado. Los cambios ya están guardados.' }
     } else {
       const created = await tiposApi.create(payload)
       rows.value = [created, ...rows.value]
       total.value += 1
-      alert.value = { type: 'success', message: 'Tipo creado.' }
+      alert.value = {
+        type: 'success',
+        message: `Tipo creado. "${created.nombre ?? payload.nombre}" ya está en la lista.`,
+      }
     }
     modalOpen.value = false
   } catch (error) {
@@ -123,7 +126,7 @@ async function confirmDelete() {
     rows.value = rows.value.filter((row) => row.id !== deleting.value.id)
     total.value = Math.max(0, total.value - 1)
     confirmOpen.value = false
-    alert.value = { type: 'success', message: 'Tipo eliminado.' }
+    alert.value = { type: 'success', message: 'Tipo eliminado. Ya no aparece en la lista.' }
   } catch (error) {
     alert.value = { type: 'error', message: getErrorMessage(error) }
   } finally {

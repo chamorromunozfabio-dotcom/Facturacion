@@ -58,10 +58,11 @@ npm run test:watch
 | 40 | Permisos por usuario: buscador, tarjetas y confirmación de cambios | ✅ PASÓ | [permisos-matriz.test.js](permisos-matriz.test.js) |
 | 41 | Menú, botones y rutas con los permisos reales de la sesión | ✅ PASÓ | [permisos-sesion-real.test.js](permisos-sesion-real.test.js) |
 | 42 | Roles nuevos del backend disponibles al crear/editar usuarios | ✅ PASÓ | [roles-nuevos-usuarios.test.js](roles-nuevos-usuarios.test.js) |
+| 43 | Rutas que se abren según el permiso real, aunque el rol sea otro | ✅ PASÓ | [permisos-rutas-cruzadas.test.js](permisos-rutas-cruzadas.test.js) |
 
 ---
 
-**42 archivos de test, 220 pruebas.** Ejecutar todo con `npm test`.
+**43 archivos de test, 226 pruebas.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >

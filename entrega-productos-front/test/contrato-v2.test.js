@@ -90,10 +90,16 @@ describe('Test 35 — Contrato v2: bodegas propias y sin Usuarios', () => {
     expect(menu).not.toContain('Usuarios')
   })
 
-  it('la ruta /usuarios queda restringida al admin', () => {
-    expect(router.getRoutes().find((route) => route.name === 'usuarios')?.meta.roles).toEqual([
-      'admin',
-    ])
+  it('la ruta /usuarios queda protegida por usuarios_view', async () => {
+    expect(router.getRoutes().find((route) => route.name === 'usuarios')?.meta.permission).toBe(
+      'usuarios:view',
+    )
+
+    await router.push({ name: 'login', query: { reset: String(Math.random()) } })
+    useAuthStore().saveSession('token-123', { nombre: 'Luis', rol: 'bodeguero' })
+    await router.push('/usuarios')
+
+    expect(router.currentRoute.value.name).toBe('inicio')
   })
 
   it('el bodeguero crea bodegas sin elegir dueño (lo asigna el backend)', async () => {

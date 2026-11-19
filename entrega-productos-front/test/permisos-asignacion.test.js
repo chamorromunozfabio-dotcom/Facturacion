@@ -240,11 +240,17 @@ describe('Test 36 — Permisos por usuario (contrato publicado por el backend)',
     expect(JSON.parse(localStorage.getItem('user')).permisos).toHaveLength(1)
   })
 
-  it('Permisos sigue siendo un módulo exclusivo del admin', () => {
+  it('Permisos sigue oculto para quien no tiene el permiso de ver', async () => {
     expect(visibleMenuFor('admin').map((item) => item.label)).toContain('Permisos')
     expect(visibleMenuFor('bodeguero').map((item) => item.label)).not.toContain('Permisos')
-    expect(router.getRoutes().find((route) => route.name === 'permisos')?.meta.roles).toEqual([
-      'admin',
-    ])
+    expect(router.getRoutes().find((route) => route.name === 'permisos')?.meta.permission).toBe(
+      'permisos:view',
+    )
+
+    await router.push({ name: 'login', query: { reset: String(Math.random()) } })
+    useAuthStore().saveSession('token-123', { nombre: 'Luis', rol: 'bodeguero' })
+    await router.push('/permisos')
+
+    expect(router.currentRoute.value.name).toBe('inicio')
   })
 })

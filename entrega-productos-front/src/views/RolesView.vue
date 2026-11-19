@@ -96,18 +96,21 @@ async function save(payload) {
       const changes = changedFields(payload)
       if (Object.keys(changes).length === 0) {
         modalOpen.value = false
-        alert.value = { type: 'info', message: 'No hay cambios para guardar.' }
+        alert.value = { type: 'info', message: 'No hay cambios: el rol ya estaba guardado.' }
         return
       }
       const updated = await rolesApi.update(editing.value.id, changes)
       const merged = { ...editing.value, ...updated }
       rows.value = rows.value.map((row) => (row.id === merged.id ? merged : row))
-      alert.value = { type: 'success', message: 'Rol actualizado.' }
+      alert.value = { type: 'success', message: 'Rol actualizado. Los cambios ya están guardados.' }
     } else {
       const created = await rolesApi.create(payload)
       rows.value = [created, ...rows.value]
       total.value += 1
-      alert.value = { type: 'success', message: 'Rol creado.' }
+      alert.value = {
+        type: 'success',
+        message: `Rol creado. "${payload.nombre}" ya está disponible para asignar.`,
+      }
     }
     modalOpen.value = false
   } catch (error) {
@@ -129,7 +132,7 @@ async function confirmDelete() {
     rows.value = rows.value.filter((row) => row.id !== deleting.value.id)
     total.value = Math.max(0, total.value - 1)
     confirmOpen.value = false
-    alert.value = { type: 'success', message: 'Rol eliminado.' }
+    alert.value = { type: 'success', message: 'Rol eliminado. Ya no aparece en la lista.' }
   } catch (error) {
     alert.value = { type: 'error', message: getErrorMessage(error) }
   } finally {

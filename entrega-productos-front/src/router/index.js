@@ -22,31 +22,31 @@ const router = createRouter({
           path: 'tipos',
           name: 'tipos',
           component: () => import('../views/TiposView.vue'),
-          meta: { roles: ['admin', 'bodeguero'], permission: 'tipos:view' },
+          meta: { permission: 'tipos:view' },
         },
         {
           path: 'bodegas',
           name: 'bodegas',
           component: () => import('../views/BodegasView.vue'),
-          meta: { roles: ['admin', 'bodeguero'], permission: 'bodegas:view' },
+          meta: { permission: 'bodegas:view' },
         },
         {
           path: 'usuarios',
           name: 'usuarios',
           component: () => import('../views/UsuariosView.vue'),
-          meta: { roles: ['admin'], permission: 'usuarios:view' },
+          meta: { permission: 'usuarios:view' },
         },
         {
           path: 'permisos',
           name: 'permisos',
           component: () => import('../views/PermisosView.vue'),
-          meta: { roles: ['admin'], permission: 'permisos:view' },
+          meta: { permission: 'permisos:view' },
         },
         {
           path: 'roles',
           name: 'roles',
           component: () => import('../views/RolesView.vue'),
-          meta: { roles: ['admin'], permission: 'roles:view' },
+          meta: { permission: 'roles:view' },
         },
         // "Órdenes" se eliminó: la orden es la factura. Redirigimos las rutas viejas.
         { path: 'ordenes', redirect: { name: 'facturas' } },
@@ -55,7 +55,7 @@ const router = createRouter({
           path: 'facturas',
           name: 'facturas',
           component: () => import('../views/FacturaView.vue'),
-          meta: { roles: ['admin', 'bodeguero', 'cliente'], permission: 'facturas:view' },
+          meta: { permission: 'facturas:view' },
         },
       ],
     },
@@ -79,11 +79,9 @@ router.beforeEach((to) => {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
 
-  if (to.meta.roles?.length && !to.meta.roles.includes(auth.role)) {
-    return { name: 'inicio' }
-  }
-
-  // El backend ya bloquea con 403; acá solo evitamos mostrar una página que
+  // El acceso depende SOLO del permiso real de la sesión, no del rol: el admin
+  // puede dar, por ejemplo, "tipos_view" a un cliente y el backend ya responde 200.
+  // El backend además bloquea con 403; acá solo evitamos mostrar una página que
   // la sesión no puede usar (por ejemplo, si le quitaron "ver facturas").
   if (to.meta.permission) {
     const [modulo, accion] = to.meta.permission.split(':')

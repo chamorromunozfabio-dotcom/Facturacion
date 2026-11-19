@@ -204,17 +204,23 @@ async function save(payload) {
       const changes = changedFields(clean)
       if (Object.keys(changes).length === 0) {
         modalOpen.value = false
-        alert.value = { type: 'info', message: 'No hay cambios para guardar.' }
+        alert.value = { type: 'info', message: 'No hay cambios: el usuario ya estaba guardado.' }
         return
       }
       const updated = await usuariosApi.update(editing.value.id, changes)
       rows.value = rows.value.map((row) => (row.id === updated.id ? { ...row, ...updated } : row))
-      alert.value = { type: 'success', message: 'Usuario actualizado.' }
+      alert.value = {
+        type: 'success',
+        message: 'Usuario actualizado. Los cambios ya están guardados.',
+      }
     } else {
       const created = await usuariosApi.create(clean)
       rows.value = [created, ...rows.value]
       total.value += 1
-      alert.value = { type: 'success', message: 'Usuario creado.' }
+      alert.value = {
+        type: 'success',
+        message: `Usuario creado. "${clean.nombre}" ya puede iniciar sesión.`,
+      }
     }
     modalOpen.value = false
   } catch (error) {
@@ -236,7 +242,7 @@ async function confirmDelete() {
     rows.value = rows.value.filter((row) => row.id !== deleting.value.id)
     total.value = Math.max(0, total.value - 1)
     confirmOpen.value = false
-    alert.value = { type: 'success', message: 'Usuario eliminado.' }
+    alert.value = { type: 'success', message: 'Usuario eliminado. Ya no tiene acceso.' }
   } catch (error) {
     alert.value = { type: 'error', message: getErrorMessage(error) }
   } finally {

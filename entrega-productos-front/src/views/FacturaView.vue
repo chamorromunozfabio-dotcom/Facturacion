@@ -149,11 +149,21 @@ async function simpleAction(fn, id, patch, message) {
 }
 
 function entregar(row) {
-  return simpleAction(facturasApi.entregar, row.id, { estado: 'entregada' }, 'Factura entregada.')
+  return simpleAction(
+    facturasApi.entregar,
+    row.id,
+    { estado: 'entregada' },
+    'Factura entregada. Ya está lista para recibirse.',
+  )
 }
 
 function recibir(row) {
-  return simpleAction(facturasApi.recibir, row.id, { estado: 'recibida' }, 'Factura recibida.')
+  return simpleAction(
+    facturasApi.recibir,
+    row.id,
+    { estado: 'recibida' },
+    'Factura recibida. El proceso terminó correctamente.',
+  )
 }
 
 async function openDetail(row) {
@@ -186,7 +196,7 @@ async function confirmarAceptar() {
     await facturasApi.aceptar(firmaFactura.value.id, firma.value)
     patchRow(firmaFactura.value.id, { estado: 'firmada' })
     firmaOpen.value = false
-    success('Factura aceptada con firma.')
+    success('Factura aceptada con firma. El estado ya cambió a firmada.')
   } catch (error) {
     failure(error, 'No se pudo aceptar la factura.')
   } finally {
@@ -210,7 +220,7 @@ async function confirmarRechazo() {
     await facturasApi.rechazar(rechazoFactura.value.id, motivo.value.trim())
     patchRow(rechazoFactura.value.id, { estado: 'rechazada' })
     rechazoOpen.value = false
-    success('Factura rechazada.')
+    success('Factura rechazada. El motivo quedó registrado.')
   } catch (error) {
     failure(error, 'No se pudo rechazar la factura.')
   } finally {
@@ -284,12 +294,14 @@ async function save(payload) {
       const id = editingId.value
       const updated = await facturasApi.update(id, payload)
       patchRow(id, { ...payload, ...updated })
-      success('Factura actualizada.')
+      success('Factura actualizada. Los cambios ya están guardados.')
     } else {
       const created = await facturasApi.create(payload)
       rows.value = [created, ...rows.value]
       total.value += 1
-      success('Factura creada.')
+      success(
+        `Factura creada. ${created.numero ? `La ${created.numero} ya está en la lista.` : 'Ya está en la lista.'}`,
+      )
     }
     formErrors.value = {}
     formOpen.value = false
@@ -313,7 +325,7 @@ async function confirmDelete() {
     rows.value = rows.value.filter((row) => row.id !== deleting.value.id)
     total.value = Math.max(0, total.value - 1)
     confirmOpen.value = false
-    success('Factura eliminada.')
+    success('Factura eliminada. Ya no aparece en la lista.')
   } catch (error) {
     failure(error, 'No se pudo eliminar la factura.')
   } finally {
