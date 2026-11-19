@@ -4,6 +4,7 @@ import AlertMessage from '../components/AlertMessage.vue'
 import ConfirmDelete from '../components/ConfirmDelete.vue'
 import DataTable from '../components/DataTable.vue'
 import FormModal from '../components/FormModal.vue'
+import bodegasApi from '../api/bodegas'
 import tiposApi from '../api/tipos'
 import { getErrorMessage, isDuplicateError } from '../api/axios'
 import { useAuthStore } from '../stores/auth'
@@ -14,8 +15,36 @@ const canCreate = computed(() => tienePermiso(auth.permisos, auth.role, 'tipos',
 const canEdit = computed(() => tienePermiso(auth.permisos, auth.role, 'tipos', 'edit'))
 const canDelete = computed(() => tienePermiso(auth.permisos, auth.role, 'tipos', 'delete'))
 
-const columns = [{ key: 'nombre', label: 'Nombre' }]
-const fields = [{ key: 'nombre', label: 'Nombre', required: true, maxLength: 100 }]
+// El admin elige la bodega; el bodeguero queda atado a la suya (la lista que
+// devuelve el backend ya viene filtrada por dueño).
+const esAdmin = computed(() => auth.role === 'admin')
+const bodegas = ref([])
+const bodegaId = ref('')
+
+const bodegasOpciones = computed(() =>
+  bodegas.value.map((bodega) => ({ value: bodega.id, label: bodega.nombre })),
+)
+const nombreBodega = (id) =>
+  bodegas.value.find((bodega) => String(bodega.id) === String(id))?.nombre ?? ''
+
+const columns = computed(() => [
+  { key: 'nombre', label: 'Nombre' },
+  ...(esAdmin.value ? [{ key: 'bodega_nombre', label: 'Bodega' }] : []),
+])
+
+const fields = computed(() => {
+  const base = [{ key: 'nombre', label: 'Nombre', required: true, maxLength: 100 }]
+  if (!esAdmin.value || !bodegasOpciones.value.length) return base
+  return [
+    ...base,
+    {
+      key: 'bodega_id',
+      label: 'Bodega',
+      type: 'select',
+      options: [{ value: '', label: 'Tipo general (sin bodega)' }, ...bodegasOpciones.value],
+    },
+  ]
+})
 
 const rows = ref([])
 const total = ref(0)
@@ -45,12 +74,30 @@ watch(q, () => {
 })
 
 watch(page, () => load())
+watch(bodegaId, () => {
+  if (page.value !== 1) page.value = 1
+  else load()
+})
+
+async function cargarBodegas() {
+  try {
+    const result = await bodegasApi.list({ page: 1, limit: 100 })
+    bodegas.value = result.data ?? []
+  } catch {
+    bodegas.value = []
+  }
+}
 
 async function load() {
   loading.value = true
   try {
-    const result = await tiposApi.list({ q: q.value, page: page.value, limit: limit.value })
-    rows.value = result.data ?? []
+    const params = { q: q.value, page: page.value, limit: limit.value }
+    if (bodegaId.value) params.bodega_id = bodegaId.value
+    const result = await tiposApi.list(params)
+    rows.value = (result.data ?? []).map((tipo) => ({
+      ...tipo,
+      bodega_nombre: tipo.bodega_nombre || nombreBodega(tipo.bodega_id) || 'General',
+    }))
     total.value = result.total ?? 0
   } catch (error) {
     alert.value = { type: 'error', message: getErrorMessage(error) }
@@ -61,33 +108,56 @@ async function load() {
 
 function openCreate() {
   editing.value = null
-  form.value = { nombre: '' }
+  form.value = { nombre: '', bodega_id: bodegaId.value || bodegas.value[0]?.id || '' }
   modalOpen.value = true
 }
 
 function openEdit(row) {
   editing.value = row
-  form.value = { ...row }
+  form.value = {
+    nombre: row.nombre ?? '',
+    bodega_id: row.bodega_id == null ? '' : row.bodega_id,
+  }
   modalOpen.value = true
 }
 
 // El PUT acepta campos parciales: enviamos solo lo que cambió.
 function changedFields(payload) {
+  const actual = {
+    ...editing.value,
+    bodega_id: editing.value?.bodega_id ?? bodegaId.value,
+  }
   return Object.fromEntries(
-    Object.entries(payload).filter(([key, value]) => value !== editing.value?.[key]),
+    Object.entries(payload).filter(([key, value]) => {
+      if (key === 'bodega_id') {
+        const nuevo = value == null || value === '' ? null : String(value)
+        const anterior = actual.bodega_id == null || actual.bodega_id === '' ? null : String(actual.bodega_id)
+        return nuevo !== anterior
+      }
+      return String(value ?? '') !== String(actual[key] ?? '')
+    }),
   )
 }
 
 function errorMessage(error, fallback) {
-  if (isDuplicateError(error)) return 'Ya existe un tipo con ese nombre. Probá con otro.'
+  if (isDuplicateError(error)) {
+    return 'Ya existe un tipo con ese nombre en esta bodega. Probá con otro.'
+  }
   return getErrorMessage(error) || fallback
 }
 
 async function save(payload) {
   saving.value = true
+  const clean = { nombre: String(payload.nombre ?? '').trim() }
+  const bodegaElegida = esAdmin.value ? payload.bodega_id : bodegaId.value
+  const sinBodega = bodegaElegida === '' || bodegaElegida === null || bodegaElegida === undefined
+  if (!sinBodega) clean.bodega_id = Number(bodegaElegida)
+  // En edición, el admin también puede devolver un tipo a "general" (null).
+  if (editing.value && esAdmin.value && sinBodega) clean.bodega_id = null
+
   try {
     if (editing.value) {
-      const changes = changedFields(payload)
+      const changes = changedFields(clean)
       if (Object.keys(changes).length === 0) {
         modalOpen.value = false
         alert.value = { type: 'info', message: 'No hay cambios: el tipo ya estaba guardado.' }
@@ -98,15 +168,19 @@ async function save(payload) {
       rows.value = rows.value.map((row) => (row.id === merged.id ? merged : row))
       alert.value = { type: 'success', message: 'Tipo actualizado. Los cambios ya están guardados.' }
     } else {
-      const created = await tiposApi.create(payload)
+      const created = await tiposApi.create(clean)
       rows.value = [created, ...rows.value]
       total.value += 1
       alert.value = {
         type: 'success',
-        message: `Tipo creado. "${created.nombre ?? payload.nombre}" ya está en la lista.`,
+        message: `Tipo creado. "${created.nombre ?? clean.nombre}" ya está en la lista.`,
       }
     }
     modalOpen.value = false
+    if (esAdmin.value) {
+      const vista = clean.bodega_id ?? ''
+      if (String(vista) !== String(bodegaId.value)) bodegaId.value = vista
+    }
   } catch (error) {
     alert.value = { type: 'error', message: errorMessage(error, 'No se pudo guardar el tipo.') }
   } finally {
@@ -134,7 +208,17 @@ async function confirmDelete() {
   }
 }
 
-onMounted(load)
+onMounted(() => {
+  // Cargamos el listado enseguida y las bodegas en paralelo: si las bodegas
+  // tardan, la tabla ya tiene datos y se recarga sola al elegir la bodega.
+  load()
+  cargarBodegas().then(() => {
+    // El admin arranca en "Todas" para ver también los tipos generales.
+    if (!esAdmin.value && !bodegaId.value && bodegas.value.length) {
+      bodegaId.value = bodegas.value[0].id
+    }
+  })
+})
 </script>
 
 <template>
@@ -142,10 +226,28 @@ onMounted(load)
     <header class="crud-page__header">
       <div>
         <h1>Tipos de producto</h1>
-        <p>Crea y edita las categorías disponibles para las facturas.</p>
+        <p>Crea y edita los productos disponibles en cada bodega.</p>
       </div>
       <span class="badge">Catálogo</span>
     </header>
+
+    <p class="notice">
+      {{
+        esAdmin
+          ? 'Cada bodega tiene su catálogo. También podés crear un tipo general sin bodega o ver "Todas las bodegas".'
+          : 'Estás viendo los tipos de tu bodega. Los que crees solo aparecerán aquí.'
+      }}
+    </p>
+
+    <label v-if="esAdmin || bodegas.length > 1" class="filter">
+      Bodega
+      <select v-model="bodegaId" data-test="bodega-filter">
+        <option v-if="esAdmin" value="">Todas las bodegas</option>
+        <option v-for="bodega in bodegas" :key="bodega.id" :value="bodega.id">
+          {{ bodega.nombre }}
+        </option>
+      </select>
+    </label>
 
     <Transition name="alert">
       <AlertMessage
@@ -222,6 +324,32 @@ h1 {
 p {
   margin: 4px 0 0;
   color: #6b7280;
+}
+
+.notice {
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #3730a3;
+  font-size: 0.9rem;
+}
+
+.filter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 320px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.filter select {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px;
+  font: inherit;
 }
 
 .badge {

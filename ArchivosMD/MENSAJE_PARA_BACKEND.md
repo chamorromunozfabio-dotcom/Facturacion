@@ -161,3 +161,44 @@ Apliqué todo de tu lado:
 - La matriz por rol quedó **solo como respaldo** para sesiones antiguas y las cuentas demo de mocks.
 
 Agregué el Test 41 para cubrir este alineamiento; todo en verde. Si el nombre de algún permiso cambia en el futuro, avisen y lo ajustamos.
+
+---
+
+## Pedido (19-11-2026) — tipos de producto por bodega
+
+Hola equipo 👋
+
+Queremos que **cada bodega tenga su propio catálogo de tipos**. Hoy `POST /tipos` crea un tipo global: si lo crea el bodeguero 1, le aparece también al bodeguero 2. Necesitamos que quede asociado a una bodega.
+
+### Contrato que necesitamos
+
+**1. `TipoOut` debe incluir `bodega_id` y, si es posible, `bodega_nombre`.**
+
+**2. `POST /tipos` — asignación automática por usuario (lo que elegimos):**
+- Si quien crea es **bodeguero**: el backend asigna el tipo a **su bodega** (la que tenga `bodeguero_id` = id del usuario), sin importar lo que venga en el body. Si no tiene bodega asignada, devolver un `400` claro.
+- Si quien crea es **admin**: el front envía `bodega_id` en el body y el backend lo respeta (lo validamos nosotros en el formulario).
+- La **unicidad del nombre debe ser por bodega**, no global: "Arroz" puede existir en la bodega 1 y en la bodega 2 sin conflicto, pero no dos veces en la misma bodega.
+
+**3. `GET /tipos?bodega_id=X` — nuevo filtro opcional:**
+- **Bodeguero:** siempre ve solo los tipos de su bodega (por seguridad, ignora o valida el parámetro).
+- **Admin:** si envían `bodega_id`, devuelve solo esos tipos; si no lo envían, mantiene el comportamiento actual de devolver todos (así no rompemos nada).
+
+**4. `PUT /tipos/{id}` y `DELETE /tipos/{id}`:**
+- El bodeguero solo puede editar/borrar tipos de **su** bodega; si intenta con otro, `403`.
+- El admin puede editarlos todos. Si se permite cambiar `bodega_id` en el PUT, mejor; si no, también lo adaptamos.
+
+### De nuestro lado (front)
+Ya preparamos el `bodega_id` en el envío y el filtro en la pantalla de Tipos, además de reemplazar el desplegable de tipos en Facturas por un **buscador** (así no se hace enorme con muchos productos).
+
+Pusimos un **fallback**: si el backend todavía no devuelve `bodega_id`, el front sigue mostrando todos los tipos como hoy. O sea que nuestro cambio no rompe nada mientras publican esto. Cuando esté listo, avisen y lo verificamos en vivo con el admin y el bodeguero de prueba. Gracias 🚀
+
+### Respuesta recibida (19-11-2026) — `RESPUESTA_TIPOS_POR_BODEGA.md` ✅ adoptado
+
+Gracias, quedó claro y ya adaptamos el front:
+
+- **Tipos generales (`bodega_id: null`)**: el admin puede crearlos desde un option “Tipo general (sin bodega)”, verlos con “Todas las bodegas” y devolver un tipo a general en una edición (`bodega_id: null`). En el formulario de factura se muestran junto a los tipos de la bodega elegida, porque el backend los acepta.
+- **Bodeguero**: el selector de bodega aparece solo cuando tiene más de una; con una sola se asigna automáticamente. Verificamos en vivo que con bodega ajena recibe `total: 0` y no un error.
+- **Solo activos**: el catálogo de facturas ahora pide `GET /tipos?estado=true`.
+- **Verificación en vivo**: creé un tipo temporal en la bodega del bodeguero de prueba → `201` con `bodega_id`/`bodega_nombre`; lo vio el admin filtrando y el propio bodeguero; una bodega ajena devolvió `total: 0`; lo borré (`204`). No quedaron datos.
+
+Todo en verde: 44 archivos / 234 pruebas y build correcto. Si el catálogo de facturas debe mostrar también tipos inactivos en algún caso, avisen y lo ajustamos.

@@ -125,9 +125,9 @@ const clienteJuan = {
 
 const rowsByResource = {
   tipos: [
-    { id: 1, nombre: 'Alimentos' },
-    { id: 2, nombre: 'Bebidas' },
-    { id: 3, nombre: 'Limpieza' },
+    { id: 1, nombre: 'Alimentos', bodega_id: 1, bodega_nombre: 'Bodega Central' },
+    { id: 2, nombre: 'Bebidas', bodega_id: 1, bodega_nombre: 'Bodega Central' },
+    { id: 3, nombre: 'Limpieza', bodega_id: 2, bodega_nombre: 'Bodega Norte' },
   ],
   bodegas: [
     {
@@ -249,6 +249,13 @@ export async function mockList(resource, params = {}) {
           : JSON.stringify(row).toLowerCase().includes(q),
       )
     : all
+
+  // Cada bodega tiene su propio catálogo de tipos.
+  if (params.bodega_id) {
+    filtered = filtered.filter(
+      (row) => row.bodega_id === undefined || String(row.bodega_id) === String(params.bodega_id),
+    )
+  }
 
   // El backend fuerza rol=cliente para bodeguero y permite cualquier rol al admin.
   if (params.rol) {

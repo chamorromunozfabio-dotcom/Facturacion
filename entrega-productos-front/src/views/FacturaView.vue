@@ -242,7 +242,7 @@ async function loadCatalogos() {
   const [clientes, bodegas, tipos] = await Promise.all([
     facturasApi.listClientes({ page: 1, limit: 100 }),
     bodegasApi.list({ page: 1, limit: 100 }),
-    tiposApi.list({ page: 1, limit: 100 }),
+    tiposApi.list({ page: 1, limit: 100, estado: true }),
   ])
   catalogos.value = {
     clientes: clientes.data ?? [],

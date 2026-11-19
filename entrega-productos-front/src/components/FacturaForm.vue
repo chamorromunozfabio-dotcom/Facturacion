@@ -1,6 +1,7 @@
 <script setup>
 import { computed, reactive, watch } from 'vue'
 import { useModalA11y } from '../composables/useModalA11y'
+import TipoSearch from './TipoSearch.vue'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -78,7 +79,27 @@ watch(
   },
 )
 
-const tieneTipo = computed(() => props.tipos.length > 0)
+// Cada bodega tiene su propio catálogo. El backend también permite usar tipos
+// "generales" (sin bodega), así que los mostramos junto a los de la bodega.
+// Si el backend todavía no devuelve bodega_id, mostramos todos como antes.
+const tiposDisponibles = computed(() => {
+  const todos = props.tipos ?? []
+  if (!todos.length) return []
+  const conBodega = todos.filter(
+    (tipo) => tipo.bodega_id !== undefined && tipo.bodega_id !== null,
+  )
+  if (!conBodega.length) return todos
+  const generales = todos.filter(
+    (tipo) => tipo.bodega_id === undefined || tipo.bodega_id === null,
+  )
+  if (!form.bodega_id) return generales
+  return [
+    ...generales,
+    ...conBodega.filter((tipo) => String(tipo.bodega_id) === String(form.bodega_id)),
+  ]
+})
+
+const tieneTipo = computed(() => tiposDisponibles.value.length > 0)
 const esCredito = computed(() => form.forma_pago === 'credito')
 
 function addLinea() {
@@ -89,13 +110,26 @@ function removeLinea(index) {
   form.detalle.splice(index, 1)
 }
 
-function onTipoChange(linea, value, index) {
-  linea.tipo_id = value
-  const tipo = props.tipos.find((item) => String(item.id) === String(value))
+function onTipoChange(linea, tipo, index) {
+  linea.tipo_id = tipo?.id ?? ''
   if (tipo) linea.descripcion = tipo.nombre
   marcaLinea(index, 'tipo')
   if (tipo) marcaLinea(index, 'descripcion')
 }
+
+// Si cambian la bodega, un tipo de otra bodega ya no es válido en la factura.
+watch(
+  () => form.bodega_id,
+  () => {
+    const permitidos = new Set(tiposDisponibles.value.map((tipo) => String(tipo.id)))
+    form.detalle.forEach((linea, index) => {
+      if (linea.tipo_id && !permitidos.has(String(linea.tipo_id))) {
+        linea.tipo_id = ''
+        marcaLinea(index, 'tipo')
+      }
+    })
+  },
+)
 
 const MENSAJES = {
   cliente_id: 'Elige el cliente.',
@@ -461,21 +495,22 @@ function handleSubmit() {
               </button>
             </div>
 
-            <p v-if="!tieneTipo" class="hint">Cargando tipos…</p>
+            <p v-if="!tieneTipo" class="hint">
+              {{ form.bodega_id ? 'Cargando tipos de la bodega…' : 'Elige una bodega para ver sus tipos.' }}
+            </p>
             <p v-if="errores.detalle" data-test="error-detalle" class="campo-error">{{ errores.detalle }}</p>
             <p v-if="errores.general" data-test="error-general" class="campo-error">{{ errores.general }}</p>
 
             <div v-for="(linea, index) in form.detalle" :key="index" class="linea" data-test="linea">
               <label class="linea__tipo">
                 Tipo *
-                <select
-                  :value="linea.tipo_id"
+                <TipoSearch
+                  :tipos="tiposDisponibles"
+                  :model-value="linea.tipo_id"
                   :data-test="`linea-tipo_id-${index}`"
-                  @change="onTipoChange(linea, $event.target.value, index)"
-                >
-                  <option value="">Selecciona el tipo…</option>
-                  <option v-for="tipo in tipos" :key="tipo.id" :value="tipo.id">{{ tipo.nombre }}</option>
-                </select>
+                  @update:model-value="linea.tipo_id = $event"
+                  @select="onTipoChange(linea, $event, index)"
+                />
                 <small v-if="errores[`linea_${index}_tipo`]" :data-test="`error-linea-${index}-tipo`" class="campo-error">{{ errores[`linea_${index}_tipo`] }}</small>
               </label>
 
