@@ -21,7 +21,6 @@ vi.mock('../src/api/permisos', () => ({ default: permisos }))
 
 import { resolveApiModes } from '../src/config/apiModes'
 import RolesView from '../src/views/RolesView.vue'
-import PermisosView from '../src/views/PermisosView.vue'
 import { useAuthStore } from '../src/stores/auth'
 
 describe('Test 32 — Módulos conectados a la API real', () => {
@@ -81,30 +80,5 @@ describe('Test 32 — Módulos conectados a la API real', () => {
     expect(wrapper.text()).toContain('Rol creado.')
   })
 
-  it('Permisos lista y crea usando su API', async () => {
-    permisos.create.mockResolvedValue({
-      id: 2,
-      nombre: 'editar_factura',
-      descripcion: 'Edita facturas',
-      estado: true,
-    })
-
-    const wrapper = mount(PermisosView)
-    await flushPromises()
-
-    expect(permisos.list).toHaveBeenCalledWith({ q: '', page: 1, limit: 10 })
-    expect(wrapper.text()).toContain('crear_factura')
-
-    await wrapper.find('[data-test="create"]').trigger('click')
-    await wrapper.find('[data-test="field-nombre"]').setValue('editar_factura')
-    await wrapper.find('[data-test="field-descripcion"]').setValue('Edita facturas')
-    await wrapper.find('form').trigger('submit')
-    await flushPromises()
-
-    expect(permisos.create).toHaveBeenCalledWith({
-      nombre: 'editar_factura',
-      descripcion: 'Edita facturas',
-    })
-    expect(wrapper.text()).toContain('Permiso creado.')
-  })
+  // La pantalla de Permisos ya no crea permissions: se encarga el Test 40.
 })

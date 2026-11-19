@@ -47,18 +47,19 @@ npm run test:watch
 | 29 | Accesibilidad: Escape, foco y aria-label | ✅ PASÓ | [accessibility.test.js](accessibility.test.js) |
 | 30 | Cuentas demo por rol y atajos en el login | ✅ PASÓ | [mock-accounts.test.js](mock-accounts.test.js) |
 | 31 | Mensajes claros: validación, botones y títulos | ✅ PASÓ | [ux-messages.test.js](ux-messages.test.js) |
-| 32 | Modo híbrido y CRUD reales de Roles/Permisos | ✅ PASÓ | [real-api-modules.test.js](real-api-modules.test.js) |
+| 32 | Modo híbrido y CRUD real de Roles | ✅ PASÓ | [real-api-modules.test.js](real-api-modules.test.js) |
 | 33 | Contrato definitivo: estados, FE-0001 y campos renombrados | ✅ PASÓ | [contrato-definitivo.test.js](contrato-definitivo.test.js) |
 | 34 | Permisos reales del bodeguero: CRUD de Tipos y facturas de su bodega | ✅ PASÓ | [permisos-bodeguero.test.js](permisos-bodeguero.test.js) |
 | 35 | Contrato v2: bodegas propias, sin Usuarios y selector `/facturas/clientes` | ✅ PASÓ | [contrato-v2.test.js](contrato-v2.test.js) |
-| 36 | Permisos por usuario: `PUT /usuarios/{id}/permisos`, checks y sesión | ✅ PASÓ | [permisos-asignacion.test.js](permisos-asignacion.test.js) |
+| 36 | Permisos por usuario: dar/quitar con POST/DELETE y sesión | ✅ PASÓ | [permisos-asignacion.test.js](permisos-asignacion.test.js) |
 | 37 | Facturas: mensajes descriptivos por dato y alerta sobre el modal | ✅ PASÓ | [facturas-mensajes-descriptivos.test.js](facturas-mensajes-descriptivos.test.js) |
 | 38 | Errores 422 del backend traducidos a mensajes junto al campo | ✅ PASÓ | [facturas-errores-backend.test.js](facturas-errores-backend.test.js) |
-| 39 | Bodegas con 11 datos obligatorios y avisos cortos por campo | ⏳ Por ejecutar | [bodegas-obligatorias.test.js](bodegas-obligatorias.test.js) |
+| 39 | Bodegas con 11 datos obligatorios y avisos cortos por campo | ✅ PASÓ | [bodegas-obligatorias.test.js](bodegas-obligatorias.test.js) |
+| 40 | Permisos funcionales por usuario desde desplegable fijo (sin alta) | ⏳ Por ejecutar | [permisos-desplegable.test.js](permisos-desplegable.test.js) |
 
 ---
 
-**39 archivos de test, 194 pruebas.** Ejecutar todo con `npm test`.
+**40 archivos de test, 201 pruebas.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >

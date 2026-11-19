@@ -1,7 +1,7 @@
 # Mensaje para el backend — contrato v2 aplicado
 
 > Listo para copiar y pegar. Fecha: 18-11-2026 (actualizado).
-> Estado del frontend: **39 archivos de test / 194 pruebas en verde y build correcto.**
+> Estado del frontend: **40 archivos de test / 201 pruebas en verde y build correcto.**
 
 ---
 
@@ -13,7 +13,7 @@
 2. **Selector de clientes.** `FacturaForm` ya no usa `/usuarios?rol=cliente`; usa tu endpoint nuevo `GET /facturas/clientes` (verifiqué 200 para admin/bodeguero y 403 para cliente).
 3. **Bodegas con dueño.** Agregué `bodeguero_nombre` como columna para el admin y un selector “Bodeguero dueño” con `GET /usuarios?rol=bodeguero`. El valor se envía como número. El bodeguero no ve ese campo: al crear, el backend lo asigna solo.
 4. **Permisos de bodegas.** El bodeguero ya tiene Crear/Editar/Eliminar (sus bodegas). El admin ve y edita todas.
-5. **Pantalla de Permisos del admin.** Ya no es solo un CRUD suelto: el admin elige un usuario (o un rol), marca/desmarca permisos y guarda con `PUT /roles/{id}/permisos` (`permisos_ids` completo, `[]` para quitar todos). La pantalla muestra a qué usuarios afecta porque el backend guarda permisos por **rol**, no por usuario.
+5. **Pantalla de Permisos del admin.** Ya no es solo un CRUD suelto: el admin elige un **usuario**, ve sus permisos y los da o quita con `POST/DELETE /usuarios/{id}/permisos/{permiso_id}`. El rol aparece solo como referencia; los accesos se guardan por usuario (ver sección del 19-11 al final).
 6. **Documentación y tests.** Actualicé README, checklist, integración y contrato interno. Agregué los Tests 35 y 36; todo en verde.
 
 ## ✅ Lo que verifiqué de tu parte
@@ -116,3 +116,34 @@ Gracias por `CAMBIO_BODEGAS_OBLIGATORIAS.md`. Confirmado:
 - Ya no filtramos campos vacíos: si el usuario borra un dato, el front lo detecta y muestra un aviso corto junto al campo (por ejemplo `Escribe teléfono.`), antes de llamar al backend.
 - Aceptamos el mensaje nuevo **`no puede estar vacío`** en toda la API. Lo dejamos tal cual en la alerta; no necesitamos que lo cambien.
 - Aprovechamos para unificar la validación: avisos cortos por campo en **facturas y bodegas**, sin resumen inferior, y el aviso se corrige en cuanto el usuario escribe un valor válido.
+
+---
+
+## 🔑 Catálogo fijo de permisos funcionales (19-11-2026)
+
+Hola, ajustamos la pantalla de Permisos según lo que pidió el equipo: el admin **ya no crea ni nombra permisos**. Ahora elige una funcionalidad de un desplegable fijo (módulo + acción) y con un botón se la da o se la quita a **un usuario**:
+
+- `GET /usuarios/{id}/permisos` → permisos que ya tiene.
+- `POST /usuarios/{id}/permisos/{permiso_id}` → dar permiso.
+- `DELETE /usuarios/{id}/permisos/{permiso_id}` → quitar permiso.
+
+El catálogo y la plantilla de referencia por rol están fijos en el front (`src/config/permissions.js`). Para poder guardar necesitamos que `GET /permisos` publique estos `nombre` (uno por módulo + acción):
+
+```
+facturas_view, facturas_create, facturas_edit, facturas_delete,
+facturas_entregar, facturas_recibir, facturas_aceptar, facturas_rechazar, facturas_pdf
+bodegas_view, bodegas_create, bodegas_edit, bodegas_delete
+usuarios_view, usuarios_create, usuarios_edit, usuarios_delete
+tipos_view, tipos_create, tipos_edit, tipos_delete
+roles_view, roles_create, roles_edit, roles_delete
+permisos_view, permisos_create, permisos_edit, permisos_delete
+```
+
+Hoy en vivo solo existe `ususarios` (id 6). Lo seguimos reconociendo como `usuarios_view` para no perder ese acceso ya guardado, pero las otras 28 funciones aparecen deshabilitadas en el desplegable hasta que las publiquen. **No necesitamos ids concretos**: resolvemos el id por `nombre` al cargar `/permisos`.
+
+Dos preguntas:
+
+1. ¿Pueden sembrar esos 29 nombres en `/permisos`? Si prefieren otros nombres, nos pasan el listado y lo adaptamos del lado del front.
+2. Los guards de los endpoints hoy siguen siendo por rol. Hasta que pasen a usar los permisos del usuario, dar o quitar un permiso cambia los datos pero **no cambia el acceso real**. ¿Lo van a migrar?
+
+No tocamos CORS ni el proxy `/api`.

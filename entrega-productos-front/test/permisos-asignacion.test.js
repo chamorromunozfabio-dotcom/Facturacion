@@ -36,16 +36,35 @@ vi.mock('../src/config/apiModes', () => ({
 import api from '../src/api/axios'
 import { visibleMenuFor } from '../src/config/navigation'
 import router from '../src/router'
+import { CATALOGO_PERMISOS } from '../src/config/permissions'
 import PermisosView from '../src/views/PermisosView.vue'
 import { useAuthStore } from '../src/stores/auth'
 
+/** El backend publica el catálogo fijo con estos ids. */
+const catalogoBackend = () =>
+  CATALOGO_PERMISOS.map((permiso, index) => ({
+    id: index + 1,
+    nombre: permiso.nombre,
+    descripcion: permiso.etiqueta,
+    estado: true,
+  }))
+
+const nombrePorId = (id) => CATALOGO_PERMISOS[Number(id) - 1]?.nombre
+
 describe('Test 36 — Permisos por usuario (contrato publicado por el backend)', () => {
+  let permisosPorUsuario
+
   beforeEach(() => {
     localStorage.clear()
     setActivePinia(createPinia())
     vi.clearAllMocks()
     useAuthStore().saveSession('token-123', { id: 1, nombre: 'Ana', rol: 'admin' })
 
+    permisosPorUsuario = new Map([
+      [1, [{ id: 1, nombre: 'facturas_view' }]],
+      [2, []],
+      [5, []],
+    ])
     usuarios.list.mockResolvedValue({
       data: [
         { id: 1, nombre: 'Ana', correo: 'admin@entrega.com', rol: 'admin', rol_id: 1, permisos: [] },
@@ -57,22 +76,27 @@ describe('Test 36 — Permisos por usuario (contrato publicado por el backend)',
       limit: 100,
     })
     usuarios.listPermisos.mockImplementation(async (id) => ({
-      data: Number(id) === 1 ? [{ id: 1, nombre: 'crear_factura' }] : [],
+      data: permisosPorUsuario.get(Number(id)) ?? [],
     }))
-    usuarios.setPermisos.mockResolvedValue({
-      id: 1,
-      nombre: 'Ana',
-      permisos: [
-        { id: 1, nombre: 'crear_factura' },
-        { id: 2, nombre: 'editar_factura' },
-      ],
+    usuarios.addPermiso.mockImplementation(async (id, permisoId) => {
+      const lista = permisosPorUsuario.get(Number(id)) ?? []
+      const nombre = nombrePorId(permisoId)
+      if (!lista.some((permiso) => permiso.id === Number(permisoId))) {
+        lista.push({ id: Number(permisoId), nombre })
+      }
+      permisosPorUsuario.set(Number(id), lista)
+      return { id: Number(id), permisos: lista }
+    })
+    usuarios.removePermiso.mockImplementation(async (id, permisoId) => {
+      const lista = (permisosPorUsuario.get(Number(id)) ?? []).filter(
+        (permiso) => permiso.id !== Number(permisoId),
+      )
+      permisosPorUsuario.set(Number(id), lista)
+      return { id: Number(id), permisos: lista }
     })
     permisos.list.mockResolvedValue({
-      data: [
-        { id: 1, nombre: 'crear_factura', descripcion: 'Crea facturas', estado: true },
-        { id: 2, nombre: 'editar_factura', descripcion: 'Edita facturas', estado: true },
-      ],
-      total: 2,
+      data: catalogoBackend(),
+      total: CATALOGO_PERMISOS.length,
       page: 1,
       limit: 100,
     })
@@ -94,9 +118,9 @@ describe('Test 36 — Permisos por usuario (contrato publicado por el backend)',
 
     expect(usuarios.list).toHaveBeenCalledWith({ page: 1, limit: 100 })
     expect(usuarios.listPermisos).toHaveBeenCalledWith(1)
-    expect(wrapper.find('[data-test="permiso-check-1"]').element.checked).toBe(true)
-    expect(wrapper.find('[data-test="permiso-check-2"]').element.checked).toBe(false)
     expect(wrapper.find('[data-test="assignment-affected"]').text()).toContain('Ana')
+    expect(wrapper.find('[data-test="permisos-actuales"]').text()).toContain('Facturación — Ver')
+    expect(wrapper.find('[data-test="opcion-facturas:view"]').text()).toContain('ya lo tiene')
   })
 
   it('al elegir otro usuario carga SUS permisos, no los del anterior', async () => {
@@ -108,31 +132,54 @@ describe('Test 36 — Permisos por usuario (contrato publicado por el backend)',
 
     expect(usuarios.listPermisos).toHaveBeenCalledWith(5)
     expect(wrapper.find('[data-test="assignment-affected"]').text()).toContain('Juan')
-    expect(wrapper.find('[data-test="permiso-check-1"]').element.checked).toBe(false)
+    expect(wrapper.find('[data-test="opcion-facturas:view"]').text()).not.toContain('ya lo tiene')
+    expect(wrapper.find('[data-test="permisos-actuales"]').text()).toContain(
+      'todavía no tiene permisos',
+    )
   })
 
-  it('marcar un permiso y guardar usa PUT /usuarios/{id}/permisos con la lista completa', async () => {
+  it('dar un permiso usa POST /usuarios/{id}/permisos/{permiso_id}', async () => {
     const wrapper = mount(PermisosView)
     await flushPromises()
 
-    await wrapper.find('[data-test="permiso-check-2"]').setValue(true)
-    await wrapper.find('[data-test="save-permisos"]').trigger('click')
+    await wrapper.find('[data-test="permiso-select"]').setValue('facturas:create')
+    expect(wrapper.find('[data-test="toggle-permiso"]').text()).toContain('Dar permiso')
+
+    await wrapper.find('[data-test="toggle-permiso"]').trigger('click')
     await flushPromises()
 
-    expect(usuarios.setPermisos).toHaveBeenCalledWith(1, [1, 2])
-    expect(wrapper.text()).toContain('Permisos de "Ana" actualizados.')
-    expect(wrapper.find('[data-test="save-permisos"]').attributes('disabled')).toBeDefined()
+    expect(usuarios.addPermiso).toHaveBeenCalledWith(1, 2)
+    expect(usuarios.removePermiso).not.toHaveBeenCalled()
+    expect(wrapper.text()).toContain('Permiso "Facturación — Crear" dado a "Ana".')
+    expect(wrapper.find('[data-test="permisos-actuales"]').text()).toContain('Facturación — Crear')
   })
 
-  it('desmarcar todos envía permisos_ids vacío para quitar los accesos', async () => {
+  it('quitar un permiso usa DELETE /usuarios/{id}/permisos/{permiso_id}', async () => {
     const wrapper = mount(PermisosView)
     await flushPromises()
 
-    await wrapper.find('[data-test="permiso-check-1"]').setValue(false)
-    await wrapper.find('[data-test="save-permisos"]').trigger('click')
+    await wrapper.find('[data-test="permiso-select"]').setValue('facturas:view')
+    expect(wrapper.find('[data-test="toggle-permiso"]').text()).toContain('Quitar permiso')
+
+    await wrapper.find('[data-test="toggle-permiso"]').trigger('click')
     await flushPromises()
 
-    expect(usuarios.setPermisos).toHaveBeenCalledWith(1, [])
+    expect(usuarios.removePermiso).toHaveBeenCalledWith(1, 1)
+    expect(usuarios.addPermiso).not.toHaveBeenCalled()
+    expect(wrapper.text()).toContain('Permiso "Facturación — Ver" quitado a "Ana".')
+  })
+
+  it('el botón Quitar de la lista saca solo ese permiso del usuario', async () => {
+    const wrapper = mount(PermisosView)
+    await flushPromises()
+
+    await wrapper.find('[data-test="quitar-facturas:view"]').trigger('click')
+    await flushPromises()
+
+    expect(usuarios.removePermiso).toHaveBeenCalledWith(1, 1)
+    expect(wrapper.find('[data-test="permisos-actuales"]').text()).toContain(
+      'todavía no tiene permisos',
+    )
   })
 
   it('el cliente de la API usa los endpoints reales de permisos por usuario', async () => {
