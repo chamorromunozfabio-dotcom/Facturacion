@@ -59,33 +59,51 @@ describe('Test 14 — BodegasView (CRUD con componentes)', () => {
     expect(wrapper.find('h2').text()).toBe('Nueva bodega')
   })
 
-  it('crea una bodega con dirección opcional', async () => {
+  const completa = {
+    nombre: 'Bodega Norte',
+    codigo: 'BN-01',
+    direccion: 'Av. Sur 45',
+    ciudad: 'Cali',
+    departamento: 'Valle',
+    telefono: '3001234567',
+    correo: 'norte@entrega.com',
+    recibe_nombre: 'Carlos Pérez',
+    recibe_documento: '1020304051',
+    recibe_cargo: 'Jefe de bodega',
+    recibe_telefono: '3109876544',
+  }
+
+  async function llenarTodo(wrapper, valores = completa) {
+    await wrapper.find('[data-test="create"]').trigger('click')
+    for (const [key, value] of Object.entries(valores)) {
+      await wrapper.find(`[data-test="field-${key}"]`).setValue(value)
+    }
+  }
+
+  it('crea una bodega con dirección', async () => {
     const wrapper = mount(BodegasView)
     await flushPromises()
+    await llenarTodo(wrapper)
 
-    await wrapper.find('[data-test="create"]').trigger('click')
-    await wrapper.find('[data-test="field-nombre"]').setValue('Bodega Norte')
-    await wrapper.find('[data-test="field-direccion"]').setValue('Av. Sur 45')
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
-    expect(api.create).toHaveBeenCalledWith({
-      nombre: 'Bodega Norte',
-      direccion: 'Av. Sur 45',
-    })
+    expect(api.create).toHaveBeenCalledWith(completa)
     expect(wrapper.text()).toContain('Bodega creada.')
   })
 
-  it('permite crear sin dirección', async () => {
+  it('no permite crear sin dirección', async () => {
     const wrapper = mount(BodegasView)
     await flushPromises()
+    const incompleta = { ...completa }
+    delete incompleta.direccion
+    await llenarTodo(wrapper, incompleta)
 
-    await wrapper.find('[data-test="create"]').trigger('click')
-    await wrapper.find('[data-test="field-nombre"]').setValue('Bodega Norte')
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
-    expect(api.create).toHaveBeenCalledWith({ nombre: 'Bodega Norte' })
+    expect(wrapper.find('[data-test="error-direccion"]').text()).toBe('Escribe dirección.')
+    expect(api.create).not.toHaveBeenCalled()
   })
 
   it('pide confirmación antes de eliminar', async () => {

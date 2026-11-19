@@ -82,18 +82,14 @@ describe('Test 38 — Errores 422 del backend en el formulario', () => {
   it('convierte las claves del backend en mensajes amigables junto al campo', () => {
     const wrapper = mountForm(error422.response.data.errores)
 
-    expect(wrapper.find('[data-test="error-cliente_id"]').text()).toBe(
-      'Revisa el cliente: es obligatorio.',
-    )
+    expect(wrapper.find('[data-test="error-cliente_id"]').text()).toBe('Elige el cliente.')
     expect(wrapper.find('[data-test="error-linea-0-descripcion"]').text()).toBe(
-      'Revisa la descripción del producto de la línea 1: es obligatorio.',
+      'Escribe la descripción.',
     )
     expect(wrapper.find('[data-test="error-linea-0-cantidad"]').text()).toBe(
-      'Revisa la cantidad de la línea 1: debe ser mayor que 0.',
+      'Escribe la cantidad.',
     )
-    expect(wrapper.find('[data-test="form-error"]').text()).toContain(
-      'Revisa el cuerpo de la factura: El cuerpo de la petición no es un JSON válido.',
-    )
+    expect(wrapper.find('[data-test="error-general"]').text()).toBe('Revisa la factura.')
   })
 
   it('mantiene el modal abierto y pinta los errores si el backend rechaza el guardado', async () => {
@@ -115,9 +111,7 @@ describe('Test 38 — Errores 422 del backend en el formulario', () => {
 
     expect(api.create).toHaveBeenCalledTimes(1)
     expect(wrapper.find('[data-test="factura-form"]').exists()).toBe(true)
-    expect(wrapper.find('[data-test="error-cliente_id"]').text()).toBe(
-      'Revisa el cliente: es obligatorio.',
-    )
+    expect(wrapper.find('[data-test="error-cliente_id"]').text()).toBe('Elige el cliente.')
     expect(wrapper.find('[data-test="alert-flotante"] [role="alert"]').text()).toContain(
       'cliente_id: es obligatorio',
     )

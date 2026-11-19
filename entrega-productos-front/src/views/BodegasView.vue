@@ -29,20 +29,31 @@ const columns = computed(() => [
 const phonePattern = /^[0-9+\- ]{7,20}$/
 const phoneMessage = 'Usa entre 7 y 20 caracteres: dígitos, espacios, + o -.'
 
+// El backend exige los 11 datos. `codigo`, `recibe_documento` y `recibe_cargo`
+// tenían un largo distinto en el front; aquí van con el nuevo límite.
 const fields = [
   { key: 'nombre', label: 'Nombre', required: true, maxLength: 100 },
-  { key: 'codigo', label: 'Código', maxLength: 50 },
-  { key: 'direccion', label: 'Dirección' },
-  { key: 'ciudad', label: 'Ciudad' },
-  { key: 'departamento', label: 'Departamento' },
-  { key: 'telefono', label: 'Teléfono', pattern: phonePattern, message: phoneMessage },
-  { key: 'correo', label: 'Correo de la bodega', type: 'email' },
-  { key: 'recibe_nombre', label: 'Nombre de quien recibe' },
-  { key: 'recibe_documento', label: 'Documento de quien recibe', maxLength: 20 },
-  { key: 'recibe_cargo', label: 'Cargo de quien recibe', maxLength: 50 },
+  { key: 'codigo', label: 'Código', required: true, maxLength: 30 },
+  { key: 'direccion', label: 'Dirección', required: true, maxLength: 200 },
+  { key: 'ciudad', label: 'Ciudad', required: true, maxLength: 100 },
+  { key: 'departamento', label: 'Departamento', required: true, maxLength: 100 },
+  {
+    key: 'telefono',
+    label: 'Teléfono',
+    required: true,
+    maxLength: 30,
+    pattern: phonePattern,
+    message: phoneMessage,
+  },
+  { key: 'correo', label: 'Correo de la bodega', required: true, type: 'email', maxLength: 100 },
+  { key: 'recibe_nombre', label: 'Nombre de quien recibe', required: true, maxLength: 100 },
+  { key: 'recibe_documento', label: 'Documento de quien recibe', required: true, maxLength: 30 },
+  { key: 'recibe_cargo', label: 'Cargo de quien recibe', required: true, maxLength: 100 },
   {
     key: 'recibe_telefono',
     label: 'Teléfono de quien recibe',
+    required: true,
+    maxLength: 30,
     pattern: phonePattern,
     message: phoneMessage,
   },
@@ -139,11 +150,14 @@ function openEdit(row) {
   modalOpen.value = true
 }
 
-// Los campos opcionales vacíos no se envían (evita 422 por cadena vacía).
+// Todos los datos son obligatorios: no filtramos vacíos para que el usuario
+// vea el aviso en el campo en vez de un error raro del backend.
 function cleanPayload(payload) {
-  return Object.fromEntries(
-    Object.entries(payload).filter(([, value]) => value !== '' && value !== null),
+  const limpio = Object.fromEntries(
+    Object.entries(payload).filter(([key]) => key !== 'bodeguero_id'),
   )
+  if (typeof limpio.codigo === 'string') limpio.codigo = limpio.codigo.trim().toUpperCase()
+  return limpio
 }
 
 // El PUT acepta campos parciales: enviamos solo lo que cambió.

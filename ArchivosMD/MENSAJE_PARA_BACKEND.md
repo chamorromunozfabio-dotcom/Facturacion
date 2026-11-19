@@ -1,7 +1,7 @@
 # Mensaje para el backend — contrato v2 aplicado
 
 > Listo para copiar y pegar. Fecha: 18-11-2026 (actualizado).
-> Estado del frontend: **38 archivos de test / 187 pruebas en verde y build correcto.**
+> Estado del frontend: **39 archivos de test / 194 pruebas en verde y build correcto.**
 
 ---
 
@@ -107,3 +107,12 @@ Gracias por `RESPUESTA_FORMULARIO_FACTURAS.md`. Confirmado: dejamos `detail` com
 - `detalle[0].descripcion: es obligatorio` → `Revisa la descripción del producto de la línea 1: es obligatorio.`
 
 También respetamos que `bodega_id` debe ser una de las bodegas del bodeguero y que `unidad_medida` se guarda en MAYÚSCULAS. Sobre `fecha_vencimiento`: quedó **solo con `credito`**, como indican en su respuesta. Con `contado` el campo ni se muestra y enviamos `null`. Si antes quedó guardada en alguna factura de contado, el próximo `PUT` la limpiará.
+
+### Respuesta recibida (19-11-2026) — bodegas obligatorias ✅ adaptado
+
+Gracias por `CAMBIO_BODEGAS_OBLIGATORIAS.md`. Confirmado:
+
+- Los 11 datos de bodega ahora son obligatorios en el front, con los largos nuevos (`codigo` 30, `recibe_documento` 30, `recibe_cargo` 100). Enviamos `codigo` en MAYÚSCULAS.
+- Ya no filtramos campos vacíos: si el usuario borra un dato, el front lo detecta y muestra un aviso corto junto al campo (por ejemplo `Escribe teléfono.`), antes de llamar al backend.
+- Aceptamos el mensaje nuevo **`no puede estar vacío`** en toda la API. Lo dejamos tal cual en la alerta; no necesitamos que lo cambien.
+- Aprovechamos para unificar la validación: avisos cortos por campo en **facturas y bodegas**, sin resumen inferior, y el aviso se corrige en cuanto el usuario escribe un valor válido.

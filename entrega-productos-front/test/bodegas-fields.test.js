@@ -17,13 +17,36 @@ import { useAuthStore } from '../src/stores/auth'
 const row = {
   id: 1,
   nombre: 'Bodega Central',
+  codigo: 'BC-01',
   direccion: 'Calle Principal 123',
   ciudad: 'Bogotá',
+  departamento: 'Cundinamarca',
   telefono: '3001234567',
+  correo: 'bodega@entrega.com',
   recibe_nombre: 'María Rodríguez',
   recibe_documento: '1020304050',
+  recibe_cargo: 'Jefe de bodega',
   recibe_telefono: '3109876543',
-  correo: 'bodega@entrega.com',
+}
+
+const datos = {
+  nombre: 'Bodega Norte',
+  codigo: 'BN-01',
+  direccion: 'Carrera 10 20',
+  ciudad: 'Bogotá',
+  departamento: 'Cundinamarca',
+  telefono: '3001234567',
+  correo: 'norte@entrega.com',
+  recibe_nombre: 'Carlos Pérez',
+  recibe_documento: '1020304051',
+  recibe_cargo: 'Jefe de bodega',
+  recibe_telefono: '3109876544',
+}
+
+async function llenar(wrapper, valores = datos) {
+  for (const [key, value] of Object.entries(valores)) {
+    await wrapper.find(`[data-test="field-${key}"]`).setValue(value)
+  }
 }
 
 describe('Test 18 — Campos nuevos de Bodega', () => {
@@ -70,16 +93,15 @@ describe('Test 18 — Campos nuevos de Bodega', () => {
     }
   })
 
-  it('rechaza un teléfono con letras', async () => {
+  it('rechaza un teléfono con letras con un aviso junto al campo', async () => {
     const wrapper = mount(BodegasView)
     await flushPromises()
     await wrapper.find('[data-test="create"]').trigger('click')
 
-    await wrapper.find('[data-test="field-nombre"]').setValue('Bodega Norte')
-    await wrapper.find('[data-test="field-telefono"]').setValue('abc')
+    await llenar(wrapper, { ...datos, telefono: 'abc' })
     await wrapper.find('form').trigger('submit')
 
-    expect(wrapper.find('[data-test="error"]').text()).toBe(
+    expect(wrapper.find('[data-test="error-telefono"]').text()).toBe(
       'Usa entre 7 y 20 caracteres: dígitos, espacios, + o -.',
     )
     expect(api.create).not.toHaveBeenCalled()
@@ -90,46 +112,37 @@ describe('Test 18 — Campos nuevos de Bodega', () => {
     await flushPromises()
     await wrapper.find('[data-test="create"]').trigger('click')
 
-    await wrapper.find('[data-test="field-nombre"]').setValue('Bodega Norte')
-    await wrapper.find('[data-test="field-correo"]').setValue('no-es-correo')
+    await llenar(wrapper, { ...datos, correo: 'no-es-correo' })
     await wrapper.find('form').trigger('submit')
 
-    expect(wrapper.find('[data-test="error"]').text()).toBe(
-      'Correo de la bodega no tiene un formato válido.',
-    )
+    expect(wrapper.find('[data-test="error-correo"]').text()).toBe('Dato no válido.')
   })
 
-  it('limita el documento de quien recibe a 20 caracteres', async () => {
+  it('limita el documento de quien recibe a 30 caracteres', async () => {
     const wrapper = mount(BodegasView)
     await flushPromises()
     await wrapper.find('[data-test="create"]').trigger('click')
 
-    await wrapper.find('[data-test="field-nombre"]').setValue('Bodega Norte')
-    await wrapper
-      .find('[data-test="field-recibe_documento"]')
-      .setValue('123456789012345678901')
-    await wrapper.find('form').trigger('submit')
-
-    expect(wrapper.find('[data-test="error"]').text()).toBe(
-      'Documento de quien recibe no puede superar los 20 caracteres.',
-    )
-  })
-
-  it('acepta un teléfono válido y guarda los campos opcionales', async () => {
-    const wrapper = mount(BodegasView)
-    await flushPromises()
-    await wrapper.find('[data-test="create"]').trigger('click')
-
-    await wrapper.find('[data-test="field-nombre"]').setValue('Bodega Sur')
-    await wrapper.find('[data-test="field-ciudad"]').setValue('Cali')
-    await wrapper.find('[data-test="field-telefono"]').setValue('+57 300 123 4567')
-    await wrapper.find('form').trigger('submit')
-    await flushPromises()
-
-    expect(api.create).toHaveBeenCalledWith({
-      nombre: 'Bodega Sur',
-      ciudad: 'Cali',
-      telefono: '+57 300 123 4567',
+    await llenar(wrapper, {
+      ...datos,
+      recibe_documento: '1234567890123456789012345678901',
     })
+    await wrapper.find('form').trigger('submit')
+
+    expect(wrapper.find('[data-test="error-recibe_documento"]').text()).toBe(
+      'Máximo 30 caracteres.',
+    )
+  })
+
+  it('envía los 11 datos obligatorios', async () => {
+    const wrapper = mount(BodegasView)
+    await flushPromises()
+    await wrapper.find('[data-test="create"]').trigger('click')
+
+    await llenar(wrapper)
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(api.create).toHaveBeenCalledWith(datos)
   })
 })

@@ -60,53 +60,39 @@ async function completarFormulario(wrapper) {
 }
 
 describe('Test 37 — Facturas: mensajes descriptivos y alerta visible', () => {
-  it('dice exactamente qué dato falta en la cabecera', async () => {
+  it('muestra un aviso corto junto a cada dato que falta en la cabecera', async () => {
     const wrapper = mountForm()
 
     expect(wrapper.find('[data-test="field-fecha_vencimiento"]').exists()).toBe(false)
 
     await wrapper.find('form').trigger('submit')
 
-    expect(wrapper.find('[data-test="error-cliente_id"]').text()).toContain(
-      'Falta seleccionar el cliente: elige quién recibe la factura.',
-    )
-    expect(wrapper.find('[data-test="error-bodega_id"]').text()).toContain(
-      'Falta seleccionar la bodega: elige desde dónde se despacha.',
-    )
-    expect(wrapper.find('[data-test="error-forma_pago"]').text()).toContain(
-      'Falta seleccionar la forma de pago: elige contado o crédito.',
-    )
-    expect(wrapper.find('[data-test="error-medio_pago"]').text()).toContain(
-      'Falta seleccionar el medio de pago: elige efectivo, transferencia o tarjeta.',
-    )
-    expect(wrapper.find('[data-test="form-error"]').text()).toContain('Faltan 11 dato(s)')
+    expect(wrapper.find('[data-test="error-cliente_id"]').text()).toBe('Elige el cliente.')
+    expect(wrapper.find('[data-test="error-bodega_id"]').text()).toBe('Elige la bodega.')
+    expect(wrapper.find('[data-test="error-forma_pago"]').text()).toBe('Elige la forma de pago.')
+    expect(wrapper.find('[data-test="error-medio_pago"]').text()).toBe('Elige el medio de pago.')
+    expect(wrapper.find('[data-test="form-error"]').exists()).toBe(false)
   })
 
-  it('nombra el dato y la línea en cada campo del producto', async () => {
+  it('muestra un aviso corto en cada campo del producto', async () => {
     const wrapper = mountForm()
 
     await wrapper.find('form').trigger('submit')
 
     const mensajes = {
-      tipo: 'Falta el tipo de producto en la línea 1: selecciona un tipo de la lista.',
-      descripcion:
-        'Falta la descripción del producto en la línea 1: escribe qué producto se está entregando.',
-      unidad_medida:
-        'Falta la unidad de medida en la línea 1: escribe UND, KG, CAJA u otra unidad.',
-      cantidad:
-        'Falta la cantidad en la línea 1: escribe cuántas unidades se entregan (mayor que 0).',
-      precio_unitario:
-        'Falta el precio unitario en la línea 1: escribe el precio de una unidad sin IVA (puede ser 0).',
-      descuento_porcentaje:
-        'Falta el descuento porcentual en la línea 1: escribe 0 si no hay descuento.',
-      iva_porcentaje: 'Falta el IVA en la línea 1: selecciona 0, 5 o 19.',
+      tipo: 'Elige el tipo.',
+      descripcion: 'Escribe la descripción.',
+      unidad_medida: 'Escribe la unidad.',
+      cantidad: 'Escribe la cantidad.',
+      precio_unitario: 'Escribe el precio.',
+      descuento_porcentaje: 'Escribe el descuento.',
+      iva_porcentaje: 'Elige el IVA.',
     }
 
     for (const [campo, mensaje] of Object.entries(mensajes)) {
       const texto = wrapper.find(`[data-test="error-linea-0-${campo}"]`).text()
       expect(texto).toBe(mensaje)
-      expect(texto).toContain('en la línea 1')
-      expect(texto).not.toBe('Falta la línea 1')
+      expect(texto.length).toBeLessThan(30)
     }
   })
 
@@ -117,12 +103,20 @@ describe('Test 37 — Facturas: mensajes descriptivos y alerta visible', () => {
     await wrapper.find('[data-test="linea-precio_unitario-0"]').setValue('-5')
     await wrapper.find('form').trigger('submit')
 
-    expect(wrapper.find('[data-test="error-linea-0-cantidad"]').text()).toBe(
-      'La cantidad de la línea 1 debe ser mayor que 0: revisa el valor escrito.',
-    )
+    expect(wrapper.find('[data-test="error-linea-0-cantidad"]').text()).toBe('Cantidad mayor que 0.')
     expect(wrapper.find('[data-test="error-linea-0-precio_unitario"]').text()).toBe(
-      'El precio unitario de la línea 1 no puede ser negativo: revisa el valor escrito.',
+      'Precio mayor o igual que 0.',
     )
+  })
+
+  it('limpia el aviso en cuanto el campo se llena correctamente', async () => {
+    const wrapper = mountForm()
+
+    await wrapper.find('form').trigger('submit')
+    expect(wrapper.find('[data-test="error-cliente_id"]').exists()).toBe(true)
+
+    await wrapper.find('[data-test="field-cliente_id"]').setValue('3')
+    expect(wrapper.find('[data-test="error-cliente_id"]').exists()).toBe(false)
   })
 
   it('permite guardar con observaciones vacía porque es el único dato opcional', async () => {

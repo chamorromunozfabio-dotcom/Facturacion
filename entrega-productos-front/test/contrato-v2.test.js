@@ -108,11 +108,26 @@ describe('Test 35 — Contrato v2: bodegas propias y sin Usuarios', () => {
     expect(wrapper.find('[data-test="field-bodeguero_id"]').exists()).toBe(false)
     expect(usuarios.list).not.toHaveBeenCalled()
 
-    await wrapper.find('[data-test="field-nombre"]').setValue('Bodega Sur')
+    const datos = {
+      nombre: 'Bodega Sur',
+      codigo: 'SUR-01',
+      direccion: 'Calle 1 2 3',
+      ciudad: 'Bogotá',
+      departamento: 'Cundinamarca',
+      telefono: '3001234567',
+      correo: 'sur@entrega.com',
+      recibe_nombre: 'Ana Recibe',
+      recibe_documento: '1020304052',
+      recibe_cargo: 'Supervisora',
+      recibe_telefono: '3109876545',
+    }
+    for (const [key, value] of Object.entries(datos)) {
+      await wrapper.find(`[data-test="field-${key}"]`).setValue(value)
+    }
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
-    expect(bodegas.create).toHaveBeenCalledWith({ nombre: 'Bodega Sur' })
+    expect(bodegas.create).toHaveBeenCalledWith(datos)
   })
 
   it('el admin asigna dueño desde el listado de bodegueros', async () => {
@@ -125,12 +140,27 @@ describe('Test 35 — Contrato v2: bodegas propias y sin Usuarios', () => {
     expect(usuarios.list).toHaveBeenCalledWith({ rol: 'bodeguero', page: 1, limit: 100 })
     expect(wrapper.find('[data-test="field-bodeguero_id"]').exists()).toBe(true)
 
-    await wrapper.find('[data-test="field-nombre"]').setValue('Bodega Sur')
+    const datos = {
+      nombre: 'Bodega Sur',
+      codigo: 'SUR-01',
+      direccion: 'Calle 1 2 3',
+      ciudad: 'Bogotá',
+      departamento: 'Cundinamarca',
+      telefono: '3001234567',
+      correo: 'sur@entrega.com',
+      recibe_nombre: 'Ana Recibe',
+      recibe_documento: '1020304052',
+      recibe_cargo: 'Supervisora',
+      recibe_telefono: '3109876545',
+    }
+    for (const [key, value] of Object.entries(datos)) {
+      await wrapper.find(`[data-test="field-${key}"]`).setValue(value)
+    }
     await wrapper.find('[data-test="field-bodeguero_id"]').setValue('2')
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
-    expect(bodegas.create).toHaveBeenCalledWith({ nombre: 'Bodega Sur', bodeguero_id: 2 })
+    expect(bodegas.create).toHaveBeenCalledWith({ ...datos, bodeguero_id: 2 })
   })
 
   it('el selector de clientes de facturas usa /facturas/clientes', async () => {

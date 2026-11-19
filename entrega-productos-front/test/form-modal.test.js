@@ -43,13 +43,23 @@ describe('Test 10 — FormModal', () => {
     expect(wrapper.emitted('update:modelValue')[0][0]).toMatchObject({ nombre: 'Alimentos' })
   })
 
-  it('no envía si faltan campos obligatorios', async () => {
+  it('no envía y muestra un aviso corto por cada campo obligatorio', async () => {
     const wrapper = mountModal()
 
     await wrapper.find('form').trigger('submit')
 
-    expect(wrapper.find('[data-test="error"]').text()).toBe('Completa los campos obligatorios.')
+    expect(wrapper.find('[data-test="error-nombre"]').text()).toBe('Escribe nombre.')
     expect(wrapper.emitted('submit')).toBeUndefined()
+  })
+
+  it('quita el aviso en cuanto el campo se llena', async () => {
+    const wrapper = mountModal()
+
+    await wrapper.find('form').trigger('submit')
+    expect(wrapper.find('[data-test="error-nombre"]').exists()).toBe(true)
+
+    await wrapper.find('[data-test="field-nombre"]').setValue('Alimentos')
+    expect(wrapper.find('[data-test="error-nombre"]').exists()).toBe(false)
   })
 
   it('emite submit con los valores cargados', async () => {

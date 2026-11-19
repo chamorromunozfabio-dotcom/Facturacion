@@ -80,9 +80,10 @@ describe('Test 23 — FacturaForm (líneas y validaciones)', () => {
     expect(wrapper.find('[data-test="field-fecha_vencimiento"]').exists()).toBe(true)
 
     await wrapper.find('form').trigger('submit')
-    expect(wrapper.find('[data-test="form-error"]').text()).toContain(
-      'Falta la fecha de vencimiento: escribe la fecha límite de pago (AAAA-MM-DD).',
+    expect(wrapper.find('[data-test="error-fecha_vencimiento"]').text()).toBe(
+      'Escribe la fecha límite.',
     )
+    expect(wrapper.find('[data-test="form-error"]').exists()).toBe(false)
   })
 
   it('rechaza cantidad 0 con un mensaje que dice qué dato revisar', async () => {
@@ -92,9 +93,7 @@ describe('Test 23 — FacturaForm (líneas y validaciones)', () => {
 
     await wrapper.find('form').trigger('submit')
 
-    expect(wrapper.find('[data-test="form-error"]').text()).toContain(
-      'La cantidad de la línea 1 debe ser mayor que 0: revisa el valor escrito.',
-    )
+    expect(wrapper.find('[data-test="error-linea-0-cantidad"]').text()).toBe('Cantidad mayor que 0.')
   })
 
   it('rechaza descuento fuera de rango e IVA no permitido', async () => {
@@ -103,16 +102,14 @@ describe('Test 23 — FacturaForm (líneas y validaciones)', () => {
 
     await wrapper.find('[data-test="linea-descuento_porcentaje-0"]').setValue('120')
     await wrapper.find('form').trigger('submit')
-    expect(wrapper.find('[data-test="form-error"]').text()).toContain(
-      'El descuento de la línea 1 debe estar entre 0 y 100: revisa el valor escrito.',
+    expect(wrapper.find('[data-test="error-linea-0-descuento_porcentaje"]').text()).toBe(
+      'Descuento 0 a 100.',
     )
 
     await wrapper.find('[data-test="linea-descuento_porcentaje-0"]').setValue('10')
     await wrapper.find('[data-test="linea-iva_porcentaje-0"]').setValue('')
     await wrapper.find('form').trigger('submit')
-    expect(wrapper.find('[data-test="form-error"]').text()).toContain(
-      'Falta el IVA en la línea 1: selecciona 0, 5 o 19.',
-    )
+    expect(wrapper.find('[data-test="error-linea-0-iva_porcentaje"]').text()).toBe('Elige el IVA.')
   })
 
   it('emite el payload completo del contrato', async () => {
@@ -168,9 +165,7 @@ describe('Test 23 — FacturaForm (líneas y validaciones)', () => {
 
     await wrapper.find('form').trigger('submit')
 
-    expect(wrapper.find('[data-test="error-linea-0-tipo"]').text()).toContain(
-      'Falta el tipo de producto en la línea 1: selecciona un tipo de la lista.',
-    )
+    expect(wrapper.find('[data-test="error-linea-0-tipo"]').text()).toBe('Elige el tipo.')
     expect(wrapper.emitted('submit')).toBeUndefined()
   })
 })

@@ -23,9 +23,7 @@ describe('Test 15 — Validación según contrato del backend', () => {
     await wrapper.find('[data-test="field-nombre"]').setValue('Demasiado largo')
     await wrapper.find('form').trigger('submit')
 
-    expect(wrapper.find('[data-test="error"]').text()).toBe(
-      'Nombre no puede superar los 5 caracteres.',
-    )
+    expect(wrapper.find('[data-test="error-nombre"]').text()).toBe('Máximo 5 caracteres.')
     expect(wrapper.emitted('submit')).toBeUndefined()
   })
 

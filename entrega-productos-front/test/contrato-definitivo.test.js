@@ -85,21 +85,26 @@ describe('Test 33 — Contrato definitivo del backend', () => {
     }
     expect(wrapper.find('[data-test="field-responsable_nombre"]').exists()).toBe(false)
 
-    await wrapper.find('[data-test="field-nombre"]').setValue('Bodega Sur')
-    await wrapper.find('[data-test="field-codigo"]').setValue('SUR-01')
-    await wrapper.find('[data-test="field-correo"]').setValue('sur@entrega.com')
-    await wrapper.find('[data-test="field-recibe_nombre"]').setValue('Ana Recibe')
-    await wrapper.find('[data-test="field-recibe_cargo"]').setValue('Supervisora')
+    const datos = {
+      nombre: 'Bodega Sur',
+      codigo: 'SUR-01',
+      direccion: 'Calle 1 2 3',
+      ciudad: 'Bogotá',
+      departamento: 'Cundinamarca',
+      telefono: '3001234567',
+      correo: 'sur@entrega.com',
+      recibe_nombre: 'Ana Recibe',
+      recibe_documento: '1020304052',
+      recibe_cargo: 'Supervisora',
+      recibe_telefono: '3109876545',
+    }
+    for (const [key, value] of Object.entries(datos)) {
+      await wrapper.find(`[data-test="field-${key}"]`).setValue(value)
+    }
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
-    expect(bodegas.create).toHaveBeenCalledWith({
-      nombre: 'Bodega Sur',
-      codigo: 'SUR-01',
-      correo: 'sur@entrega.com',
-      recibe_nombre: 'Ana Recibe',
-      recibe_cargo: 'Supervisora',
-    })
+    expect(bodegas.create).toHaveBeenCalledWith(datos)
   })
 
   it('Usuarios acepta PA y deja opcionales los datos del cliente', async () => {
