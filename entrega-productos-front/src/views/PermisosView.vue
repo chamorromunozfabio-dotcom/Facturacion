@@ -39,6 +39,7 @@ const permisosBackend = ref([])
 const busqueda = ref('')
 const usuarioSeleccionadoId = ref(null)
 const permisosDelUsuario = ref([])
+const cambiosPendientes = ref(new Map())
 const cargando = ref(false)
 const guardando = ref(false)
 const mensaje = ref(null)
@@ -105,6 +106,11 @@ function tieneClave(clave) {
   return permisosAsignados.value.some((permiso) => permiso.clave === clave)
 }
 
+/** Estado que se ve en pantalla: el guardado, salvo que haya un cambio preparado. */
+function estadoCheck(opcion) {
+  return cambiosPendientes.value.get(opcion.clave)?.asignado ?? opcion.asignado
+}
+
 /** Tarjetas por módulo: cada función es un check contra el permiso guardado. */
 const modulosConPermisos = computed(() =>
   MODULOS_PERMISO.map((modulo) => ({
@@ -118,9 +124,24 @@ const modulosConPermisos = computed(() =>
   })),
 )
 
+/** Permisos que se muestran en el resumen, incluyendo los recién tildados. */
+const permisosVisibles = computed(() => {
+  const lista = permisosAsignados.value.filter(
+    (permiso) => cambiosPendientes.value.get(permiso.clave)?.asignado !== false,
+  )
+  for (const [clave, cambio] of cambiosPendientes.value) {
+    if (cambio.asignado && !lista.some((permiso) => permiso.clave === clave)) {
+      lista.push({ clave, etiqueta: cambio.etiqueta, nombre: cambio.nombre })
+    }
+  }
+  return lista
+})
+
+const tieneCambios = computed(() => cambiosPendientes.value.size > 0)
+
 const resumenPermisos = computed(() =>
-  permisosAsignados.value.length
-    ? permisosAsignados.value.map((permiso) => permiso.etiqueta).join(' · ')
+  permisosVisibles.value.length
+    ? permisosVisibles.value.map((permiso) => permiso.etiqueta).join(' · ')
     : 'todavía no tiene permisos asignados.',
 )
 
@@ -164,6 +185,7 @@ async function cargarPagina() {
 async function seleccionarUsuario(usuario) {
   if (guardando.value) return
   usuarioSeleccionadoId.value = usuario.id
+  cambiosPendientes.value = new Map()
   mensaje.value = null
   await cargarPermisosDelUsuario()
 }
@@ -172,37 +194,73 @@ function cambiarUsuario() {
   if (guardando.value) return
   usuarioSeleccionadoId.value = null
   permisosDelUsuario.value = []
+  cambiosPendientes.value = new Map()
   busqueda.value = ''
   mensaje.value = null
 }
 
-/** Un check hace el POST o el DELETE según el estado guardado. */
-async function togglePermiso(opcion) {
+/** El check solo prepara el cambio; se aplica con Confirmar. */
+function togglePermiso(opcion) {
   if (!usuarioSeleccionado.value || guardando.value || !opcion.idBackend) return
+  mensaje.value = null
+  const pendientes = new Map(cambiosPendientes.value)
+  const deseado = !estadoCheck(opcion)
+
+  if (deseado === opcion.asignado) {
+    pendientes.delete(opcion.clave)
+  } else {
+    pendientes.set(opcion.clave, {
+      clave: opcion.clave,
+      nombre: opcion.nombre,
+      etiqueta: opcion.etiqueta,
+      idBackend: opcion.idBackend,
+      asignado: deseado,
+    })
+  }
+  cambiosPendientes.value = pendientes
+}
+
+function descartarCambios() {
+  cambiosPendientes.value = new Map()
+  mensaje.value = null
+}
+
+/** Aplica todos los cambios preparados con los endpoints reales (POST/DELETE). */
+async function confirmarCambios() {
+  if (!tieneCambios.value || guardando.value || !usuarioSeleccionado.value) return
   guardando.value = true
   mensaje.value = null
   const usuario = usuarioSeleccionado.value
-  const verbo = opcion.asignado ? 'quitado' : 'dado'
-  try {
-    if (opcion.asignado) {
-      await usuariosApi.removePermiso(usuario.id, opcion.idBackend)
-    } else {
-      await usuariosApi.addPermiso(usuario.id, opcion.idBackend)
+  const cambios = [...cambiosPendientes.value.values()]
+  let aplicados = 0
+  let fallidos = 0
+
+  for (const cambio of cambios) {
+    try {
+      if (cambio.asignado) {
+        await usuariosApi.addPermiso(usuario.id, cambio.idBackend)
+      } else {
+        await usuariosApi.removePermiso(usuario.id, cambio.idBackend)
+      }
+      aplicados += 1
+    } catch {
+      fallidos += 1
     }
-    mensaje.value = {
-      type: 'success',
-      message: `Permiso "${opcion.etiqueta}" ${verbo} a "${usuario.nombre}".`,
-    }
-  } catch (error) {
-    mensaje.value = {
-      type: 'error',
-      message: getErrorMessage(error) || 'No se pudo cambiar el permiso.',
-    }
-  } finally {
-    // Volvemos a leer la base para que el check muestre el estado real.
-    await cargarPermisosDelUsuario()
-    guardando.value = false
   }
+
+  // Leemos el estado real y descartamos lo preparado: lo que falló sigue sin aplicar.
+  await cargarPermisosDelUsuario()
+  cambiosPendientes.value = new Map()
+  guardando.value = false
+  mensaje.value = fallidos
+    ? {
+        type: 'error',
+        message: `Se aplicaron ${aplicados} cambios y fallaron ${fallidos}. Revisá los permisos del usuario.`,
+      }
+    : {
+        type: 'success',
+        message: `${aplicados} ${aplicados === 1 ? 'cambio guardado' : 'cambios guardados'} en "${usuario.nombre}".`,
+      }
 }
 
 onMounted(cargarPagina)
@@ -216,7 +274,7 @@ onMounted(cargarPagina)
         <h1>Permisos por usuario</h1>
         <p>
           Buscá a una persona, revisá sus funciones y tildá lo que puede hacer. Los cambios se
-          guardan al instante.
+          guardan cuando confirmes.
         </p>
       </div>
       <span class="hero__badge">Solo administrador</span>
@@ -317,7 +375,7 @@ onMounted(cargarPagina)
 
         <div class="metricas">
           <div class="metrica">
-            <strong>{{ permisosAsignados.length }}</strong>
+            <strong>{{ permisosVisibles.length }}</strong>
             <span>permisos activos</span>
           </div>
           <div class="metrica">
@@ -360,7 +418,7 @@ onMounted(cargarPagina)
               <span class="modulo__icono"><component :is="modulo.icono" :size="17" /></span>
               <h4>{{ modulo.etiqueta }}</h4>
               <span class="modulo__conteo">
-                {{ modulo.opciones.filter((opcion) => opcion.asignado).length }}/{{
+                {{ modulo.opciones.filter((opcion) => estadoCheck(opcion)).length }}/{{
                   modulo.opciones.length
                 }}
               </span>
@@ -370,15 +428,18 @@ onMounted(cargarPagina)
                 v-for="opcion in modulo.opciones"
                 :key="opcion.clave"
                 class="funcion"
-                :class="{ 'funcion--activa': opcion.asignado, 'funcion--pendiente': !opcion.idBackend }"
+                :class="{
+                  'funcion--activa': estadoCheck(opcion),
+                  'funcion--pendiente': !opcion.idBackend,
+                }"
               >
                 <label class="check" :title="opcion.etiqueta">
                   <input
                     type="checkbox"
-                    :checked="opcion.asignado"
+                    :checked="estadoCheck(opcion)"
                     :disabled="guardando || opcion.idBackend == null"
                     :data-test="`check-${opcion.clave}`"
-                    :aria-label="`${opcion.etiqueta}${opcion.asignado ? ' (ya lo tiene)' : ''}`"
+                    :aria-label="`${opcion.etiqueta}${estadoCheck(opcion) ? ' (ya lo tiene)' : ''}`"
                     @change="togglePermiso(opcion)"
                   />
                   <span class="check__caja"><Check :size="12" aria-hidden="true" /></span>
@@ -393,13 +454,46 @@ onMounted(cargarPagina)
           </article>
         </div>
 
+        <Transition name="panel">
+          <div v-if="tieneCambios" class="confirmar" data-test="confirmar-bar">
+            <span class="confirmar__icono"><Check :size="18" aria-hidden="true" /></span>
+            <div class="confirmar__texto">
+              <strong>
+                {{ cambiosPendientes.size }}
+                {{ cambiosPendientes.size === 1 ? 'cambio listo' : 'cambios listos' }}
+              </strong>
+              <small>Revisalos y confirmá para aplicarlos a {{ usuarioSeleccionado.nombre }}.</small>
+            </div>
+            <button
+              type="button"
+              class="btn btn--suave"
+              :disabled="guardando"
+              data-test="descartar-permisos"
+              @click="descartarCambios"
+            >
+              Descartar
+            </button>
+            <button
+              type="button"
+              class="btn btn--primario"
+              :disabled="guardando"
+              data-test="confirmar-permisos"
+              @click="confirmarCambios"
+            >
+              <Check :size="16" aria-hidden="true" />
+              {{ guardando ? 'Guardando...' : 'Confirmar cambios' }}
+            </button>
+          </div>
+        </Transition>
+
         <footer class="detalle__pie" data-test="permisos-actuales">
           <span>
-            <strong>{{ permisosAsignados.length }} de {{ CATALOGO_PERMISOS.length }} permisos
+            <strong>{{ permisosVisibles.length }} de {{ CATALOGO_PERMISOS.length }} permisos
               activos:</strong>
             {{ resumenPermisos }}
           </span>
-          <small>Los cambios se guardan al instante.</small>
+          <small v-if="tieneCambios" class="detalle__pie--pendiente">Cambios sin guardar</small>
+          <small v-else>Todo guardado</small>
         </footer>
       </section>
     </Transition>
@@ -934,6 +1028,68 @@ h4 {
   color: #10b981;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.detalle__pie--pendiente {
+  color: #d97706 !important;
+}
+
+.confirmar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid #a5b4fc;
+  border-radius: 14px;
+  background: linear-gradient(120deg, #eef2ff, #f5f3ff);
+  box-shadow: 0 6px 18px rgb(79 70 229 / 10%);
+}
+
+.confirmar__icono {
+  display: grid;
+  place-items: center;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: #4f46e5;
+  color: #fff;
+}
+
+.confirmar__texto {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 220px;
+}
+
+.confirmar__texto strong {
+  color: #3730a3;
+  font-size: 0.92rem;
+}
+
+.confirmar__texto small {
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+.btn--primario {
+  border: 1px solid #4f46e5;
+  background: #4f46e5;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgb(79 70 229 / 25%);
+}
+
+.btn--primario:hover:not(:disabled) {
+  background: #4338ca;
+  border-color: #4338ca;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .panel-enter-active,

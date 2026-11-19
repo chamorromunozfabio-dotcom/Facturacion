@@ -206,6 +206,15 @@ describe('Test 40 — Permisos por usuario con buscador y tarjetas de funciones'
     await wrapper.find('[data-test="check-facturas:aceptar"]').setValue(true)
     await flushPromises()
 
+    expect(usuarios.addPermiso).not.toHaveBeenCalled()
+    expect(wrapper.find('[data-test="permisos-actuales"]').text()).toContain(
+      'Facturación — Aceptar',
+    )
+    expect(wrapper.find('[data-test="confirmar-bar"]').text()).toContain('1 cambio listo')
+
+    await wrapper.find('[data-test="confirmar-permisos"]').trigger('click')
+    await flushPromises()
+
     expect(usuarios.addPermiso).toHaveBeenCalledWith(5, expect.any(Number))
     expect(wrapper.find('[data-test="permisos-actuales"]').text()).toContain(
       'Facturación — Aceptar',
@@ -235,7 +244,7 @@ describe('Test 40 — Permisos por usuario con buscador y tarjetas de funciones'
     expect(usuarios.addPermiso).not.toHaveBeenCalled()
   })
 
-  it('el mismo check hace POST al tildarlo y DELETE al destildarlo', async () => {
+  it('el mismo check prepara el alta y la baja, y cada Confirmar la aplica', async () => {
     permisosPorUsuario.set(1, [{ id: 1, nombre: 'facturas_view' }])
     const wrapper = mount(PermisosView)
     await flushPromises()
@@ -243,13 +252,62 @@ describe('Test 40 — Permisos por usuario con buscador y tarjetas de funciones'
 
     await wrapper.find('[data-test="check-facturas:create"]').setValue(true)
     await flushPromises()
-    expect(usuarios.addPermiso).toHaveBeenCalledWith(1, 2)
+    expect(usuarios.addPermiso).not.toHaveBeenCalled()
     expect(wrapper.find('[data-test="check-facturas:create"]').element.checked).toBe(true)
+
+    await wrapper.find('[data-test="confirmar-permisos"]').trigger('click')
+    await flushPromises()
+    expect(usuarios.addPermiso).toHaveBeenCalledWith(1, 2)
+    expect(wrapper.find('[data-test="confirmar-bar"]').exists()).toBe(false)
 
     await wrapper.find('[data-test="check-facturas:create"]').setValue(false)
     await flushPromises()
+    expect(usuarios.removePermiso).not.toHaveBeenCalled()
+
+    await wrapper.find('[data-test="confirmar-permisos"]').trigger('click')
+    await flushPromises()
     expect(usuarios.removePermiso).toHaveBeenCalledWith(1, 2)
     expect(wrapper.find('[data-test="check-facturas:create"]').element.checked).toBe(false)
+  })
+
+  it('Confirmar aplica varios cambios a la vez y limpia la barra', async () => {
+    const wrapper = mount(PermisosView)
+    await flushPromises()
+    await consultar(wrapper, 1)
+
+    await wrapper.find('[data-test="check-facturas:create"]').setValue(true)
+    await wrapper.find('[data-test="check-bodegas:create"]').setValue(true)
+    await flushPromises()
+    expect(wrapper.find('[data-test="confirmar-bar"]').text()).toContain('2 cambios listos')
+
+    await wrapper.find('[data-test="confirmar-permisos"]').trigger('click')
+    await flushPromises()
+
+    expect(usuarios.addPermiso).toHaveBeenCalledTimes(2)
+    expect(usuarios.removePermiso).not.toHaveBeenCalled()
+    expect(wrapper.find('[data-test="confirmar-bar"]').exists()).toBe(false)
+    expect(wrapper.text()).toContain('2 cambios guardados en "Ana".')
+  })
+
+  it('Descartar devuelve los checks a su estado guardado sin llamar a la API', async () => {
+    permisosPorUsuario.set(1, [{ id: 1, nombre: 'facturas_view' }])
+    const wrapper = mount(PermisosView)
+    await flushPromises()
+    await consultar(wrapper, 1)
+
+    await wrapper.find('[data-test="check-facturas:view"]').setValue(false)
+    await wrapper.find('[data-test="check-facturas:create"]').setValue(true)
+    await flushPromises()
+    expect(wrapper.find('[data-test="confirmar-bar"]').exists()).toBe(true)
+
+    await wrapper.find('[data-test="descartar-permisos"]').trigger('click')
+    await flushPromises()
+
+    expect(usuarios.addPermiso).not.toHaveBeenCalled()
+    expect(usuarios.removePermiso).not.toHaveBeenCalled()
+    expect(wrapper.find('[data-test="check-facturas:view"]').element.checked).toBe(true)
+    expect(wrapper.find('[data-test="check-facturas:create"]').element.checked).toBe(false)
+    expect(wrapper.find('[data-test="confirmar-bar"]').exists()).toBe(false)
   })
 
   it('muestra como pendientes las funciones que el backend todavía no publicó', async () => {

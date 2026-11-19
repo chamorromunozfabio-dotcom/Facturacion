@@ -159,10 +159,12 @@ describe('Test 36 — Permisos por usuario (contrato publicado por el backend)',
 
     await wrapper.find('[data-test="check-facturas:create"]').setValue(true)
     await flushPromises()
+    await wrapper.find('[data-test="confirmar-permisos"]').trigger('click')
+    await flushPromises()
 
     expect(usuarios.addPermiso).toHaveBeenCalledWith(1, 2)
     expect(usuarios.removePermiso).not.toHaveBeenCalled()
-    expect(wrapper.text()).toContain('Permiso "Facturación — Crear" dado a "Ana".')
+    expect(wrapper.text()).toContain('1 cambio guardado en "Ana".')
     expect(wrapper.find('[data-test="permisos-actuales"]').text()).toContain('Facturación — Crear')
   })
 
@@ -173,10 +175,12 @@ describe('Test 36 — Permisos por usuario (contrato publicado por el backend)',
 
     await wrapper.find('[data-test="check-facturas:view"]').setValue(false)
     await flushPromises()
+    await wrapper.find('[data-test="confirmar-permisos"]').trigger('click')
+    await flushPromises()
 
     expect(usuarios.removePermiso).toHaveBeenCalledWith(1, 1)
     expect(usuarios.addPermiso).not.toHaveBeenCalled()
-    expect(wrapper.text()).toContain('Permiso "Facturación — Ver" quitado a "Ana".')
+    expect(wrapper.text()).toContain('1 cambio guardado en "Ana".')
   })
 
   it('destildar un check saca solo ese permiso del usuario', async () => {
@@ -185,6 +189,8 @@ describe('Test 36 — Permisos por usuario (contrato publicado por el backend)',
     await consultar(wrapper, 1)
 
     await wrapper.find('[data-test="check-facturas:view"]').setValue(false)
+    await flushPromises()
+    await wrapper.find('[data-test="confirmar-permisos"]').trigger('click')
     await flushPromises()
 
     expect(usuarios.removePermiso).toHaveBeenCalledWith(1, 1)
