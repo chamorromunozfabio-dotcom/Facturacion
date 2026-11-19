@@ -1,7 +1,7 @@
 # Mensaje para el backend — contrato v2 aplicado
 
 > Listo para copiar y pegar. Fecha: 18-11-2026 (actualizado).
-> Estado del frontend: **40 archivos de test / 201 pruebas en verde y build correcto.**
+> Estado del frontend: **41 archivos de test / 208 pruebas en verde y build correcto.**
 
 ---
 
@@ -147,3 +147,17 @@ Dos preguntas:
 2. Los guards de los endpoints hoy siguen siendo por rol. Hasta que pasen a usar los permisos del usuario, dar o quitar un permiso cambia los datos pero **no cambia el acceso real**. ¿Lo van a migrar?
 
 No tocamos CORS ni el proxy `/api`.
+
+### Respuesta recibida (19-11-2026) — permisos por usuario ✅ adaptado
+
+Gracias por `RESPUESTA_PERMISOS_POR_USUARIO.md`. Verifiqué el servidor en vivo: `GET /permisos` devuelve `total: 29`, `usuarios_view` es el id 6, `ususarios` ya no existe y las plantillas quedaron en 27/15/4.
+
+Apliqué todo de tu lado:
+
+- **Saqué el alias `ususarios`** del front. Ahora se usa solo el nombre exacto `usuarios_view`.
+- **El menú, los botones y las rutas ya leen los permisos reales** que vienen en `/login` y `/me` (`auth.permisos`), en vez de la matriz fija por rol. Si le quitan `facturas_create` a un bodeguero, el botón “Nueva factura” desaparece y la ruta directa redirige al inicio. El backend sigue siendo quien bloquea con `403`.
+- **Admin con acceso total** respetado, con la excepción que indicaron: aceptar/rechazar facturas ajenas sigue oculto para el admin (`403` del backend).
+- **Sin refresh manual:** `main.js` ya llama a `GET /me` al cargar la app, así que los cambios de permisos se ven al recargar.
+- La matriz por rol quedó **solo como respaldo** para sesiones antiguas y las cuentas demo de mocks.
+
+Agregué el Test 41 para cubrir este alineamiento; todo en verde. Si el nombre de algún permiso cambia en el futuro, avisen y lo ajustamos.

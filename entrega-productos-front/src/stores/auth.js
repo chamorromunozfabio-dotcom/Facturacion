@@ -41,8 +41,8 @@ export const useAuthStore = defineStore('auth', () => {
     () => user.value?.nombre ?? user.value?.name ?? user.value?.correo ?? user.value?.usuario ?? '',
   )
 
-  // El backend ya devuelve `permisos` en /login, /me y /usuarios.
-  // Se guardan con la sesión; hoy el menú sigue usando la matriz fija de permissions.js.
+  // El backend devuelve `permisos` en /login y /me. El menú, los botones y las
+  // rutas usan esta lista real; la matriz por rol queda solo como respaldo.
   const permisos = computed(() => user.value?.permisos ?? [])
 
   function saveSession(newToken, newUser) {

@@ -7,7 +7,7 @@ import {
   Users,
   Warehouse,
 } from '@lucide/vue'
-import { hasPermission } from './permissions'
+import { tienePermiso } from './permissions'
 
 /**
  * Menú principal según la matriz definitiva del líder.
@@ -25,9 +25,12 @@ export const menuItems = [
   { label: 'Facturas', to: '/facturas', icon: ReceiptText, module: 'facturas' },
 ]
 
-/** Opciones del menú que el rol puede ver. */
-export function visibleMenuFor(role) {
+/**
+ * Opciones del menú según los permisos reales de la sesión.
+ * `permisos` viene de `/login` o `/me`; si no viene, se usa la matriz del rol.
+ */
+export function visibleMenuFor(role, permisos) {
   return menuItems.filter(
-    (item) => !item.module || hasPermission(role, item.module, 'view'),
+    (item) => !item.module || tienePermiso(permisos, role, item.module, 'view'),
   )
 }

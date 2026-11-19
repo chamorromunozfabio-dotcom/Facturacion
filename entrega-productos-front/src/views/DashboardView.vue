@@ -4,7 +4,9 @@ import { visibleMenuFor } from '../config/navigation'
 import { useAuthStore } from '../stores/auth'
 
 const auth = useAuthStore()
-const modules = computed(() => visibleMenuFor(auth.role).filter((item) => item.to !== '/'))
+const modules = computed(() =>
+  visibleMenuFor(auth.role, auth.permisos).filter((item) => item.to !== '/'),
+)
 
 /** Cada rol ve un panel distinto: solo sus módulos y un mensaje acorde. */
 const roleMessages = {

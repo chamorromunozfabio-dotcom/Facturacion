@@ -9,7 +9,6 @@ import { useAuthStore } from '../stores/auth'
 import {
   CATALOGO_PERMISOS,
   MODULOS_PERMISO,
-  NOMBRES_ALIAS_BACKEND,
   claveDelNombreBackend,
   plantillaDelRol,
 } from '../config/permissions'
@@ -34,16 +33,12 @@ const rolDelUsuario = computed(
 )
 const plantillaSeleccionada = computed(() => plantillaDelRol(usuarioSeleccionado.value?.rol))
 
-/** Resuelve el id real del backend para cada función del catálogo fijo. */
+/** Resuelve el id real del backend por nombre exacto (ej. `facturas_create`). */
 const idPorClave = computed(() => {
   const map = {}
   for (const permiso of permisosBackend.value) {
-    const exacto = CATALOGO_PERMISOS.find((item) => item.nombre === permiso.nombre)
-    if (exacto) map[exacto.clave] = permiso.id
-  }
-  for (const permiso of permisosBackend.value) {
-    const alias = NOMBRES_ALIAS_BACKEND[permiso.nombre]
-    if (alias && map[alias] === undefined) map[alias] = permiso.id
+    const item = CATALOGO_PERMISOS.find((opcion) => opcion.nombre === permiso.nombre)
+    if (item) map[item.clave] = permiso.id
   }
   return map
 })

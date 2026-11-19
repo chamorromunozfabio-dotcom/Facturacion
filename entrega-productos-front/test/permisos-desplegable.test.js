@@ -22,7 +22,7 @@ vi.mock('../src/api/permisos', () => ({ default: permisos }))
 vi.mock('../src/api/roles', () => ({ default: roles }))
 vi.mock('../src/api/usuarios', () => ({ default: usuarios }))
 
-import { CATALOGO_PERMISOS } from '../src/config/permissions'
+import { CATALOGO_PERMISOS, claveDelNombreBackend } from '../src/config/permissions'
 import PermisosView from '../src/views/PermisosView.vue'
 import { useAuthStore } from '../src/stores/auth'
 
@@ -178,7 +178,7 @@ describe('Test 40 — Permisos funcionales por usuario desde un desplegable fijo
 
   it('muestra como pendientes las funciones que el backend todavía no publicó', async () => {
     permisos.list.mockResolvedValue({
-      data: [{ id: 6, nombre: 'ususarios' }],
+      data: [{ id: 6, nombre: 'usuarios_view' }],
       total: 1,
       page: 1,
       limit: 100,
@@ -191,14 +191,17 @@ describe('Test 40 — Permisos funcionales por usuario desde un desplegable fijo
     expect(wrapper.find('[data-test="opcion-usuarios:view"]').attributes('disabled')).toBeUndefined()
   })
 
-  it('reconoce el permiso heredado "ususarios" como Usuarios — Ver', async () => {
+  it('usa el nombre nuevo "usuarios_view" y ya no reconoce el alias "ususarios"', async () => {
+    expect(claveDelNombreBackend('usuarios_view')).toBe('usuarios:view')
+    expect(claveDelNombreBackend('ususarios')).toBeNull()
+
     permisos.list.mockResolvedValue({
-      data: [{ id: 6, nombre: 'ususarios' }],
+      data: [{ id: 6, nombre: 'usuarios_view' }],
       total: 1,
       page: 1,
       limit: 100,
     })
-    permisosPorUsuario.set(1, [{ id: 6, nombre: 'ususarios' }])
+    permisosPorUsuario.set(1, [{ id: 6, nombre: 'usuarios_view' }])
     const wrapper = mount(PermisosView)
     await flushPromises()
 

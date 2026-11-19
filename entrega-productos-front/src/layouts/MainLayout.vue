@@ -8,7 +8,7 @@ const auth = useAuthStore()
 const router = useRouter()
 const logoUrl = `${import.meta.env.BASE_URL}logo.png`
 
-const visibleMenu = computed(() => visibleMenuFor(auth.role))
+const visibleMenu = computed(() => visibleMenuFor(auth.role, auth.permisos))
 
 async function logout() {
   auth.logout()

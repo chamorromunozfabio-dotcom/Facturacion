@@ -85,22 +85,37 @@ export const CATALOGO_PERMISOS = MODULOS_PERMISO.flatMap((modulo) =>
   })),
 )
 
-/**
- * El backend en vivo tiene hoy un permiso heredado llamado `ususarios`.
- * Lo reconocemos como "Usuarios — Ver" para no perder ese acceso ya guardado.
- */
-export const NOMBRES_ALIAS_BACKEND = {
-  ususarios: 'usuarios:view',
-}
-
 /** Convierte el nombre que devuelve el backend a una clave del catálogo fijo. */
 export function claveDelNombreBackend(nombre) {
   const texto = String(nombre ?? '').trim()
-  return (
-    CATALOGO_PERMISOS.find((permiso) => permiso.nombre === texto)?.clave ??
-    NOMBRES_ALIAS_BACKEND[texto] ??
-    null
-  )
+  return CATALOGO_PERMISOS.find((permiso) => permiso.nombre === texto)?.clave ?? null
+}
+
+/**
+ * Dice si la sesión tiene una función concreta.
+ *
+ * El backend manda los permisos reales del usuario en `/login` y `/me`, con
+ * nombres tipo `facturas_create`. El admin siempre tiene acceso total (regla
+ * confirmada por el backend), aunque le falte algún permiso en la lista.
+ *
+ * Si la sesión viene de los mocks o es antigua y no trae `permisos`, usamos la
+ * matriz del rol como respaldo para no dejar la pantalla vacía.
+ */
+export function tienePermiso(permisos, role, modulo, accion) {
+  if (role === 'admin') {
+    // El backend da 403 al admin que intente aceptar/rechazar facturas ajenas.
+    if (modulo === 'facturas' && (accion === 'aceptar' || accion === 'rechazar')) return false
+    return true
+  }
+
+  if (Array.isArray(permisos) && permisos.length > 0) {
+    const nombre = `${modulo}_${accion}`
+    return permisos.some((permiso) =>
+      typeof permiso === 'string' ? permiso === nombre : permiso?.nombre === nombre,
+    )
+  }
+
+  return hasPermission(role, modulo, accion)
 }
 
 /** Plantilla informativa del rol. NO se aplica automáticamente: los permisos son por usuario. */

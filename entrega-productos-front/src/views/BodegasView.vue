@@ -8,12 +8,12 @@ import bodegasApi from '../api/bodegas'
 import usuariosApi from '../api/usuarios'
 import { getErrorMessage, isDuplicateError } from '../api/axios'
 import { useAuthStore } from '../stores/auth'
-import { hasPermission } from '../config/permissions'
+import { tienePermiso } from '../config/permissions'
 
 const auth = useAuthStore()
-const canCreate = computed(() => hasPermission(auth.role, 'bodegas', 'create'))
-const canEdit = computed(() => hasPermission(auth.role, 'bodegas', 'edit'))
-const canDelete = computed(() => hasPermission(auth.role, 'bodegas', 'delete'))
+const canCreate = computed(() => tienePermiso(auth.permisos, auth.role, 'bodegas', 'create'))
+const canEdit = computed(() => tienePermiso(auth.permisos, auth.role, 'bodegas', 'edit'))
+const canDelete = computed(() => tienePermiso(auth.permisos, auth.role, 'bodegas', 'delete'))
 const esAdmin = computed(() => auth.role === 'admin')
 const bodegueroOptions = ref([])
 

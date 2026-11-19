@@ -7,12 +7,12 @@ import FormModal from '../components/FormModal.vue'
 import rolesApi from '../api/roles'
 import { getErrorMessage, isDuplicateError } from '../api/axios'
 import { useAuthStore } from '../stores/auth'
-import { hasPermission } from '../config/permissions'
+import { tienePermiso } from '../config/permissions'
 
 const auth = useAuthStore()
-const canCreate = computed(() => hasPermission(auth.role, 'roles', 'create'))
-const canEdit = computed(() => hasPermission(auth.role, 'roles', 'edit'))
-const canDelete = computed(() => hasPermission(auth.role, 'roles', 'delete'))
+const canCreate = computed(() => tienePermiso(auth.permisos, auth.role, 'roles', 'create'))
+const canEdit = computed(() => tienePermiso(auth.permisos, auth.role, 'roles', 'edit'))
+const canDelete = computed(() => tienePermiso(auth.permisos, auth.role, 'roles', 'delete'))
 
 const columns = [
   { key: 'nombre', label: 'Nombre' },

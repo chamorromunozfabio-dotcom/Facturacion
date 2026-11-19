@@ -23,17 +23,17 @@ import bodegasApi from '../api/bodegas'
 import tiposApi from '../api/tipos'
 import { getErrorMessage, getFieldErrors } from '../api/axios'
 import { useAuthStore } from '../stores/auth'
-import { hasPermission } from '../config/permissions'
+import { tienePermiso } from '../config/permissions'
 
 const auth = useAuthStore()
-const canCreate = computed(() => hasPermission(auth.role, 'facturas', 'create'))
-const canEdit = computed(() => hasPermission(auth.role, 'facturas', 'edit'))
-const canDelete = computed(() => hasPermission(auth.role, 'facturas', 'delete'))
-const canEntregar = computed(() => hasPermission(auth.role, 'facturas', 'entregar'))
-const canRecibir = computed(() => hasPermission(auth.role, 'facturas', 'recibir'))
-const canAceptar = computed(() => hasPermission(auth.role, 'facturas', 'aceptar'))
-const canRechazar = computed(() => hasPermission(auth.role, 'facturas', 'rechazar'))
-const canPdf = computed(() => hasPermission(auth.role, 'facturas', 'pdf'))
+const canCreate = computed(() => tienePermiso(auth.permisos, auth.role, 'facturas', 'create'))
+const canEdit = computed(() => tienePermiso(auth.permisos, auth.role, 'facturas', 'edit'))
+const canDelete = computed(() => tienePermiso(auth.permisos, auth.role, 'facturas', 'delete'))
+const canEntregar = computed(() => tienePermiso(auth.permisos, auth.role, 'facturas', 'entregar'))
+const canRecibir = computed(() => tienePermiso(auth.permisos, auth.role, 'facturas', 'recibir'))
+const canAceptar = computed(() => tienePermiso(auth.permisos, auth.role, 'facturas', 'aceptar'))
+const canRechazar = computed(() => tienePermiso(auth.permisos, auth.role, 'facturas', 'rechazar'))
+const canPdf = computed(() => tienePermiso(auth.permisos, auth.role, 'facturas', 'pdf'))
 const esCliente = computed(() => auth.role === 'cliente')
 
 const ESTADOS = ['emitida', 'entregada', 'firmada', 'rechazada', 'recibida']
