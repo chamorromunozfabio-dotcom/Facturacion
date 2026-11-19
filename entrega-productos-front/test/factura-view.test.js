@@ -64,6 +64,7 @@ describe('Test 24 — FacturaView (listado, detalle y acciones)', () => {
     api.aceptar.mockResolvedValue({ id: 2, estado: 'firmada' })
     api.rechazar.mockResolvedValue({ id: 2, estado: 'rechazada' })
     api.recibir.mockResolvedValue({ id: 3, estado: 'recibida' })
+    api.remove.mockResolvedValue({ detail: 'Eliminado' })
     api.descargarPdf.mockResolvedValue('FE-0001.pdf')
   })
 
@@ -117,6 +118,24 @@ describe('Test 24 — FacturaView (listado, detalle y acciones)', () => {
     expect(entregada.find('[data-test="rechazar"]').exists()).toBe(true)
     expect(entregada.find('[data-test="edit"]').exists()).toBe(false)
     expect(entregada.find('[data-test="entregar"]').exists()).toBe(false)
+  })
+
+  it('el admin elimina una factura emitida solo después de confirmar', async () => {
+    const wrapper = await mountView()
+    const filasDom = wrapper.findAll('tbody tr')
+
+    expect(filasDom[1].find('[data-test="delete"]').exists()).toBe(false)
+
+    await filasDom[0].find('[data-test="delete"]').trigger('click')
+    expect(wrapper.find('[data-test="confirm-delete"]').exists()).toBe(true)
+    expect(api.remove).not.toHaveBeenCalled()
+
+    await wrapper.find('[data-test="confirm"]').trigger('click')
+    await flushPromises()
+
+    expect(api.remove).toHaveBeenCalledWith(1)
+    expect(wrapper.text()).toContain('Factura eliminada.')
+    expect(wrapper.findAll('tbody tr')).toHaveLength(4)
   })
 
   it('entregar cambia el estado en la fila', async () => {

@@ -63,7 +63,7 @@ npm run test:watch
 
 ---
 
-**44 archivos de test, 234 pruebas.** Ejecutar todo con `npm test`.
+**44 archivos de test, 235 pruebas.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >
