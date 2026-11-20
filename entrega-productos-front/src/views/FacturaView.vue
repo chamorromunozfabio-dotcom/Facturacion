@@ -405,6 +405,7 @@ onMounted(load)
       :limit="limit"
       :q="q"
       :loading="loading"
+      create-label="Nueva factura"
       :can-create="canCreate"
       :can-edit="false"
       :can-delete="false"

@@ -77,6 +77,7 @@ describe('Test 24 — FacturaView (listado, detalle y acciones)', () => {
     expect(headers).toContain('Estado')
     expect(headers).toContain('Total')
     expect(wrapper.findAll('tbody tr')).toHaveLength(5)
+    expect(wrapper.find('[data-test="create"]').text()).toBe('Nueva factura')
     expect(api.list).toHaveBeenCalledWith({ q: '', page: 1, limit: 10 })
 
     const opciones = wrapper.findAll('[data-test="estado-filter"] option').map((o) => o.text())
