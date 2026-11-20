@@ -39,7 +39,7 @@ npm run test:watch
 | 21 | API de Facturas: acciones, firma y descarga PDF | ✅ PASÓ | [facturas-api.test.js](facturas-api.test.js) |
 | 22 | `FacturaDetail`: detalle, totales, firma y rechazo | ✅ PASÓ | [factura-detail.test.js](factura-detail.test.js) |
 | 23 | `FacturaForm`: producto por línea y validaciones | ⏳ Por ejecutar | [factura-form.test.js](factura-form.test.js) |
-| 24 | `FacturaView`: listado, detalle y acciones por estado/rol | ✅ PASÓ | [factura-view.test.js](factura-view.test.js) |
+| 24 | `FacturaView`: listado, detalle y acciones por estado/rol | ⏳ Por ejecutar | [factura-view.test.js](factura-view.test.js) |
 | 25 | Vistas por rol: iconos Lucide y transiciones | ⏳ Por ejecutar | [role-views-icons.test.js](role-views-icons.test.js) |
 | 26 | Iconos en acciones y color de acento por rol | ⏳ Por ejecutar | [action-icons-role-colors.test.js](action-icons-role-colors.test.js) |
 | 27 | Badge de estado con color en listado y detalle | ✅ PASÓ | [status-badge.test.js](status-badge.test.js) |
@@ -60,19 +60,20 @@ npm run test:watch
 | 42 | Roles nuevos del backend disponibles al crear/editar usuarios | ✅ PASÓ | [roles-nuevos-usuarios.test.js](roles-nuevos-usuarios.test.js) |
 | 43 | Rutas que se abren según el permiso real, aunque el rol sea otro | ✅ PASÓ | [permisos-rutas-cruzadas.test.js](permisos-rutas-cruzadas.test.js) |
 | 44 | Tipos por bodega y buscador de tipos en facturas | ⏳ Por ejecutar | [tipos-por-bodega.test.js](tipos-por-bodega.test.js) |
-| 45 | Eliminación de facturas emitidas tras confirmación | ✅ PASÓ | [factura-view.test.js](factura-view.test.js) |
+| 45 | Eliminación de facturas emitidas tras confirmación | ⏳ Por ejecutar | [factura-view.test.js](factura-view.test.js) |
 | 46 | Facturas propias por usuario y bloqueo 404 de ajenas | ✅ PASÓ | [facturas-por-usuario.test.js](facturas-por-usuario.test.js) |
 | 47 | Permisos: marcar todos, desmarcar todos y plantilla del rol | ⏳ Por ejecutar | [permisos-matriz.test.js](permisos-matriz.test.js) |
 | 51 | Permisos modular: vista pequeña, composable y piezas con contrato | ⏳ Por ejecutar | [permisos-modular.test.js](permisos-modular.test.js) |
 | 52 | FacturaForm modular: encabezado, líneas y validación pura | ⏳ Por ejecutar | [factura-form-modular.test.js](factura-form-modular.test.js) |
 | 53 | MainLayout modular: sidebar y barra superior | ⏳ Por ejecutar | [main-layout-modular.test.js](main-layout-modular.test.js) |
+| 54 | FacturaView modular: lógica, modales y mapa | ⏳ Por ejecutar | [factura-view-modular.test.js](factura-view-modular.test.js) |
 | 48 | Avisos flotantes con cierre automático y cierre manual | ⏳ Por ejecutar | [alerta-auto-cierre.test.js](alerta-auto-cierre.test.js) |
 | 49 | Aviso de sesión vencida al volver al login | ⏳ Por ejecutar | [aviso-sesion-vencida.test.js](aviso-sesion-vencida.test.js) |
 | 50 | Reglas responsive para celular, tablet y escritorio | ⏳ Por ejecutar | [responsive-layout.test.js](responsive-layout.test.js) |
 
 ---
 
-**51 archivos de test, 280 pruebas.** Ejecutar todo con `npm test`.
+**52 archivos de test, 285 pruebas.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >
