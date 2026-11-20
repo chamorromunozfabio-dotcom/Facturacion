@@ -143,7 +143,7 @@ const MENSAJES = {
 }
 
 const MENSAJES_LINEA = {
-  tipo: 'Elige el tipo.',
+  tipo: 'Elige el producto.',
   descripcion: 'Escribe la descripción.',
   descripcion_larga: 'Máximo 255 caracteres.',
   unidad_medida: 'Escribe la unidad.',
@@ -496,14 +496,14 @@ function handleSubmit() {
             </div>
 
             <p v-if="!tieneTipo" class="hint">
-              {{ form.bodega_id ? 'Cargando tipos de la bodega…' : 'Elige una bodega para ver sus tipos.' }}
+              {{ form.bodega_id ? 'Cargando productos de la bodega…' : 'Elige una bodega para ver sus productos.' }}
             </p>
             <p v-if="errores.detalle" data-test="error-detalle" class="campo-error">{{ errores.detalle }}</p>
             <p v-if="errores.general" data-test="error-general" class="campo-error">{{ errores.general }}</p>
 
             <div v-for="(linea, index) in form.detalle" :key="index" class="linea" data-test="linea">
               <label class="linea__tipo">
-                Tipo *
+                Producto *
                 <TipoSearch
                   :tipos="tiposDisponibles"
                   :model-value="linea.tipo_id"

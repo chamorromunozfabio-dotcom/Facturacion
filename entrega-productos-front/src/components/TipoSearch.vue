@@ -12,7 +12,7 @@ const props = defineProps({
   tipos: { type: Array, default: () => [] },
   modelValue: { type: [String, Number], default: '' },
   dataTest: { type: String, required: true },
-  placeholder: { type: String, default: 'Busca un tipo…' },
+  placeholder: { type: String, default: 'Busca un producto…' },
 })
 const emit = defineEmits(['update:modelValue', 'select'])
 

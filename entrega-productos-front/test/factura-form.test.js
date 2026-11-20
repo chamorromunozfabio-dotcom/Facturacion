@@ -38,6 +38,8 @@ describe('Test 23 — FacturaForm (líneas y validaciones)', () => {
     const wrapper = mountForm()
 
     expect(wrapper.findAll('[data-test="linea"]')).toHaveLength(1)
+    expect(wrapper.text()).toContain('Producto *')
+    expect(wrapper.find('.linea__tipo input').attributes('placeholder')).toBe('Busca un producto…')
     expect(wrapper.find('[data-test="field-forma_pago"]').element.value).toBe('')
     expect(wrapper.find('[data-test="field-medio_pago"]').element.value).toBe('')
     expect(wrapper.find('[data-test="field-fecha_vencimiento"]').exists()).toBe(false)
@@ -165,7 +167,7 @@ describe('Test 23 — FacturaForm (líneas y validaciones)', () => {
 
     await wrapper.find('form').trigger('submit')
 
-    expect(wrapper.find('[data-test="error-linea-0-tipo"]').text()).toBe('Elige el tipo.')
+    expect(wrapper.find('[data-test="error-linea-0-tipo"]').text()).toBe('Elige el producto.')
     expect(wrapper.emitted('submit')).toBeUndefined()
   })
 })

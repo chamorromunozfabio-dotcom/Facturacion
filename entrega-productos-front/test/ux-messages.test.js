@@ -94,7 +94,7 @@ describe('Test 31 — Mensajes claros para el usuario', () => {
 
     expect(wrapper.find('h1').text()).toBe('Tipos de producto')
     expect(wrapper.find('.badge').text()).toBe('Catálogo')
-    expect(wrapper.find('[data-test="create"]').text()).toBe('Nuevo tipo')
+    expect(wrapper.find('[data-test="create"]').text()).toBe('Nuevo producto')
 
     await wrapper.find('[data-test="delete"]').trigger('click')
 
@@ -105,6 +105,6 @@ describe('Test 31 — Mensajes claros para el usuario', () => {
     await wrapper.find('[data-test="cancel"]').trigger('click')
     await wrapper.find('[data-test="create"]').trigger('click')
 
-    expect(wrapper.find('[data-test="submit"]').text()).toBe('Crear tipo')
+    expect(wrapper.find('[data-test="submit"]').text()).toBe('Crear producto')
   })
 })

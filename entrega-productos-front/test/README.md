@@ -28,7 +28,7 @@ npm run test:watch
 | 10 | `FormModal`: campos, validación y eventos | ✅ PASÓ | [form-modal.test.js](form-modal.test.js) |
 | 11 | `ConfirmDelete`: confirmación antes de borrar | ✅ PASÓ | [confirm-delete.test.js](confirm-delete.test.js) |
 | 12 | `AlertMessage`: tipos y cierre | ✅ PASÓ | [alert-message.test.js](alert-message.test.js) |
-| 13 | `TiposView`: listado y CRUD con componentes | ✅ PASÓ (actualizado) | [tipos-view.test.js](tipos-view.test.js) |
+| 13 | `TiposView`: listado y CRUD de productos con componentes | ⏳ Por ejecutar | [tipos-view.test.js](tipos-view.test.js) |
 | 14 | `BodegasView`: listado y CRUD con componentes | ✅ PASÓ (actualizado) | [bodegas-view.test.js](bodegas-view.test.js) |
 | 15 | Validación de formularios: `trim`, máximo y duplicados | ✅ PASÓ | [form-validation.test.js](form-validation.test.js) |
 | 16 | Permisos y menú definitivos del líder | ✅ PASÓ | [roles-permissions.test.js](roles-permissions.test.js) |
@@ -38,7 +38,7 @@ npm run test:watch
 | 20 | `SignaturePad`: dibujar, escalar al celular, limpiar y límite de 500 KB | ⏳ Por ejecutar | [signature-pad.test.js](signature-pad.test.js) |
 | 21 | API de Facturas: acciones, firma y descarga PDF | ✅ PASÓ | [facturas-api.test.js](facturas-api.test.js) |
 | 22 | `FacturaDetail`: detalle, totales, firma y rechazo | ✅ PASÓ | [factura-detail.test.js](factura-detail.test.js) |
-| 23 | `FacturaForm`: líneas dinámicas y validaciones | ✅ PASÓ | [factura-form.test.js](factura-form.test.js) |
+| 23 | `FacturaForm`: producto por línea y validaciones | ⏳ Por ejecutar | [factura-form.test.js](factura-form.test.js) |
 | 24 | `FacturaView`: listado, detalle y acciones por estado/rol | ✅ PASÓ | [factura-view.test.js](factura-view.test.js) |
 | 25 | Vistas por rol: iconos Lucide y transiciones | ✅ PASÓ | [role-views-icons.test.js](role-views-icons.test.js) |
 | 26 | Iconos en acciones y color de acento por rol | ✅ PASÓ | [action-icons-role-colors.test.js](action-icons-role-colors.test.js) |
@@ -46,13 +46,13 @@ npm run test:watch
 | 28 | Transiciones en modales y alertas | ✅ PASÓ | [transitions.test.js](transitions.test.js) |
 | 29 | Accesibilidad: Escape, foco y aria-label | ✅ PASÓ | [accessibility.test.js](accessibility.test.js) |
 | 30 | Cuentas demo por rol y atajos en el login | ✅ PASÓ | [mock-accounts.test.js](mock-accounts.test.js) |
-| 31 | Mensajes claros: validación, botones y títulos | ✅ PASÓ | [ux-messages.test.js](ux-messages.test.js) |
+| 31 | Mensajes claros: validación, botones y títulos | ⏳ Por ejecutar | [ux-messages.test.js](ux-messages.test.js) |
 | 32 | Modo híbrido y CRUD real de Roles | ✅ PASÓ | [real-api-modules.test.js](real-api-modules.test.js) |
 | 33 | Contrato definitivo: estados, FE-0001 y campos renombrados | ✅ PASÓ | [contrato-definitivo.test.js](contrato-definitivo.test.js) |
 | 34 | Permisos reales del bodeguero: CRUD de Tipos y facturas de su bodega | ✅ PASÓ | [permisos-bodeguero.test.js](permisos-bodeguero.test.js) |
 | 35 | Contrato v2: bodegas propias, sin Usuarios y selector `/facturas/clientes` | ✅ PASÓ | [contrato-v2.test.js](contrato-v2.test.js) |
 | 36 | Permisos por usuario: dar/quitar con POST/DELETE y sesión | ✅ PASÓ | [permisos-asignacion.test.js](permisos-asignacion.test.js) |
-| 37 | Facturas: mensajes descriptivos por dato y alerta sobre el modal | ✅ PASÓ | [facturas-mensajes-descriptivos.test.js](facturas-mensajes-descriptivos.test.js) |
+| 37 | Facturas: mensajes descriptivos por dato y alerta sobre el modal | ⏳ Por ejecutar | [facturas-mensajes-descriptivos.test.js](facturas-mensajes-descriptivos.test.js) |
 | 38 | Errores 422 del backend traducidos a mensajes junto al campo | ✅ PASÓ | [facturas-errores-backend.test.js](facturas-errores-backend.test.js) |
 | 39 | Bodegas con 11 datos obligatorios y avisos cortos por campo | ✅ PASÓ | [bodegas-obligatorias.test.js](bodegas-obligatorias.test.js) |
 | 40 | Permisos por usuario: buscador, tarjetas y confirmación de cambios | ✅ PASÓ | [permisos-matriz.test.js](permisos-matriz.test.js) |

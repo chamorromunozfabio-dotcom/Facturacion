@@ -80,7 +80,7 @@ describe('Test 37 — Facturas: mensajes descriptivos y alerta visible', () => {
     await wrapper.find('form').trigger('submit')
 
     const mensajes = {
-      tipo: 'Elige el tipo.',
+      tipo: 'Elige el producto.',
       descripcion: 'Escribe la descripción.',
       unidad_medida: 'Escribe la unidad.',
       cantidad: 'Escribe la cantidad.',

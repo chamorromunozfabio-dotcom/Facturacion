@@ -56,8 +56,10 @@ describe('Test 13 — TiposView (CRUD por bodega con componentes)', () => {
 
     await wrapper.find('[data-test="create"]').trigger('click')
 
+    expect(wrapper.find('[data-test="create"]').text()).toBe('Nuevo producto')
     expect(wrapper.find('[data-test="modal"]').exists()).toBe(true)
-    expect(wrapper.find('h2').text()).toBe('Nuevo tipo')
+    expect(wrapper.find('h2').text()).toBe('Nuevo producto')
+    expect(wrapper.find('[data-test="submit"]').text()).toBe('Crear producto')
     expect(wrapper.find('[data-test="field-bodega_id"]').exists()).toBe(true)
   })
 
@@ -71,7 +73,7 @@ describe('Test 13 — TiposView (CRUD por bodega con componentes)', () => {
     await flushPromises()
 
     expect(api.create).toHaveBeenCalledWith({ nombre: 'Nuevo tipo', bodega_id: 1 })
-    expect(wrapper.text()).toContain('Tipo creado.')
+    expect(wrapper.text()).toContain('Producto creado.')
   })
 
   it('permite al admin crear un tipo general sin bodega', async () => {

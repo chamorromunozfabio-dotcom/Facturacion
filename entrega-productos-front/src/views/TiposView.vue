@@ -166,14 +166,14 @@ async function save(payload) {
       const updated = await tiposApi.update(editing.value.id, changes)
       const merged = { ...editing.value, ...updated }
       rows.value = rows.value.map((row) => (row.id === merged.id ? merged : row))
-      alert.value = { type: 'success', message: 'Tipo actualizado. Los cambios ya están guardados.' }
+      alert.value = { type: 'success', message: 'Producto actualizado. Los cambios ya están guardados.' }
     } else {
       const created = await tiposApi.create(clean)
       rows.value = [created, ...rows.value]
       total.value += 1
       alert.value = {
         type: 'success',
-        message: `Tipo creado. "${created.nombre ?? clean.nombre}" ya está en la lista.`,
+        message: `Producto creado. "${created.nombre ?? clean.nombre}" ya está en la lista.`,
       }
     }
     modalOpen.value = false
@@ -200,7 +200,7 @@ async function confirmDelete() {
     rows.value = rows.value.filter((row) => row.id !== deleting.value.id)
     total.value = Math.max(0, total.value - 1)
     confirmOpen.value = false
-    alert.value = { type: 'success', message: 'Tipo eliminado. Ya no aparece en la lista.' }
+    alert.value = { type: 'success', message: 'Producto eliminado. Ya no aparece en la lista.' }
   } catch (error) {
     alert.value = { type: 'error', message: getErrorMessage(error) }
   } finally {
@@ -234,8 +234,8 @@ onMounted(() => {
     <p class="notice">
       {{
         esAdmin
-          ? 'Cada bodega tiene su catálogo. También podés crear un tipo general sin bodega o ver "Todas las bodegas".'
-          : 'Estás viendo los tipos de tu bodega. Los que crees solo aparecerán aquí.'
+          ? 'Cada bodega tiene su catálogo. También podés crear un producto general sin bodega o ver "Todas las bodegas".'
+          : 'Estás viendo los productos de tu bodega. Los que crees solo aparecerán aquí.'
       }}
     </p>
 
@@ -266,7 +266,7 @@ onMounted(() => {
       :limit="limit"
       :q="q"
       :loading="loading"
-      create-label="Nuevo tipo"
+      create-label="Nuevo producto"
       :can-create="canCreate"
       :can-edit="canEdit"
       :can-delete="canDelete"
@@ -279,10 +279,10 @@ onMounted(() => {
 
     <FormModal
       :open="modalOpen"
-      :title="editing ? 'Editar tipo' : 'Nuevo tipo'"
+      :title="editing ? 'Editar producto' : 'Nuevo producto'"
       :fields="fields"
       :model-value="form"
-      :submit-label="editing ? 'Guardar cambios' : 'Crear tipo'"
+      :submit-label="editing ? 'Guardar cambios' : 'Crear producto'"
       :loading="saving"
       @update:model-value="form = $event"
       @submit="save"
