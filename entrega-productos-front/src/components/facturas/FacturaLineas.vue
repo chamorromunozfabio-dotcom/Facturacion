@@ -1,0 +1,184 @@
+<script setup>
+import TipoSearch from '../TipoSearch.vue'
+
+/** Productos de la factura. Cada línea es un renglón editable. */
+defineProps({
+  lineas: { type: Array, default: () => [] },
+  errores: { type: Object, default: () => ({}) },
+  tiposDisponibles: { type: Array, default: () => [] },
+  tieneTipo: { type: Boolean, default: false },
+  bodegaId: { type: [String, Number], default: '' },
+  ivas: { type: Array, default: () => [0, 5, 19] },
+})
+
+defineEmits(['add', 'remove', 'select-tipo', 'marcar'])
+</script>
+
+<template>
+  <section class="lineas">
+    <div class="lineas__header">
+      <h3>Productos</h3>
+      <button data-test="add-linea" type="button" class="btn btn--small" @click="$emit('add')">
+        + Agregar línea
+      </button>
+    </div>
+
+    <p v-if="!tieneTipo" class="hint">
+      {{ bodegaId ? 'Cargando productos de la bodega…' : 'Elige una bodega para ver sus productos.' }}
+    </p>
+    <p v-if="errores.detalle" data-test="error-detalle" class="campo-error">{{ errores.detalle }}</p>
+    <p v-if="errores.general" data-test="error-general" class="campo-error">{{ errores.general }}</p>
+
+    <div v-for="(linea, index) in lineas" :key="index" class="linea" data-test="linea">
+      <label class="linea__tipo">
+        Producto *
+        <TipoSearch
+          :tipos="tiposDisponibles"
+          :model-value="linea.tipo_id"
+          :data-test="`linea-tipo_id-${index}`"
+          @update:model-value="linea.tipo_id = $event"
+          @select="$emit('select-tipo', { linea, tipo: $event, index })"
+        />
+        <small v-if="errores[`linea_${index}_tipo`]" :data-test="`error-linea-${index}-tipo`" class="campo-error">{{ errores[`linea_${index}_tipo`] }}</small>
+      </label>
+
+      <label class="linea__desc">
+        Descripción *
+        <input v-model="linea.descripcion" :data-test="`linea-descripcion-${index}`" type="text" placeholder="Ej. Arroz 500 g" @input="$emit('marcar', `linea_${index}_descripcion`)" />
+        <small v-if="errores[`linea_${index}_descripcion`]" :data-test="`error-linea-${index}-descripcion`" class="campo-error">{{ errores[`linea_${index}_descripcion`] }}</small>
+      </label>
+
+      <label class="linea__unidad">
+        Unidad *
+        <input v-model="linea.unidad_medida" :data-test="`linea-unidad_medida-${index}`" type="text" placeholder="UND" @input="$emit('marcar', `linea_${index}_unidad_medida`)" />
+        <small v-if="errores[`linea_${index}_unidad_medida`]" :data-test="`error-linea-${index}-unidad_medida`" class="campo-error">{{ errores[`linea_${index}_unidad_medida`] }}</small>
+      </label>
+
+      <label>
+        Cant. *
+        <input v-model.number="linea.cantidad" :data-test="`linea-cantidad-${index}`" type="number" min="1" step="0.01" placeholder="Ej. 10" @input="$emit('marcar', `linea_${index}_cantidad`)" />
+        <small v-if="errores[`linea_${index}_cantidad`]" :data-test="`error-linea-${index}-cantidad`" class="campo-error">{{ errores[`linea_${index}_cantidad`] }}</small>
+      </label>
+
+      <label>
+        Precio *
+        <input v-model.number="linea.precio_unitario" :data-test="`linea-precio_unitario-${index}`" type="number" min="0" step="0.01" placeholder="Ej. 3500" @input="$emit('marcar', `linea_${index}_precio_unitario`)" />
+        <small v-if="errores[`linea_${index}_precio_unitario`]" :data-test="`error-linea-${index}-precio_unitario`" class="campo-error">{{ errores[`linea_${index}_precio_unitario`] }}</small>
+      </label>
+
+      <label>
+        Dto. % *
+        <input v-model.number="linea.descuento_porcentaje" :data-test="`linea-descuento_porcentaje-${index}`" type="number" min="0" max="100" step="0.01" placeholder="0" @input="$emit('marcar', `linea_${index}_descuento_porcentaje`)" />
+        <small v-if="errores[`linea_${index}_descuento_porcentaje`]" :data-test="`error-linea-${index}-descuento_porcentaje`" class="campo-error">{{ errores[`linea_${index}_descuento_porcentaje`] }}</small>
+      </label>
+
+      <label>
+        IVA % *
+        <select v-model.number="linea.iva_porcentaje" :data-test="`linea-iva_porcentaje-${index}`" @change="$emit('marcar', `linea_${index}_iva_porcentaje`)">
+          <option value="">Selecciona…</option>
+          <option v-for="iva in ivas" :key="iva" :value="iva">{{ iva }}</option>
+        </select>
+        <small v-if="errores[`linea_${index}_iva_porcentaje`]" :data-test="`error-linea-${index}-iva_porcentaje`" class="campo-error">{{ errores[`linea_${index}_iva_porcentaje`] }}</small>
+      </label>
+
+      <button
+        data-test="remove-linea"
+        type="button"
+        class="btn btn--small btn--danger"
+        :disabled="lineas.length === 1"
+        @click="$emit('remove', index)"
+      >
+        ×
+      </button>
+    </div>
+  </section>
+</template>
+
+<style scoped>
+.lineas {
+  margin-top: 20px;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 14px;
+}
+
+.lineas__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.linea {
+  display: grid;
+  grid-template-columns: 1.1fr 1.8fr 0.7fr 0.55fr 0.8fr 0.7fr 0.55fr auto;
+  gap: 8px;
+  align-items: end;
+  margin-bottom: 10px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px;
+  font: inherit;
+}
+
+.hint {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.campo-error {
+  color: #b91c1c;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.btn {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.btn--small {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+}
+
+.btn--danger {
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+  .linea {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

@@ -43,8 +43,8 @@ npm run test:watch
 | 25 | Vistas por rol: iconos Lucide y transiciones | ✅ PASÓ | [role-views-icons.test.js](role-views-icons.test.js) |
 | 26 | Iconos en acciones y color de acento por rol | ✅ PASÓ | [action-icons-role-colors.test.js](action-icons-role-colors.test.js) |
 | 27 | Badge de estado con color en listado y detalle | ✅ PASÓ | [status-badge.test.js](status-badge.test.js) |
-| 28 | Transiciones en modales y alertas | ✅ PASÓ | [transitions.test.js](transitions.test.js) |
-| 29 | Accesibilidad: Escape, foco y aria-label | ✅ PASÓ | [accessibility.test.js](accessibility.test.js) |
+| 28 | Transiciones en modales y alertas | ⏳ Por ejecutar | [transitions.test.js](transitions.test.js) |
+| 29 | Accesibilidad: Escape, foco y aria-label | ⏳ Por ejecutar | [accessibility.test.js](accessibility.test.js) |
 | 30 | Cuentas demo por rol y atajos en el login | ✅ PASÓ | [mock-accounts.test.js](mock-accounts.test.js) |
 | 31 | Mensajes claros: validación, botones y títulos | ⏳ Por ejecutar | [ux-messages.test.js](ux-messages.test.js) |
 | 32 | Modo híbrido y CRUD real de Roles | ✅ PASÓ | [real-api-modules.test.js](real-api-modules.test.js) |
@@ -53,24 +53,25 @@ npm run test:watch
 | 35 | Contrato v2: bodegas propias, sin Usuarios y selector `/facturas/clientes` | ✅ PASÓ | [contrato-v2.test.js](contrato-v2.test.js) |
 | 36 | Permisos por usuario: dar/quitar con POST/DELETE y sesión | ⏳ Por ejecutar | [permisos-asignacion.test.js](permisos-asignacion.test.js) |
 | 37 | Facturas: mensajes descriptivos por dato y alerta sobre el modal | ⏳ Por ejecutar | [facturas-mensajes-descriptivos.test.js](facturas-mensajes-descriptivos.test.js) |
-| 38 | Errores 422 del backend traducidos a mensajes junto al campo | ✅ PASÓ | [facturas-errores-backend.test.js](facturas-errores-backend.test.js) |
+| 38 | Errores 422 del backend traducidos a mensajes junto al campo | ⏳ Por ejecutar | [facturas-errores-backend.test.js](facturas-errores-backend.test.js) |
 | 39 | Bodegas con 11 datos obligatorios y avisos cortos por campo | ✅ PASÓ | [bodegas-obligatorias.test.js](bodegas-obligatorias.test.js) |
 | 40 | Permisos por usuario: buscador, tarjetas y confirmación de cambios | ⏳ Por ejecutar | [permisos-matriz.test.js](permisos-matriz.test.js) |
 | 41 | Menú, botones y rutas con los permisos reales de la sesión | ✅ PASÓ | [permisos-sesion-real.test.js](permisos-sesion-real.test.js) |
 | 42 | Roles nuevos del backend disponibles al crear/editar usuarios | ✅ PASÓ | [roles-nuevos-usuarios.test.js](roles-nuevos-usuarios.test.js) |
 | 43 | Rutas que se abren según el permiso real, aunque el rol sea otro | ✅ PASÓ | [permisos-rutas-cruzadas.test.js](permisos-rutas-cruzadas.test.js) |
-| 44 | Tipos por bodega y buscador de tipos en facturas | ✅ PASÓ | [tipos-por-bodega.test.js](tipos-por-bodega.test.js) |
+| 44 | Tipos por bodega y buscador de tipos en facturas | ⏳ Por ejecutar | [tipos-por-bodega.test.js](tipos-por-bodega.test.js) |
 | 45 | Eliminación de facturas emitidas tras confirmación | ✅ PASÓ | [factura-view.test.js](factura-view.test.js) |
 | 46 | Facturas propias por usuario y bloqueo 404 de ajenas | ✅ PASÓ | [facturas-por-usuario.test.js](facturas-por-usuario.test.js) |
 | 47 | Permisos: marcar todos, desmarcar todos y plantilla del rol | ⏳ Por ejecutar | [permisos-matriz.test.js](permisos-matriz.test.js) |
 | 51 | Permisos modular: vista pequeña, composable y piezas con contrato | ⏳ Por ejecutar | [permisos-modular.test.js](permisos-modular.test.js) |
+| 52 | FacturaForm modular: encabezado, líneas y validación pura | ⏳ Por ejecutar | [factura-form-modular.test.js](factura-form-modular.test.js) |
 | 48 | Avisos flotantes con cierre automático y cierre manual | ⏳ Por ejecutar | [alerta-auto-cierre.test.js](alerta-auto-cierre.test.js) |
 | 49 | Aviso de sesión vencida al volver al login | ⏳ Por ejecutar | [aviso-sesion-vencida.test.js](aviso-sesion-vencida.test.js) |
 | 50 | Reglas responsive para celular, tablet y escritorio | ⏳ Por ejecutar | [responsive-layout.test.js](responsive-layout.test.js) |
 
 ---
 
-**49 archivos de test, 270 pruebas.** Ejecutar todo con `npm test`.
+**50 archivos de test, 276 pruebas.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >
