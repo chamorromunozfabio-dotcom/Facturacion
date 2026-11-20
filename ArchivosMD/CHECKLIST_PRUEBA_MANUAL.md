@@ -140,7 +140,19 @@ Estos cambios fueron internos: **no deben notarse en la pantalla**. Si algo de e
 - [ ] **1024 px:** comprobar el corte exacto entre drawer y menú fijo.
 - [ ] Confirmar en DevTools que no hay errores en consola ni estilos perdidos al navegar entre las 4 vistas CRUD y el login.
 
+## 10. Módulo nuevo: Estadísticas por rol
+
+Novedad visible: hay una opción **Estadísticas** en el menú y una ruta `/estadisticas`. Antes de probarlo contra la API real, el backend debe crear el permiso `estadisticas_view` y asignarlo a cada usuario (desde Permisos, como los demás). Mientras tanto, en modo demo (`VITE_USE_MOCKS=true`) funciona con datos falsos por rol.
+
+- [ ] Con `VITE_USE_MOCKS=true`: entrar como admin, bodeguero y cliente; en los tres casos el menú muestra **Estadísticas** y el panel abre sin errores.
+- [ ] El panel muestra tarjetas y barras con CSS puro (sin librerías de gráficos, PrimeVue ni Tailwind).
+- [ ] El rango de fechas arranca en el mes corriente; al cambiar “Desde” o “Hasta” se recarga automáticamente.
+- [ ] Si “Desde” > “Hasta”: aparece el aviso, el botón **Actualizar** queda deshabilitado y no se llama a la API.
+- [ ] Si el backend devuelve 403 (sin `estadisticas_view`), el guard devuelve al inicio y el menú no muestra la opción al recargar.
+- [ ] Con `VITE_USE_MOCKS=false` y el endpoint publicado: las cifras del admin no aparecen para el bodeguero ni el cliente (el filtro lo hace el backend por token).
+- [ ] El permiso `estadisticas_view` aparece en la matriz de Permisos como “pendiente de backend” hasta que el backend lo cree; una vez creado se puede tildar y guardar.
+
 ---
 
-**Estado actual:** 56 archivos de test / 302 pruebas en verde + build correcto.
-**Rama:** `main`, con los cambios de arquitectura ya integrados y subidos.
+**Estado actual:** 57 archivos de test / 309 pruebas en verde + build correcto.
+**Rama:** `main`, con el módulo de estadísticas preparado (pendiente de que backend publique el endpoint).

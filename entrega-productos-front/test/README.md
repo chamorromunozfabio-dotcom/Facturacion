@@ -74,10 +74,11 @@ npm run test:watch
 | 48 | Avisos flotantes con cierre automático y cierre manual | ⏳ Por ejecutar | [alerta-auto-cierre.test.js](alerta-auto-cierre.test.js) |
 | 49 | Aviso de sesión vencida al volver al login | ⏳ Por ejecutar | [aviso-sesion-vencida.test.js](aviso-sesion-vencida.test.js) |
 | 50 | Reglas responsive para celular, tablet y escritorio | ⏳ Por ejecutar | [responsive-layout.test.js](responsive-layout.test.js) |
+| 59 | Estadísticas por rol: reglas, permiso, API y panel | ⏳ Por ejecutar | [estadisticas.test.js](estadisticas.test.js) |
 
 ---
 
-**56 archivos de test, 302 pruebas.** Ejecutar todo con `npm test`.
+**57 archivos de test, 309 pruebas.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >

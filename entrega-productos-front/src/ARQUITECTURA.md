@@ -25,6 +25,7 @@ src/
 │  ├─ ui/                       ← genéricos: DataTable, CrudPage, AlertMessage, FormModal, ...
 │  ├─ facturas/                 ← formulario, detalle, buscador de tipos y modales
 │  ├─ permisos/                 ← buscador, cabecera, matriz y confirmación
+│  ├─ estadisticas/             ← StatCard y BarrasPorEstado
 │  ├─ auth/                     ← LoginForm (solo presentación del ingreso)
 │  ├─ layout/                   ← SidebarMenu y TopBar
 │  └─ (raíz)                    ← solo re-exports de compatibilidad
@@ -33,6 +34,7 @@ src/
 │  ├─ useFacturaForm.js         ← lógica del formulario de factura
 │  ├─ useCrud.js                ← esqueleto común de Bodegas/Roles/Tipos/Usuarios
 │  ├─ useLogin.js               ← estado y envío del formulario de ingreso
+│  ├─ useEstadisticas.js        ← rango, carga y presentación del panel
 │  ├─ usePermisos.js            ← lógica de PermisosView
 │  └─ useModalA11y.js           ← foco y Escape para diálogos
 ├─ utils/
@@ -40,6 +42,7 @@ src/
 │  ├─ facturaCampos.js          ← validación y mensajes del formulario
 │  ├─ crud.js                   ← diferencias, parámetros y errores compartidos
 │  ├─ login.js                  ← validación y mensajes del ingreso (sin Vue)
+│  ├─ estadisticas.js           ← fechas, formato y normalización (sin Vue)
 │  └─ permisos.js               ← texto e iniciales
 ├─ api/                         ← endpoints reales y mocks
 ├─ config/                      ← permisos y navegación por rol
@@ -69,6 +72,17 @@ src/
 
 `LoginView.vue` es solo el contenedor de la ruta `/login`. La lógica (credenciales, envío, errores, aviso de sesión vencida) está en `composables/useLogin.js`, las reglas puras en `utils/login.js` y el markup con su CSS en `components/auth/LoginForm.vue`.
 
+## El panel de estadísticas
+
+Módulo propio (no va dentro de Facturas ni del Inicio): ruta `/estadisticas`, menú **Estadísticas** y permiso `estadisticas_view` en el catálogo fijo.
+
+- `api/estadisticas.js`: un solo `GET /estadisticas/resumen?desde=&hasta=`; en modo demo usa `mockResumenEstadisticas`.
+- `composables/useEstadisticas.js`: rango del mes corriente, carga, error y derivados (`tarjetas`, `barras`, `sinDatos`).
+- `utils/estadisticas.js`: fechas ISO, formato de montos y normalización de la respuesta.
+- `components/estadisticas/`: `StatCard.vue` y `BarrasPorEstado.vue` (CSS puro, sin librería de gráficos).
+
+**Regla de oro:** el backend filtra los datos por token. El front nunca elige qué métricas corresponde a cada rol: pinta lo que llega. `generado_para` es solo informativo.
+
 ## Convención de nombres
 
 - Composable: `use<Modulo>.js` → `useFacturas.js`.
@@ -84,7 +98,7 @@ Código nuevo: importá siempre desde `components/ui/` o `components/<modulo>/`.
 
 ## Estado y decisiones
 
-- Cobertura actual: **56 archivos de test / 302 pruebas** en verde con `npm test`.
+- Cobertura actual: **57 archivos de test / 309 pruebas** en verde con `npm test` (incluye el panel de estadísticas).
 - Regla adoptada para código nuevo: **regla de 3**. Si algo se repite en 3 pantallas, se extrae a `ui/` o `composables/`; si aparece en una sola, se queda en `components/<modulo>/`. Un archivo = una razón de cambiar.
 
 Se evaluaron y **se decidieron no hacer** estas dos mejoras:

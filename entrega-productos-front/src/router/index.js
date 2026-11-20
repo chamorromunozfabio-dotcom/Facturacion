@@ -57,6 +57,12 @@ const router = createRouter({
           component: () => import('../views/FacturaView.vue'),
           meta: { permission: 'facturas:view' },
         },
+        {
+          path: 'estadisticas',
+          name: 'estadisticas',
+          component: () => import('../views/EstadisticasView.vue'),
+          meta: { permission: 'estadisticas:view' },
+        },
       ],
     },
     {

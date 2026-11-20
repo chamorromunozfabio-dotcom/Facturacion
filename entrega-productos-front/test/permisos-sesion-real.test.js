@@ -111,10 +111,13 @@ describe('Test 41 — Menú, botones y rutas con los permisos reales de la sesi�
     expect(router.currentRoute.value.name).toBe('bodegas')
   })
 
-  it('el catálogo coincide con los 29 nombres del backend y no tiene alias', () => {
-    expect(CATALOGO_PERMISOS).toHaveLength(29)
+  it('el catálogo coincide con los nombres del backend y no tiene alias', () => {
+    // 29 permisos originales + estadisticas_view (pendiente de que backend lo cree).
+    expect(CATALOGO_PERMISOS).toHaveLength(30)
     expect(CATALOGO_PERMISOS.map((permiso) => permiso.nombre)).toContain('usuarios_view')
+    expect(CATALOGO_PERMISOS.map((permiso) => permiso.nombre)).toContain('estadisticas_view')
     expect(claveDelNombreBackend('usuarios_view')).toBe('usuarios:view')
+    expect(claveDelNombreBackend('estadisticas_view')).toBe('estadisticas:view')
     expect(claveDelNombreBackend('ususarios')).toBeNull()
   })
 })

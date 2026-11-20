@@ -254,3 +254,70 @@ Gracias, quedó clarísimo y ya lo verificamos contra el servidor real:
 Adaptamos el front: el aviso por rol ya está, el filtro de seguridad usa `creado_por_id` (y ya no dependemos del viejo `bodeguero_id`), y dejamos una prueba con el escenario real de los 5/3/5. También confirmamos que el `404` de una factura ajena cierra el detalle y muestra el error, sin pantalla rota.
 
 No hicieron falta backfills ni cambios de parámetros. Todo en verde: 45 archivos / 240 pruebas y build correcto. Gracias 🚀
+
+---
+
+## Pedido (20-11-2026) — módulo new de Estadísticas por rol
+
+Hola equipo 👋 Queremos agregar un módulo **Estadísticas** con un panel distinto según el rol. La decisión del líder fue **módulo nuevo** (ruta `/estadisticas`, menú y permiso propios), no meterlo dentro de Facturas ni del Inicio.
+
+### 1. Permiso nuevo (catálogo fijo)
+
+Agregar a la tabla `permisos` un permiso con nombre **`estadisticas_view`** (módulo `estadisticas`, acción `view`) y poder asignarlo por usuario con los endpoints que ya existen (`POST/DELETE /usuarios/{id}/permisos/{permiso_id}`). El admin lo tiene por defecto; bodeguero y cliente recibirán el que corresponda.
+
+> Como hicimos con los otros 29, no necesitamos un id concreto: resolvemos el id por `nombre` desde `GET /permisos`.
+
+### 2. Endpoint único
+
+```http
+GET /estadisticas/resumen?desde=2026-11-01&hasta=2026-11-30
+```
+
+- `desde` y `hasta` son **opcionales** (`YYYY-MM-DD`). Si no vienen, usamos el mes actual.
+- Solo admin, bodeguero y cliente con `estadisticas_view`. Sin permiso → `403`. Sin token → `401` (el front ya lo maneja).
+- Preferimos **un solo endpoint** y no tres (`/admin`, `/bodeguero`, `/cliente`) para no mantener tres contratos.
+
+### 3. Respuesta propuesta
+
+```json
+{
+  "periodo": { "desde": "2026-11-01", "hasta": "2026-11-30" },
+  "generado_para": "bodeguero",
+  "tarjetas": [
+    { "clave": "facturas", "etiqueta": "Facturas", "valor": 24, "sufijo": "" },
+    { "clave": "facturado", "etiqueta": "Facturado", "valor": 8450000, "sufijo": "$" },
+    { "clave": "pendientes", "etiqueta": "Pendientes de firma", "valor": 3, "sufijo": "" }
+  ],
+  "series": [
+    {
+      "clave": "por_estado",
+      "titulo": "Facturas por estado",
+      "tipo": "barras",
+      "datos": [
+        { "etiqueta": "Emitida", "valor": 4 },
+        { "etiqueta": "Entregada", "valor": 6 }
+      ]
+    }
+  ]
+}
+```
+
+`generado_para` es solo informativo: el front **no decide** qué mostrar según ese campo, pinta lo que llegue.
+
+### 4. Regla de datos por rol (esto es lo importante)
+
+El filtro debe hacerse **en el backend**, igual que ya hacemos con `GET /facturas`:
+
+| Rol | Datos que puede contar |
+|---|---|
+| admin | Todas las facturas, todas las bodegas, top de productos y usuarios activos |
+| bodeguero | Solo las facturas que creó (`creado_por_id`) y/o de sus bodegas, y los tipos de esas bodegas |
+| cliente | Solo sus facturas (`creado_por_id`), sin series de bodegas ni de otros usuarios |
+
+Nunca devolver una serie que el rol no puede ver: es mejor omitirla que mandarla y ocultarla en el front.
+
+### 5. De nuestro lado (front)
+
+Preparamos `api/estadisticas.js`, `useEstadisticas.js`, la vista, el permiso en el menú y la ruta con su test. Mientras el endpoint no esté publicado, el panel funciona con mocks del modo demo; al publicarlo, solo cambia `VITE_USE_MOCKS=false` y lo verificamos en vivo con las tres cuentas de prueba. No tocamos CORS ni el proxy `/api`.
+
+Si prefieren otro nombre de permiso, otra forma de respuesta o un rango distinto, avisen y lo adaptamos antes de cerrar el contrato. Gracias 🚀

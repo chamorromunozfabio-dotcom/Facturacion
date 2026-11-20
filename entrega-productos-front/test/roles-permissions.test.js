@@ -30,8 +30,8 @@ describe('Test 16 — Permisos y menú definitivos del líder', () => {
     expect(hasPermission('bodeguero', 'facturas', 'aceptar')).toBe(false)
   })
 
-  it('cliente solo ve Facturas y puede aceptar o rechazar', () => {
-    expect(labels('cliente')).toEqual(['Inicio', 'Facturas'])
+  it('cliente ve Facturas y Estadísticas, y puede aceptar o rechazar', () => {
+    expect(labels('cliente')).toEqual(['Inicio', 'Facturas', 'Estadísticas'])
     expect(hasPermission('cliente', 'facturas', 'view')).toBe(true)
     expect(hasPermission('cliente', 'facturas', 'aceptar')).toBe(true)
     expect(hasPermission('cliente', 'facturas', 'rechazar')).toBe(true)

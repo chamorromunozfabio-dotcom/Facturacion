@@ -365,3 +365,104 @@ export async function mockSetPermisos(rolId, permisosIds = []) {
     .map(({ id, nombre }) => ({ id, nombre }))
   return { ...rol }
 }
+
+/**
+ * Resumen de estadísticas para el modo demo.
+ * El backend filtra con el token; acá leemos el rol guardado para que las tres
+ * cuentas de prueba vean un panel distinto sin depender de que exista el endpoint.
+ */
+export async function mockResumenEstadisticas(params = {}) {
+  let rol = 'admin'
+  try {
+    rol = JSON.parse(localStorage.getItem('user') || 'null')?.rol ?? 'admin'
+  } catch {
+    rol = 'admin'
+  }
+
+  const periodo = {
+    desde: params.desde || '2026-11-01',
+    hasta: params.hasta || '2026-11-30',
+  }
+
+  if (rol === 'cliente') {
+    return {
+      periodo,
+      generado_para: 'cliente',
+      tarjetas: [
+        { clave: 'facturas', etiqueta: 'Mis facturas', valor: 4, sufijo: '' },
+        { clave: 'pendientes', etiqueta: 'Pendientes de firma', valor: 1, sufijo: '' },
+        { clave: 'firmadas', etiqueta: 'Firmadas', valor: 3, sufijo: '' },
+      ],
+      series: [
+        {
+          clave: 'por_estado',
+          titulo: 'Mis facturas por estado',
+          tipo: 'barras',
+          datos: [
+            { etiqueta: 'Entregada', valor: 1 },
+            { etiqueta: 'Firmada', valor: 3 },
+          ],
+        },
+      ],
+    }
+  }
+
+  if (rol === 'bodeguero') {
+    return {
+      periodo,
+      generado_para: 'bodeguero',
+      tarjetas: [
+        { clave: 'facturas', etiqueta: 'Mis facturas', valor: 24, sufijo: '' },
+        { clave: 'facturado', etiqueta: 'Facturado', valor: 8450000, sufijo: '$' },
+        { clave: 'pendientes', etiqueta: 'Pendientes de firma', valor: 3, sufijo: '' },
+      ],
+      series: [
+        {
+          clave: 'por_estado',
+          titulo: 'Facturas por estado',
+          tipo: 'barras',
+          datos: [
+            { etiqueta: 'Emitida', valor: 4 },
+            { etiqueta: 'Entregada', valor: 6 },
+            { etiqueta: 'Firmada', valor: 11 },
+            { etiqueta: 'Recibida', valor: 3 },
+          ],
+        },
+      ],
+    }
+  }
+
+  return {
+    periodo,
+    generado_para: 'admin',
+    tarjetas: [
+      { clave: 'facturas', etiqueta: 'Facturas', valor: 128, sufijo: '' },
+      { clave: 'facturado', etiqueta: 'Facturado', valor: 45600000, sufijo: '$' },
+      { clave: 'bodegas', etiqueta: 'Bodegas activas', valor: 5, sufijo: '' },
+      { clave: 'pendientes', etiqueta: 'Pendientes de firma', valor: 12, sufijo: '' },
+    ],
+    series: [
+      {
+        clave: 'por_estado',
+        titulo: 'Facturas por estado',
+        tipo: 'barras',
+        datos: [
+          { etiqueta: 'Emitida', valor: 18 },
+          { etiqueta: 'Entregada', valor: 34 },
+          { etiqueta: 'Firmada', valor: 56 },
+          { etiqueta: 'Recibida', valor: 20 },
+        ],
+      },
+      {
+        clave: 'por_bodega',
+        titulo: 'Facturas por bodega',
+        tipo: 'barras',
+        datos: [
+          { etiqueta: 'Bodega Central', valor: 41 },
+          { etiqueta: 'Bodega Norte', valor: 33 },
+          { etiqueta: 'Bodega Sur', valor: 54 },
+        ],
+      },
+    ],
+  }
+}

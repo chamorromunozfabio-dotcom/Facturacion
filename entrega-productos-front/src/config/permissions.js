@@ -17,6 +17,7 @@ const RULES = {
     roles: ['view', 'create', 'edit', 'delete'],
     permisos: ['view', 'create', 'edit', 'delete'],
     facturas: ['view', 'create', 'edit', 'delete', 'entregar', 'recibir', 'pdf'],
+    estadisticas: ['view'],
   },
   bodeguero: {
     // Los Tipos son los productos de su bodega: los gestiona completos.
@@ -25,9 +26,11 @@ const RULES = {
     bodegas: ['view', 'create', 'edit', 'delete'],
     // Sin clave 'usuarios': /usuarios es solo del admin (backend responde 403).
     facturas: ['view', 'create', 'edit', 'delete', 'entregar', 'recibir', 'pdf'],
+    estadisticas: ['view'],
   },
   cliente: {
     facturas: ['view', 'aceptar', 'rechazar', 'pdf'],
+    estadisticas: ['view'],
   },
 }
 
@@ -47,6 +50,7 @@ export const MODULOS_PERMISO = [
   { clave: 'tipos', etiqueta: 'Tipos (productos)' },
   { clave: 'roles', etiqueta: 'Roles' },
   { clave: 'permisos', etiqueta: 'Permisos' },
+  { clave: 'estadisticas', etiqueta: 'Estadísticas' },
 ]
 
 const ETIQUETAS_ACCION = {

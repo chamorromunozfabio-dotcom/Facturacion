@@ -310,17 +310,18 @@ describe('Test 40 — Permisos por usuario con buscador y tarjetas de funciones'
     await wrapper.find('[data-test="aplicar-rol"]').trigger('click')
     await flushPromises()
 
-    expect(wrapper.find('[data-test="plantilla-rol"]').text()).toContain('4 permisos predefinidos')
+    // 4 permisos del cliente + estadisticas_view (el mock deriva el catálogo del código).
+    expect(wrapper.find('[data-test="plantilla-rol"]').text()).toContain('5 permisos predefinidos')
     expect(wrapper.find('[data-test="check-facturas:view"]').element.checked).toBe(true)
     expect(wrapper.find('[data-test="check-facturas:aceptar"]').element.checked).toBe(true)
     expect(wrapper.find('[data-test="check-bodegas:view"]').element.checked).toBe(false)
-    expect(wrapper.find('[data-test="confirmar-bar"]').text()).toContain('4 cambios listos')
+    expect(wrapper.find('[data-test="confirmar-bar"]').text()).toContain('5 cambios listos')
     expect(usuarios.addPermiso).not.toHaveBeenCalled()
 
     await wrapper.find('[data-test="confirmar-permisos"]').trigger('click')
     await flushPromises()
 
-    expect(usuarios.addPermiso).toHaveBeenCalledTimes(4)
+    expect(usuarios.addPermiso).toHaveBeenCalledTimes(5)
     expect(wrapper.find('[data-test="confirmar-bar"]').exists()).toBe(false)
   })
 

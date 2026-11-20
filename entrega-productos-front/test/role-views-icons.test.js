@@ -37,39 +37,40 @@ describe('Test 25 — Vistas por rol con iconos Lucide y transiciones', () => {
     push.mockClear()
   })
 
-  it('admin ve los 7 módulos con iconos SVG en vez de emoji', () => {
+  it('admin ve los 8 módulos con iconos SVG en vez de emoji', () => {
     login('admin')
 
     const wrapper = mount(MainLayout, { global: globalOptions })
     const labels = wrapper.findAll('.menu__item').map((item) => item.text())
 
-    expect(labels).toHaveLength(7)
+    expect(labels).toHaveLength(8)
     expect(labels).toContain('Permisos')
     expect(labels).toContain('Roles')
-    expect(wrapper.findAll('.menu__item svg')).toHaveLength(7)
+    expect(labels).toContain('Estadísticas')
+    expect(wrapper.findAll('.menu__item svg')).toHaveLength(8)
     expect(wrapper.text()).not.toContain('🏠')
   })
 
-  it('bodeguero ve solo Inicio, Tipos, Bodegas y Facturas', () => {
+  it('bodeguero ve Inicio, Tipos, Bodegas, Facturas y Estadísticas', () => {
     login('bodeguero')
 
     const wrapper = mount(MainLayout, { global: globalOptions })
     const labels = wrapper.findAll('.menu__item').map((item) => item.text())
 
-    expect(labels).toEqual(['Inicio', 'Tipos', 'Bodegas', 'Facturas'])
-    expect(wrapper.findAll('.menu__item svg')).toHaveLength(4)
+    expect(labels).toEqual(['Inicio', 'Tipos', 'Bodegas', 'Facturas', 'Estadísticas'])
+    expect(wrapper.findAll('.menu__item svg')).toHaveLength(5)
     expect(wrapper.text()).not.toContain('Permisos')
     expect(wrapper.text()).not.toContain('Roles')
   })
 
-  it('cliente ve solo Inicio y Facturas', () => {
+  it('cliente ve Inicio, Facturas y Estadísticas', () => {
     login('cliente')
 
     const wrapper = mount(MainLayout, { global: globalOptions })
     const labels = wrapper.findAll('.menu__item').map((item) => item.text())
 
-    expect(labels).toEqual(['Inicio', 'Facturas'])
-    expect(wrapper.findAll('.menu__item svg')).toHaveLength(2)
+    expect(labels).toEqual(['Inicio', 'Facturas', 'Estadísticas'])
+    expect(wrapper.findAll('.menu__item svg')).toHaveLength(3)
   })
 
   it('el dashboard muestra solo los módulos del rol y un mensaje acorde', () => {
@@ -78,8 +79,9 @@ describe('Test 25 — Vistas por rol con iconos Lucide y transiciones', () => {
     const wrapper = mount(DashboardView, { global: globalOptions })
     const cards = wrapper.findAll('.card')
 
-    expect(cards).toHaveLength(1)
+    expect(cards).toHaveLength(2)
     expect(cards[0].text()).toContain('Facturas')
+    expect(cards[1].text()).toContain('Estadísticas')
     expect(cards[0].find('svg').exists()).toBe(true)
     expect(wrapper.text()).toContain('Consulta tus facturas')
     expect(wrapper.text()).not.toContain('Estado del día 1')

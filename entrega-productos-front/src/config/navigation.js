@@ -1,4 +1,5 @@
 import {
+  ChartColumn,
   Home,
   KeyRound,
   ReceiptText,
@@ -23,6 +24,7 @@ export const menuItems = [
   { label: 'Permisos', to: '/permisos', icon: KeyRound, module: 'permisos' },
   { label: 'Roles', to: '/roles', icon: ShieldCheck, module: 'roles' },
   { label: 'Facturas', to: '/facturas', icon: ReceiptText, module: 'facturas' },
+  { label: 'Estadísticas', to: '/estadisticas', icon: ChartColumn, module: 'estadisticas' },
 ]
 
 /**
