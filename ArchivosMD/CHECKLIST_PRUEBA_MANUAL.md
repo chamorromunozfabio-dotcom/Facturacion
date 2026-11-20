@@ -140,19 +140,22 @@ Estos cambios fueron internos: **no deben notarse en la pantalla**. Si algo de e
 - [ ] **1024 px:** comprobar el corte exacto entre drawer y menú fijo.
 - [ ] Confirmar en DevTools que no hay errores en consola ni estilos perdidos al navegar entre las 4 vistas CRUD y el login.
 
-## 10. Módulo nuevo: Estadísticas por rol
+## 10. Módulo nuevo: Estadísticas por usuario autenticado
 
-Novedad visible: hay una opción **Estadísticas** en el menú y una ruta `/estadisticas`. Antes de probarlo contra la API real, el backend debe crear el permiso `estadisticas_view` y asignarlo a cada usuario (desde Permisos, como los demás). Mientras tanto, en modo demo (`VITE_USE_MOCKS=true`) funciona con datos falsos por rol.
+Novedad visible: hay una opción **Estadísticas** en el menú y una ruta `/estadisticas`. El backend **ya publicó** el permiso `estadisticas_view` (en la plantilla de los 3 roles y asignado a los usuarios actuales) y el endpoint `GET /estadisticas/resumen`. En modo demo (`VITE_USE_MOCKS=true`) el panel funciona con datos falsos con la misma forma que la respuesta real.
 
 - [ ] Con `VITE_USE_MOCKS=true`: entrar como admin, bodeguero y cliente; en los tres casos el menú muestra **Estadísticas** y el panel abre sin errores.
-- [ ] El panel muestra tarjetas y barras con CSS puro (sin librerías de gráficos, PrimeVue ni Tailwind).
+- [ ] El panel muestra tarjetas, barras y la serie temporal `por_fecha` con CSS puro (sin librerías de gráficos, PrimeVue ni Tailwind).
+- [ ] En admin se ven 4 gráficos (`por_estado`, `por_fecha`, `por_bodega`, `top_productos`); en cliente solo 2 (`por_estado`, `por_fecha`).
+- [ ] La serie temporal se puede recorrer horizontalmente en el celular y marca cada día (o cada mes si el periodo es largo).
 - [ ] El rango de fechas arranca en el mes corriente; al cambiar “Desde” o “Hasta” se recarga automáticamente.
 - [ ] Si “Desde” > “Hasta”: aparece el aviso, el botón **Actualizar** queda deshabilitado y no se llama a la API.
 - [ ] Si el backend devuelve 403 (sin `estadisticas_view`), el guard devuelve al inicio y el menú no muestra la opción al recargar.
-- [ ] Con `VITE_USE_MOCKS=false` y el endpoint publicado: las cifras del admin no aparecen para el bodeguero ni el cliente (el filtro lo hace el backend por token).
-- [ ] El permiso `estadisticas_view` aparece en la matriz de Permisos como “pendiente de backend” hasta que el backend lo cree; una vez creado se puede tildar y guardar.
+- [ ] Con `VITE_USE_MOCKS=false`: el cartel superior dice **“Vista global de todos los usuarios”** para el admin y **“Solo tus propias cifras”** para bodeguero y cliente.
+- [ ] Con `VITE_USE_MOCKS=false`: las cifras cuadran con el listado de facturas de cada usuario (admin **todas las facturas, bodegas, usuarios activos y top de productos**; bodeguero las que creó; cliente las de su `cliente_id` sin contar `emitida`).
+- [ ] El permiso `estadisticas_view` aparece en la matriz de Permisos y **ya no figura como pendiente de backend**.
 
 ---
 
-**Estado actual:** 57 archivos de test / 309 pruebas en verde + build correcto.
-**Rama:** `main`, con el módulo de estadísticas preparado (pendiente de que backend publique el endpoint).
+**Estado actual:** 57 archivos de test / 310 pruebas en verde + build correcto.
+**Rama:** `main`, con el módulo de estadísticas integrado con el endpoint ya publicado.

@@ -25,7 +25,7 @@ src/
 │  ├─ ui/                       ← genéricos: DataTable, CrudPage, AlertMessage, FormModal, ...
 │  ├─ facturas/                 ← formulario, detalle, buscador de tipos y modales
 │  ├─ permisos/                 ← buscador, cabecera, matriz y confirmación
-│  ├─ estadisticas/             ← StatCard y BarrasPorEstado
+│  ├─ estadisticas/             ← StatCard, BarrasPorEstado y SerieTiempo
 │  ├─ auth/                     ← LoginForm (solo presentación del ingreso)
 │  ├─ layout/                   ← SidebarMenu y TopBar
 │  └─ (raíz)                    ← solo re-exports de compatibilidad
@@ -79,9 +79,9 @@ Módulo propio (no va dentro de Facturas ni del Inicio): ruta `/estadisticas`, m
 - `api/estadisticas.js`: un solo `GET /estadisticas/resumen?desde=&hasta=`; en modo demo usa `mockResumenEstadisticas`.
 - `composables/useEstadisticas.js`: rango del mes corriente, carga, error y derivados (`tarjetas`, `barras`, `sinDatos`).
 - `utils/estadisticas.js`: fechas ISO, formato de montos y normalización de la respuesta.
-- `components/estadisticas/`: `StatCard.vue` y `BarrasPorEstado.vue` (CSS puro, sin librería de gráficos).
+- `components/estadisticas/`: `StatCard.vue`, `BarrasPorEstado.vue` (series `tipo: barras`) y `SerieTiempo.vue` (serie `por_fecha`, `tipo: linea`). Gráficos con CSS puro, sin librería de gráficos.
 
-**Regla de oro:** el backend filtra los datos por token. El front nunca elige qué métricas corresponde a cada rol: pinta lo que llega. `generado_para` es solo informativo.
+**Regla de oro:** el backend filtra los datos por token. El **admin ve las cifras globales de todos los usuarios** (todas las facturas, bodegas, usuarios activos y top de productos); bodeguero y cliente ven solo lo suyo. El front nunca elige qué métricas corresponde a cada uno: pinta lo que llega. `generado_para` solo se usa para el cartel de alcance (“Vista global…” / “Solo tus propias cifras”). El backend ya publicó el endpoint; los mocks solo sirven para el modo demo y replican la forma de la respuesta real.
 
 ## Convención de nombres
 
@@ -98,7 +98,7 @@ Código nuevo: importá siempre desde `components/ui/` o `components/<modulo>/`.
 
 ## Estado y decisiones
 
-- Cobertura actual: **57 archivos de test / 309 pruebas** en verde con `npm test` (incluye el panel de estadísticas).
+- Cobertura actual: **57 archivos de test / 310 pruebas** en verde con `npm test` (incluye el panel de estadísticas y la serie temporal).
 - Regla adoptada para código nuevo: **regla de 3**. Si algo se repite en 3 pantallas, se extrae a `ui/` o `composables/`; si aparece en una sola, se queda en `components/<modulo>/`. Un archivo = una razón de cambiar.
 
 Se evaluaron y **se decidieron no hacer** estas dos mejoras:

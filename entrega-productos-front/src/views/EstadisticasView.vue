@@ -2,6 +2,7 @@
 import AlertMessage from '../components/ui/AlertMessage.vue'
 import StatCard from '../components/estadisticas/StatCard.vue'
 import BarrasPorEstado from '../components/estadisticas/BarrasPorEstado.vue'
+import SerieTiempo from '../components/estadisticas/SerieTiempo.vue'
 import { useEstadisticas } from '../composables/useEstadisticas'
 
 const {
@@ -13,6 +14,7 @@ const {
   resumen,
   tarjetas,
   barras,
+  lineas,
   sinDatos,
   cargar,
 } = useEstadisticas()
@@ -21,7 +23,9 @@ const {
 <template>
   <section>
     <h1>Estadísticas</h1>
-    <p class="subtitle">El resumen se filtra según tus permisos y tu rol.</p>
+    <p class="subtitle">
+      El admin ve las cifras globales; los demás usuarios, solo las suyas.
+    </p>
 
     <div class="filtros">
       <label>
@@ -45,7 +49,8 @@ const {
 
     <template v-if="!invalido">
       <p class="alcance" data-test="generado-para">
-        Datos de {{ resumen.generado_para || 'tu usuario' }} ·
+        {{ resumen.generado_para === 'admin' ? 'Vista global de todos los usuarios' : 'Solo tus propias cifras' }}
+        · {{ resumen.generado_para || 'tu usuario' }} ·
         {{ resumen.periodo.desde || desde }} a {{ resumen.periodo.hasta || hasta }}
       </p>
 
@@ -57,9 +62,18 @@ const {
         <StatCard v-for="tarjeta in tarjetas" :key="tarjeta.clave" v-bind="tarjeta" />
       </div>
 
-      <div v-if="barras.length" class="series">
+      <div v-if="barras.length" class="series" data-test="series-barras">
         <BarrasPorEstado
           v-for="serie in barras"
+          :key="serie.clave"
+          :titulo="serie.titulo"
+          :datos="serie.datos"
+        />
+      </div>
+
+      <div v-if="lineas.length" class="series series--tiempo" data-test="series-linea">
+        <SerieTiempo
+          v-for="serie in lineas"
           :key="serie.clave"
           :titulo="serie.titulo"
           :datos="serie.datos"
@@ -143,6 +157,10 @@ button:disabled {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 14px;
+}
+
+.series--tiempo {
+  margin-top: 14px;
 }
 
 @media (max-width: 480px) {

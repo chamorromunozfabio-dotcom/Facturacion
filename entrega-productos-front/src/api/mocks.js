@@ -366,10 +366,34 @@ export async function mockSetPermisos(rolId, permisosIds = []) {
   return { ...rol }
 }
 
+/** Serie temporal del modo demo: mismos nombres y tipos que usa el backend real. */
+function seriePorFecha(periodo, valores) {
+  const desde = new Date(`${periodo.desde}T00:00:00`)
+  const hasta = new Date(`${periodo.hasta}T00:00:00`)
+  const rango = Math.max(0, hasta.getTime() - desde.getTime())
+  const iso = (fecha) =>
+    `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(
+      fecha.getDate(),
+    ).padStart(2, '0')}`
+
+  return {
+    clave: 'por_fecha',
+    titulo: 'Facturas en el periodo',
+    tipo: 'linea',
+    datos: valores.map((valor, index) => ({
+      etiqueta: iso(
+        new Date(desde.getTime() + (rango * index) / Math.max(1, valores.length - 1)),
+      ),
+      valor,
+    })),
+  }
+}
+
 /**
  * Resumen de estadísticas para el modo demo.
  * El backend filtra con el token; acá leemos el rol guardado para que las tres
  * cuentas de prueba vean un panel distinto sin depender de que exista el endpoint.
+ * Las claves, etiquetas y tipos son los que devuelve el backend real.
  */
 export async function mockResumenEstadisticas(params = {}) {
   let rol = 'admin'
@@ -390,8 +414,9 @@ export async function mockResumenEstadisticas(params = {}) {
       generado_para: 'cliente',
       tarjetas: [
         { clave: 'facturas', etiqueta: 'Mis facturas', valor: 4, sufijo: '' },
-        { clave: 'pendientes', etiqueta: 'Pendientes de firma', valor: 1, sufijo: '' },
-        { clave: 'firmadas', etiqueta: 'Firmadas', valor: 3, sufijo: '' },
+        { clave: 'facturado', etiqueta: 'Total de mis facturas', valor: 8450000, sufijo: '$' },
+        { clave: 'pendientes', etiqueta: 'Por firmar', valor: 1, sufijo: '' },
+        { clave: 'rechazadas', etiqueta: 'Rechazadas', valor: 0, sufijo: '' },
       ],
       series: [
         {
@@ -403,6 +428,7 @@ export async function mockResumenEstadisticas(params = {}) {
             { etiqueta: 'Firmada', valor: 3 },
           ],
         },
+        seriePorFecha(periodo, [0, 1, 0, 2, 1, 0]),
       ],
     }
   }
@@ -412,9 +438,12 @@ export async function mockResumenEstadisticas(params = {}) {
       periodo,
       generado_para: 'bodeguero',
       tarjetas: [
-        { clave: 'facturas', etiqueta: 'Mis facturas', valor: 24, sufijo: '' },
+        { clave: 'facturas', etiqueta: 'Facturas', valor: 24, sufijo: '' },
         { clave: 'facturado', etiqueta: 'Facturado', valor: 8450000, sufijo: '$' },
         { clave: 'pendientes', etiqueta: 'Pendientes de firma', valor: 3, sufijo: '' },
+        { clave: 'rechazadas', etiqueta: 'Rechazadas', valor: 1, sufijo: '' },
+        { clave: 'bodegas', etiqueta: 'Mis bodegas', valor: 2, sufijo: '' },
+        { clave: 'tipos', etiqueta: 'Tipos en mis bodegas', valor: 20, sufijo: '' },
       ],
       series: [
         {
@@ -425,7 +454,28 @@ export async function mockResumenEstadisticas(params = {}) {
             { etiqueta: 'Emitida', valor: 4 },
             { etiqueta: 'Entregada', valor: 6 },
             { etiqueta: 'Firmada', valor: 11 },
+            { etiqueta: 'Rechazada', valor: 1 },
             { etiqueta: 'Recibida', valor: 3 },
+          ],
+        },
+        seriePorFecha(periodo, [0, 2, 4, 3, 7, 5]),
+        {
+          clave: 'por_bodega',
+          titulo: 'Facturado por bodega',
+          tipo: 'barras',
+          datos: [
+            { etiqueta: 'Plaza satelite', valor: 5310500 },
+            { etiqueta: 'Plaza central', valor: 3139500 },
+          ],
+        },
+        {
+          clave: 'top_productos',
+          titulo: 'Productos más vendidos',
+          tipo: 'barras',
+          datos: [
+            { etiqueta: 'Papa', valor: 18 },
+            { etiqueta: 'Yuca', valor: 12 },
+            { etiqueta: 'Manzana', valor: 9 },
           ],
         },
       ],
@@ -438,8 +488,10 @@ export async function mockResumenEstadisticas(params = {}) {
     tarjetas: [
       { clave: 'facturas', etiqueta: 'Facturas', valor: 128, sufijo: '' },
       { clave: 'facturado', etiqueta: 'Facturado', valor: 45600000, sufijo: '$' },
-      { clave: 'bodegas', etiqueta: 'Bodegas activas', valor: 5, sufijo: '' },
       { clave: 'pendientes', etiqueta: 'Pendientes de firma', valor: 12, sufijo: '' },
+      { clave: 'rechazadas', etiqueta: 'Rechazadas', valor: 2, sufijo: '' },
+      { clave: 'usuarios_activos', etiqueta: 'Usuarios activos', valor: 6, sufijo: '' },
+      { clave: 'bodegas_activas', etiqueta: 'Bodegas activas', valor: 2, sufijo: '' },
     ],
     series: [
       {
@@ -450,17 +502,30 @@ export async function mockResumenEstadisticas(params = {}) {
           { etiqueta: 'Emitida', valor: 18 },
           { etiqueta: 'Entregada', valor: 34 },
           { etiqueta: 'Firmada', valor: 56 },
+          { etiqueta: 'Rechazada', valor: 2 },
           { etiqueta: 'Recibida', valor: 20 },
         ],
       },
+      seriePorFecha(periodo, [0, 3, 6, 4, 9, 7]),
       {
         clave: 'por_bodega',
-        titulo: 'Facturas por bodega',
+        titulo: 'Facturado por bodega',
         tipo: 'barras',
         datos: [
-          { etiqueta: 'Bodega Central', valor: 41 },
-          { etiqueta: 'Bodega Norte', valor: 33 },
-          { etiqueta: 'Bodega Sur', valor: 54 },
+          { etiqueta: 'Plaza satelite', valor: 27105000 },
+          { etiqueta: 'Plaza central', valor: 18495000 },
+        ],
+      },
+      {
+        clave: 'top_productos',
+        titulo: 'Productos más vendidos',
+        tipo: 'barras',
+        datos: [
+          { etiqueta: 'Papa', valor: 120 },
+          { etiqueta: 'Yuca', valor: 110 },
+          { etiqueta: 'Manzana', valor: 50 },
+          { etiqueta: 'Arroz', valor: 35 },
+          { etiqueta: 'Pera', valor: 20 },
         ],
       },
     ],

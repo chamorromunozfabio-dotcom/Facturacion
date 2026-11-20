@@ -37,6 +37,11 @@ export function esSerieBarras(serie) {
   return serie?.tipo === 'barras' && Array.isArray(serie.datos) && serie.datos.length > 0
 }
 
+/** La serie temporal del backend (`por_fecha`) llega con `tipo: 'linea'`. */
+export function esSerieLinea(serie) {
+  return serie?.tipo === 'linea' && Array.isArray(serie.datos) && serie.datos.length > 0
+}
+
 export function maximoDe(serie) {
   const valores = (serie?.datos ?? []).map((dato) => Number(dato?.valor) || 0)
   return Math.max(0, ...valores)

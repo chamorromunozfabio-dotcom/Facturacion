@@ -3,6 +3,7 @@ import estadisticasApi from '../api/estadisticas'
 import { getErrorMessage } from '../api/axios'
 import {
   esSerieBarras,
+  esSerieLinea,
   normalizarResumen,
   rangoInvalido,
   rangoPorDefecto,
@@ -24,8 +25,14 @@ export function useEstadisticas() {
   const tarjetas = computed(() => resumen.value.tarjetas)
   const series = computed(() => resumen.value.series)
   const barras = computed(() => series.value.filter(esSerieBarras))
+  const lineas = computed(() => series.value.filter(esSerieLinea))
   const sinDatos = computed(
-    () => !loading.value && !error.value && !tarjetas.value.length && !barras.value.length,
+    () =>
+      !loading.value &&
+      !error.value &&
+      !tarjetas.value.length &&
+      !barras.value.length &&
+      !lineas.value.length,
   )
 
   async function cargar() {
@@ -55,6 +62,7 @@ export function useEstadisticas() {
     tarjetas,
     series,
     barras,
+    lineas,
     sinDatos,
     cargar,
   }

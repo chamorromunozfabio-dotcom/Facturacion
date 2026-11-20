@@ -9,12 +9,14 @@ import { getResumen } from '../src/api/estadisticas'
 import estadisticasApi from '../src/api/estadisticas'
 import {
   esSerieBarras,
+  esSerieLinea,
   formatearValor,
   maximoDe,
   normalizarResumen,
   rangoInvalido,
   rangoPorDefecto,
 } from '../src/utils/estadisticas'
+import { getErrorMessage } from '../src/api/axios'
 import { useEstadisticas } from '../src/composables/useEstadisticas'
 import EstadisticasView from '../src/views/EstadisticasView.vue'
 
@@ -56,6 +58,9 @@ describe('Test 59 — Estadísticas por rol: reglas, permiso, API y panel', () =
     expect(esSerieBarras({ tipo: 'barras', datos: [{ etiqueta: 'A', valor: 1 }] })).toBe(true)
     expect(esSerieBarras({ tipo: 'barras', datos: [] })).toBe(false)
     expect(esSerieBarras({ tipo: 'lineas', datos: [{ valor: 1 }] })).toBe(false)
+    expect(esSerieLinea({ tipo: 'linea', datos: [{ etiqueta: '2026-11-01', valor: 0 }] })).toBe(true)
+    expect(esSerieLinea({ tipo: 'linea', datos: [] })).toBe(false)
+    expect(esSerieLinea({ tipo: 'barras', datos: [{ valor: 1 }] })).toBe(false)
     expect(maximoDe({ datos: [{ valor: 3 }, { valor: 9 }, { valor: 'x' }] })).toBe(9)
     expect(normalizarResumen(null)).toEqual({
       periodo: {},
@@ -92,19 +97,41 @@ describe('Test 59 — Estadísticas por rol: reglas, permiso, API y panel', () =
 
     expect(bodeguero.periodo).toEqual({ desde: '2026-11-01', hasta: '2026-11-30' })
     expect(bodeguero.generado_para).toBe('bodeguero')
-    expect(bodeguero.tarjetas.map((tarjeta) => tarjeta.clave)).not.toContain('bodegas')
-    expect(bodeguero.series.every((serie) => serie.tipo === 'barras')).toBe(true)
+    expect(bodeguero.tarjetas.map((tarjeta) => tarjeta.clave)).toEqual([
+      'facturas',
+      'facturado',
+      'pendientes',
+      'rechazadas',
+      'bodegas',
+      'tipos',
+    ])
+    expect(bodeguero.series.map((serie) => serie.clave)).toEqual([
+      'por_estado',
+      'por_fecha',
+      'por_bodega',
+      'top_productos',
+    ])
+    expect(bodeguero.series.find((serie) => serie.clave === 'por_fecha').tipo).toBe('linea')
 
     localStorage.setItem('user', JSON.stringify({ rol: 'cliente' }))
     const cliente = await getResumen({})
     expect(cliente.generado_para).toBe('cliente')
-    expect(cliente.tarjetas.length).toBeGreaterThan(0)
+    expect(cliente.tarjetas.map((tarjeta) => tarjeta.clave)).not.toContain('bodegas')
+    expect(cliente.tarjetas.map((tarjeta) => tarjeta.clave)).toContain('facturado')
+    expect(cliente.series.map((serie) => serie.clave)).toEqual(['por_estado', 'por_fecha'])
     expect(cliente.series[0].datos.map((dato) => dato.etiqueta)).not.toContain('Emitida')
 
     localStorage.setItem('user', JSON.stringify({ rol: 'admin' }))
     const admin = await getResumen({})
     expect(admin.generado_para).toBe('admin')
-    expect(admin.tarjetas.map((tarjeta) => tarjeta.clave)).toContain('bodegas')
+    expect(admin.tarjetas.map((tarjeta) => tarjeta.clave)).toContain('bodegas_activas')
+    expect(admin.tarjetas.map((tarjeta) => tarjeta.clave)).toContain('usuarios_activos')
+    expect(cliente.tarjetas.map((tarjeta) => tarjeta.clave)).not.toContain('usuarios_activos')
+    expect(bodeguero.tarjetas.map((tarjeta) => tarjeta.clave)).not.toContain('usuarios_activos')
+    // El admin ve las cifras globales: suma todos los creadores, no solo el suyo.
+    expect(admin.tarjetas.find((tarjeta) => tarjeta.clave === 'facturas').valor).toBeGreaterThan(
+      bodeguero.tarjetas.find((tarjeta) => tarjeta.clave === 'facturas').valor,
+    )
     expect(admin.series.length).toBeGreaterThan(cliente.series.length)
   })
 
@@ -152,6 +179,97 @@ describe('Test 59 — Estadísticas por rol: reglas, permiso, API y panel', () =
     expect(wrapper.findAll('[data-test="stat-card"]')).toHaveLength(0)
   })
 
+  it('pinta la serie por_fecha (linea) del backend real y respeta su contrato', async () => {
+    const respuestaReal = {
+      periodo: { desde: '2026-11-01', hasta: '2026-11-30' },
+      generado_para: 'admin',
+      tarjetas: [
+        { clave: 'facturas', etiqueta: 'Facturas', valor: 8, sufijo: '' },
+        { clave: 'facturado', etiqueta: 'Facturado', valor: 14796540, sufijo: '$' },
+        { clave: 'pendientes', etiqueta: 'Pendientes de firma', valor: 0, sufijo: '' },
+        { clave: 'rechazadas', etiqueta: 'Rechazadas', valor: 1, sufijo: '' },
+        { clave: 'usuarios_activos', etiqueta: 'Usuarios activos', valor: 6, sufijo: '' },
+        { clave: 'bodegas_activas', etiqueta: 'Bodegas activas', valor: 2, sufijo: '' },
+      ],
+      series: [
+        {
+          clave: 'por_estado',
+          titulo: 'Facturas por estado',
+          tipo: 'barras',
+          datos: [
+            { etiqueta: 'Emitida', valor: 0 },
+            { etiqueta: 'Entregada', valor: 0 },
+            { etiqueta: 'Firmada', valor: 0 },
+            { etiqueta: 'Rechazada', valor: 1 },
+            { etiqueta: 'Recibida', valor: 7 },
+          ],
+        },
+        {
+          clave: 'por_fecha',
+          titulo: 'Facturas en el periodo',
+          tipo: 'linea',
+          datos: [
+            { etiqueta: '2026-11-01', valor: 0 },
+            { etiqueta: '2026-11-02', valor: 2 },
+          ],
+        },
+        {
+          clave: 'por_bodega',
+          titulo: 'Facturado por bodega',
+          tipo: 'barras',
+          datos: [{ etiqueta: 'Plaza satelite', valor: 13142790 }],
+        },
+        {
+          clave: 'top_productos',
+          titulo: 'Productos más vendidos',
+          tipo: 'barras',
+          datos: [{ etiqueta: 'Papa', valor: 120 }],
+        },
+      ],
+    }
+
+    const spy = vi.spyOn(estadisticasApi, 'getResumen').mockResolvedValue(respuestaReal)
+    const wrapper = mount(EstadisticasView)
+    await flushPromises()
+
+    expect(wrapper.findAll('[data-test="stat-card"]')).toHaveLength(6)
+    expect(wrapper.findAll('[data-test="serie-barras"]')).toHaveLength(3)
+    expect(wrapper.findAll('[data-test="serie-linea"]')).toHaveLength(1)
+    expect(wrapper.find('[data-test="punto-1"] .serie-tiempo__etiqueta').text()).toBe('02')
+    expect(wrapper.find('[data-test="punto-1"] .serie-tiempo__barra').attributes('aria-label')).toBe(
+      '2026-11-02: 2',
+    )
+    expect(wrapper.find('[data-test="sin-datos"]').exists()).toBe(false)
+    expect(wrapper.findAll('[data-test="stat-card"]')[1].text()).toContain('14.796.540 $')
+    expect(wrapper.find('[data-test="generado-para"]').text()).toContain(
+      'Vista global de todos los usuarios',
+    )
+    spy.mockRestore()
+
+    const respuestaCliente = {
+      ...respuestaReal,
+      generado_para: 'cliente',
+      tarjetas: respuestaReal.tarjetas.slice(0, 4),
+      series: respuestaReal.series.filter((serie) =>
+        ['por_estado', 'por_fecha'].includes(serie.clave),
+      ),
+    }
+    const spyCliente = vi.spyOn(estadisticasApi, 'getResumen').mockResolvedValue(respuestaCliente)
+    const cliente = mount(EstadisticasView)
+    await flushPromises()
+
+    expect(cliente.findAll('[data-test="serie-barras"]')).toHaveLength(1)
+    expect(cliente.findAll('[data-test="serie-linea"]')).toHaveLength(1)
+    expect(cliente.find('[data-test="generado-para"]').text()).toContain('Solo tus propias cifras')
+    spyCliente.mockRestore()
+
+    expect(
+      getErrorMessage({
+        response: { data: { detail: 'hasta: debe ser igual o posterior a desde' } },
+      }),
+    ).toBe('hasta: debe ser igual o posterior a desde')
+  })
+
   it('la estructura queda documentada y el contrato quedó escrito para backend', () => {
     for (const archivo of [
       '../src/api/estadisticas.js',
@@ -159,6 +277,7 @@ describe('Test 59 — Estadísticas por rol: reglas, permiso, API y panel', () =
       '../src/composables/useEstadisticas.js',
       '../src/components/estadisticas/StatCard.vue',
       '../src/components/estadisticas/BarrasPorEstado.vue',
+      '../src/components/estadisticas/SerieTiempo.vue',
       '../src/views/EstadisticasView.vue',
     ]) {
       expect(leer(archivo).length).toBeGreaterThan(0)
