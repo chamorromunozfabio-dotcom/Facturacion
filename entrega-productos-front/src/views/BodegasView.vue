@@ -1,19 +1,15 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import AlertMessage from '../components/ui/AlertMessage.vue'
 import ConfirmDelete from '../components/ui/ConfirmDelete.vue'
 import DataTable from '../components/ui/DataTable.vue'
 import FormModal from '../components/ui/FormModal.vue'
 import bodegasApi from '../api/bodegas'
 import usuariosApi from '../api/usuarios'
-import { getErrorMessage, isDuplicateError } from '../api/axios'
 import { useAuthStore } from '../stores/auth'
-import { tienePermiso } from '../config/permissions'
+import { useCrud } from '../composables/useCrud'
 
 const auth = useAuthStore()
-const canCreate = computed(() => tienePermiso(auth.permisos, auth.role, 'bodegas', 'create'))
-const canEdit = computed(() => tienePermiso(auth.permisos, auth.role, 'bodegas', 'edit'))
-const canDelete = computed(() => tienePermiso(auth.permisos, auth.role, 'bodegas', 'delete'))
 // Solo el admin asigna el dueño; el backend filtra el resto de los roles.
 const esAdmin = computed(() => auth.role === 'admin')
 const bodegueroOptions = ref([])
@@ -84,48 +80,6 @@ const formFromRow = (row) =>
     ]),
   )
 
-const rows = ref([])
-const total = ref(0)
-const page = ref(1)
-const limit = ref(10)
-const q = ref('')
-const loading = ref(false)
-const alert = ref(null)
-
-const modalOpen = ref(false)
-const editing = ref(null)
-const form = ref(emptyForm())
-const saving = ref(false)
-
-const confirmOpen = ref(false)
-const deleting = ref(null)
-const removing = ref(false)
-
-let searchTimer
-
-watch(q, () => {
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => {
-    if (page.value !== 1) page.value = 1
-    else load()
-  }, 300)
-})
-
-watch(page, () => load())
-
-async function load() {
-  loading.value = true
-  try {
-    const result = await bodegasApi.list({ q: q.value, page: page.value, limit: limit.value })
-    rows.value = result.data ?? []
-    total.value = result.total ?? 0
-  } catch (error) {
-    alert.value = { type: 'error', message: getErrorMessage(error) }
-  } finally {
-    loading.value = false
-  }
-}
-
 async function loadBodegueros() {
   if (!esAdmin.value) return
   try {
@@ -139,18 +93,6 @@ async function loadBodegueros() {
   }
 }
 
-function openCreate() {
-  editing.value = null
-  form.value = emptyForm()
-  modalOpen.value = true
-}
-
-function openEdit(row) {
-  editing.value = row
-  form.value = formFromRow(row)
-  modalOpen.value = true
-}
-
 // Todos los datos son obligatorios: no filtramos vacíos para que el usuario
 // vea el aviso en el campo en vez de un error raro del backend.
 function cleanPayload(payload) {
@@ -158,87 +100,64 @@ function cleanPayload(payload) {
     Object.entries(payload).filter(([key]) => key !== 'bodeguero_id'),
   )
   if (typeof limpio.codigo === 'string') limpio.codigo = limpio.codigo.trim().toUpperCase()
+  if (esAdmin.value && payload.bodeguero_id) {
+    limpio.bodeguero_id = Number(payload.bodeguero_id)
+  } else if (esAdmin.value && editing.value?.bodeguero_id != null) {
+    // Al dejar "Sin asignar" en una edición, quitamos el dueño actual.
+    limpio.bodeguero_id = null
+  }
   return limpio
 }
 
-// El PUT acepta campos parciales: enviamos solo lo que cambió.
-function changedFields(payload) {
-  return Object.fromEntries(
-    Object.entries(payload).filter(([key, value]) => {
-      if (key === 'bodeguero_id') {
-        return String(value ?? '') !== String(editing.value?.[key] ?? '')
-      }
-      return value !== editing.value?.[key]
-    }),
-  )
-}
-
-function errorMessage(error, fallback) {
-  if (isDuplicateError(error)) return 'Ya existe una bodega con ese nombre. Probá con otro.'
-  return getErrorMessage(error) || fallback
-}
-
-async function save(payload) {
-  saving.value = true
-  const clean = cleanPayload(payload)
-  if (esAdmin.value && payload.bodeguero_id) {
-    clean.bodeguero_id = Number(payload.bodeguero_id)
-  } else if (esAdmin.value && editing.value?.bodeguero_id != null) {
-    // Al dejar "Sin asignar" en una edición, quitamos el dueño actual.
-    clean.bodeguero_id = null
-  }
-  try {
-    if (editing.value) {
-      const changes = changedFields(clean)
-      if (Object.keys(changes).length === 0) {
-        modalOpen.value = false
-        alert.value = { type: 'info', message: 'No hay cambios: la bodega ya estaba guardada.' }
-        return
-      }
-      const updated = await bodegasApi.update(editing.value.id, changes)
-      const merged = { ...editing.value, ...updated }
-      rows.value = rows.value.map((row) => (row.id === merged.id ? merged : row))
-      alert.value = { type: 'success', message: 'Bodega actualizada. Los cambios ya están guardados.' }
-    } else {
-      const created = await bodegasApi.create(clean)
-      rows.value = [created, ...rows.value]
-      total.value += 1
-      alert.value = {
-        type: 'success',
-        message: `Bodega creada. "${created.nombre ?? payload.nombre}" ya está en la lista.`,
-      }
-    }
-    modalOpen.value = false
-  } catch (error) {
-    alert.value = { type: 'error', message: errorMessage(error, 'No se pudo guardar la bodega.') }
-  } finally {
-    saving.value = false
-  }
-}
-
-function askDelete(row) {
-  deleting.value = row
-  confirmOpen.value = true
-}
-
-async function confirmDelete() {
-  removing.value = true
-  try {
-    await bodegasApi.remove(deleting.value.id)
-    rows.value = rows.value.filter((row) => row.id !== deleting.value.id)
-    total.value = Math.max(0, total.value - 1)
-    confirmOpen.value = false
-    alert.value = { type: 'success', message: 'Bodega eliminada. Ya no aparece en la lista.' }
-  } catch (error) {
-    alert.value = { type: 'error', message: getErrorMessage(error) }
-  } finally {
-    removing.value = false
-  }
-}
-
-onMounted(() => {
-  load()
-  loadBodegueros()
+const {
+  canCreate,
+  canEdit,
+  canDelete,
+  createLabel,
+  confirmacion,
+  rows,
+  total,
+  page,
+  limit,
+  q,
+  loading,
+  alert,
+  modalOpen,
+  editing,
+  form,
+  saving,
+  confirmOpen,
+  deleting,
+  removing,
+  openCreate,
+  openEdit,
+  save,
+  askDelete,
+  confirmDelete,
+} = useCrud({
+  modulo: 'bodegas',
+  api: bodegasApi,
+  columns,
+  fields: formFields,
+  createLabel: 'Nueva bodega',
+  emptyForm,
+  formFromRow,
+  cleanPayload,
+  // El dueño puede venir como número o como string según el backend.
+  normalizarCambio: (key, valor) => (key === 'bodeguero_id' ? String(valor ?? '') : valor),
+  duplicateMessage: 'Ya existe una bodega con ese nombre. Probá con otro.',
+  mensajes: {
+    creado: (clean) => `Bodega creada. "${clean.nombre}" ya está en la lista.`,
+    actualizado: 'Bodega actualizada. Los cambios ya están guardados.',
+    eliminado: 'Bodega eliminada. Ya no aparece en la lista.',
+    sinCambios: 'No hay cambios: la bodega ya estaba guardada.',
+    fallbackGuardar: 'No se pudo guardar la bodega.',
+  },
+  confirmacion: {
+    titulo: 'Eliminar bodega',
+    mensaje: 'La bodega se eliminará de forma permanente. Esta acción no se puede deshacer.',
+  },
+  alMontar: loadBodegueros,
 })
 </script>
 
@@ -277,7 +196,7 @@ onMounted(() => {
       :limit="limit"
       :q="q"
       :loading="loading"
-      create-label="Nueva bodega"
+      :create-label="createLabel"
       :can-create="canCreate"
       :can-edit="canEdit"
       :can-delete="canDelete"
@@ -302,8 +221,8 @@ onMounted(() => {
 
     <ConfirmDelete
       :open="confirmOpen"
-      title="Eliminar bodega"
-      message="La bodega se eliminará de forma permanente. Esta acción no se puede deshacer."
+      :title="confirmacion.titulo"
+      :message="confirmacion.mensaje"
       :item-label="deleting?.nombre || ''"
       :loading="removing"
       @confirm="confirmDelete"

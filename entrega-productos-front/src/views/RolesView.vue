@@ -1,146 +1,66 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
 import AlertMessage from '../components/ui/AlertMessage.vue'
 import ConfirmDelete from '../components/ui/ConfirmDelete.vue'
 import DataTable from '../components/ui/DataTable.vue'
 import FormModal from '../components/ui/FormModal.vue'
 import rolesApi from '../api/roles'
-import { getErrorMessage, isDuplicateError } from '../api/axios'
-import { useAuthStore } from '../stores/auth'
-import { tienePermiso } from '../config/permissions'
+import { useCrud } from '../composables/useCrud'
 
-const auth = useAuthStore()
-const canCreate = computed(() => tienePermiso(auth.permisos, auth.role, 'roles', 'create'))
-const canEdit = computed(() => tienePermiso(auth.permisos, auth.role, 'roles', 'edit'))
-const canDelete = computed(() => tienePermiso(auth.permisos, auth.role, 'roles', 'delete'))
-
-const columns = [
-  { key: 'nombre', label: 'Nombre' },
-  { key: 'descripcion', label: 'Descripción' },
-  { key: 'estado', label: 'Estado' },
-]
-const fields = [
-  { key: 'nombre', label: 'Nombre', required: true, maxLength: 50 },
-  { key: 'descripcion', label: 'Descripción', type: 'textarea', maxLength: 255 },
-]
-
-const rows = ref([])
-const total = ref(0)
-const page = ref(1)
-const limit = ref(10)
-const q = ref('')
-const loading = ref(false)
-const alert = ref(null)
-
-const modalOpen = ref(false)
-const editing = ref(null)
-const form = ref({ nombre: '', descripcion: '' })
-const saving = ref(false)
-
-const confirmOpen = ref(false)
-const deleting = ref(null)
-const removing = ref(false)
-
-let searchTimer
-
-watch(q, () => {
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => {
-    if (page.value !== 1) page.value = 1
-    else load()
-  }, 300)
+const {
+  canCreate,
+  canEdit,
+  canDelete,
+  columnas: columns,
+  campos: fields,
+  createLabel,
+  confirmacion,
+  rows,
+  total,
+  page,
+  limit,
+  q,
+  loading,
+  alert,
+  modalOpen,
+  editing,
+  form,
+  saving,
+  confirmOpen,
+  deleting,
+  removing,
+  openCreate,
+  openEdit,
+  save,
+  askDelete,
+  confirmDelete,
+} = useCrud({
+  modulo: 'roles',
+  api: rolesApi,
+  columns: [
+    { key: 'nombre', label: 'Nombre' },
+    { key: 'descripcion', label: 'Descripción' },
+    { key: 'estado', label: 'Estado' },
+  ],
+  fields: [
+    { key: 'nombre', label: 'Nombre', required: true, maxLength: 50 },
+    { key: 'descripcion', label: 'Descripción', type: 'textarea', maxLength: 255 },
+  ],
+  createLabel: 'Nuevo rol',
+  emptyForm: () => ({ nombre: '', descripcion: '' }),
+  formFromRow: (row) => ({ nombre: row.nombre ?? '', descripcion: row.descripcion ?? '' }),
+  duplicateMessage: 'Ya existe un rol con ese nombre. Probá con otro.',
+  mensajes: {
+    creado: (clean) => `Rol creado. "${clean.nombre}" ya está disponible para asignar.`,
+    actualizado: 'Rol actualizado. Los cambios ya están guardados.',
+    eliminado: 'Rol eliminado. Ya no aparece en la lista.',
+    sinCambios: 'No hay cambios: el rol ya estaba guardado.',
+    fallbackGuardar: 'No se pudo guardar el rol.',
+  },
+  confirmacion: {
+    titulo: 'Eliminar rol',
+    mensaje: 'El rol se eliminará de forma permanente. Esta acción no se puede deshacer.',
+  },
 })
-
-watch(page, () => load())
-
-async function load() {
-  loading.value = true
-  try {
-    const result = await rolesApi.list({ q: q.value, page: page.value, limit: limit.value })
-    rows.value = result.data ?? []
-    total.value = result.total ?? 0
-  } catch (error) {
-    alert.value = { type: 'error', message: getErrorMessage(error) }
-  } finally {
-    loading.value = false
-  }
-}
-
-function openCreate() {
-  editing.value = null
-  form.value = { nombre: '', descripcion: '' }
-  modalOpen.value = true
-}
-
-function openEdit(row) {
-  editing.value = row
-  form.value = { nombre: row.nombre ?? '', descripcion: row.descripcion ?? '' }
-  modalOpen.value = true
-}
-
-function changedFields(payload) {
-  return Object.fromEntries(
-    Object.entries(payload).filter(([key, value]) => value !== editing.value?.[key]),
-  )
-}
-
-function errorMessage(error, fallback) {
-  if (isDuplicateError(error)) return 'Ya existe un rol con ese nombre. Probá con otro.'
-  return getErrorMessage(error) || fallback
-}
-
-async function save(payload) {
-  saving.value = true
-  try {
-    if (editing.value) {
-      const changes = changedFields(payload)
-      if (Object.keys(changes).length === 0) {
-        modalOpen.value = false
-        alert.value = { type: 'info', message: 'No hay cambios: el rol ya estaba guardado.' }
-        return
-      }
-      const updated = await rolesApi.update(editing.value.id, changes)
-      const merged = { ...editing.value, ...updated }
-      rows.value = rows.value.map((row) => (row.id === merged.id ? merged : row))
-      alert.value = { type: 'success', message: 'Rol actualizado. Los cambios ya están guardados.' }
-    } else {
-      const created = await rolesApi.create(payload)
-      rows.value = [created, ...rows.value]
-      total.value += 1
-      alert.value = {
-        type: 'success',
-        message: `Rol creado. "${payload.nombre}" ya está disponible para asignar.`,
-      }
-    }
-    modalOpen.value = false
-  } catch (error) {
-    alert.value = { type: 'error', message: errorMessage(error, 'No se pudo guardar el rol.') }
-  } finally {
-    saving.value = false
-  }
-}
-
-function askDelete(row) {
-  deleting.value = row
-  confirmOpen.value = true
-}
-
-async function confirmDelete() {
-  removing.value = true
-  try {
-    await rolesApi.remove(deleting.value.id)
-    rows.value = rows.value.filter((row) => row.id !== deleting.value.id)
-    total.value = Math.max(0, total.value - 1)
-    confirmOpen.value = false
-    alert.value = { type: 'success', message: 'Rol eliminado. Ya no aparece en la lista.' }
-  } catch (error) {
-    alert.value = { type: 'error', message: getErrorMessage(error) }
-  } finally {
-    removing.value = false
-  }
-}
-
-onMounted(load)
 </script>
 
 <template>
@@ -170,7 +90,7 @@ onMounted(load)
       :limit="limit"
       :q="q"
       :loading="loading"
-      create-label="Nuevo rol"
+      :create-label="createLabel"
       :can-create="canCreate"
       :can-edit="canEdit"
       :can-delete="canDelete"
@@ -201,8 +121,8 @@ onMounted(load)
 
     <ConfirmDelete
       :open="confirmOpen"
-      title="Eliminar rol"
-      message="El rol se eliminará de forma permanente. Esta acción no se puede deshacer."
+      :title="confirmacion.titulo"
+      :message="confirmacion.mensaje"
       :item-label="deleting?.nombre || ''"
       :loading="removing"
       @confirm="confirmDelete"

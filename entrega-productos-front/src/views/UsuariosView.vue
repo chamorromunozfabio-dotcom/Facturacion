@@ -1,20 +1,18 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import AlertMessage from '../components/ui/AlertMessage.vue'
 import ConfirmDelete from '../components/ui/ConfirmDelete.vue'
 import DataTable from '../components/ui/DataTable.vue'
 import FormModal from '../components/ui/FormModal.vue'
 import rolesApi from '../api/roles'
 import usuariosApi from '../api/usuarios'
-import { getErrorMessage, isDuplicateError } from '../api/axios'
+import { quitarVacios } from '../utils/crud'
 import { useAuthStore } from '../stores/auth'
-import { tienePermiso } from '../config/permissions'
+import { useCrud } from '../composables/useCrud'
 
 const auth = useAuthStore()
 const isBodeguero = computed(() => auth.role === 'bodeguero')
-const canCreate = computed(() => tienePermiso(auth.permisos, auth.role, 'usuarios', 'create'))
-const canEdit = computed(() => tienePermiso(auth.permisos, auth.role, 'usuarios', 'edit'))
-const canDelete = computed(() => tienePermiso(auth.permisos, auth.role, 'usuarios', 'delete'))
+const roleFilter = ref('')
 
 // Los roles NO son fijos: el admin puede crear otros y el backend los devuelve en GET /roles.
 const ROLES_POR_DEFECTO = [
@@ -79,24 +77,6 @@ const clienteFields = [
   { key: 'ciudad', label: 'Ciudad' },
 ]
 
-const rows = ref([])
-const total = ref(0)
-const page = ref(1)
-const limit = ref(10)
-const q = ref('')
-const roleFilter = ref('')
-const loading = ref(false)
-const alert = ref(null)
-
-const modalOpen = ref(false)
-const editing = ref(null)
-const form = ref({})
-const saving = ref(false)
-
-const confirmOpen = ref(false)
-const deleting = ref(null)
-const removing = ref(false)
-
 const effectiveRole = computed(() => (isBodeguero.value ? 'cliente' : roleFilter.value))
 
 const fields = computed(() => {
@@ -112,18 +92,6 @@ const fields = computed(() => {
   return list
 })
 
-let searchTimer
-
-watch([q, roleFilter], () => {
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => {
-    if (page.value !== 1) page.value = 1
-    else load()
-  }, 300)
-})
-
-watch(page, () => load())
-
 /** Trae los roles reales del backend, incluidos los creados después del despliegue. */
 async function cargarRoles() {
   try {
@@ -134,36 +102,45 @@ async function cargarRoles() {
   }
 }
 
-async function load() {
-  loading.value = true
-  try {
-    const params = { q: q.value, page: page.value, limit: limit.value }
-    if (effectiveRole.value) params.rol = effectiveRole.value
-    const result = await usuariosApi.list(params)
-    rows.value = result.data ?? []
-    total.value = result.total ?? 0
-  } catch (error) {
-    alert.value = { type: 'error', message: getErrorMessage(error) }
-  } finally {
-    loading.value = false
-  }
+function cleanPayload(payload) {
+  const clean = quitarVacios(payload)
+  if (clean.rol_id !== undefined) clean.rol_id = Number(clean.rol_id)
+  return clean
 }
 
-function emptyForm() {
-  return Object.fromEntries(fields.value.map((field) => [field.key, '']))
-}
-
-async function openCreate() {
-  await cargarRoles()
-  editing.value = null
-  form.value = emptyForm()
-  modalOpen.value = true
-}
-
-async function openEdit(row) {
-  await cargarRoles()
-  editing.value = row
-  form.value = {
+const {
+  canCreate,
+  canEdit,
+  canDelete,
+  createLabel,
+  confirmacion,
+  rows,
+  total,
+  page,
+  limit,
+  q,
+  loading,
+  alert,
+  modalOpen,
+  editing,
+  form,
+  saving,
+  confirmOpen,
+  deleting,
+  removing,
+  openCreate,
+  openEdit,
+  save,
+  askDelete,
+  confirmDelete,
+} = useCrud({
+  modulo: 'usuarios',
+  api: usuariosApi,
+  columns,
+  fields,
+  createLabel: 'Nuevo usuario',
+  emptyForm: () => Object.fromEntries(fields.value.map((field) => [field.key, ''])),
+  formFromRow: (row) => ({
     nombre: row.nombre ?? '',
     correo: row.correo ?? '',
     contrasena: '',
@@ -173,86 +150,24 @@ async function openEdit(row) {
     telefono: row.telefono ?? '',
     direccion: row.direccion ?? '',
     ciudad: row.ciudad ?? '',
-  }
-  modalOpen.value = true
-}
-
-function cleanPayload(payload) {
-  const clean = Object.fromEntries(
-    Object.entries(payload).filter(([, value]) => value !== '' && value !== null),
-  )
-  if (clean.rol_id !== undefined) clean.rol_id = Number(clean.rol_id)
-  return clean
-}
-
-function changedFields(payload) {
-  return Object.fromEntries(
-    Object.entries(payload).filter(([key, value]) => value !== editing.value?.[key]),
-  )
-}
-
-function errorMessage(error, fallback) {
-  if (isDuplicateError(error)) return 'Ya existe un usuario con ese correo. Probá con otro.'
-  return getErrorMessage(error) || fallback
-}
-
-async function save(payload) {
-  saving.value = true
-  const clean = cleanPayload(payload)
-  try {
-    if (editing.value) {
-      const changes = changedFields(clean)
-      if (Object.keys(changes).length === 0) {
-        modalOpen.value = false
-        alert.value = { type: 'info', message: 'No hay cambios: el usuario ya estaba guardado.' }
-        return
-      }
-      const updated = await usuariosApi.update(editing.value.id, changes)
-      rows.value = rows.value.map((row) => (row.id === updated.id ? { ...row, ...updated } : row))
-      alert.value = {
-        type: 'success',
-        message: 'Usuario actualizado. Los cambios ya están guardados.',
-      }
-    } else {
-      const created = await usuariosApi.create(clean)
-      rows.value = [created, ...rows.value]
-      total.value += 1
-      alert.value = {
-        type: 'success',
-        message: `Usuario creado. "${clean.nombre}" ya puede iniciar sesión.`,
-      }
-    }
-    modalOpen.value = false
-  } catch (error) {
-    alert.value = { type: 'error', message: errorMessage(error, 'No se pudo guardar el usuario.') }
-  } finally {
-    saving.value = false
-  }
-}
-
-function askDelete(row) {
-  deleting.value = row
-  confirmOpen.value = true
-}
-
-async function confirmDelete() {
-  removing.value = true
-  try {
-    await usuariosApi.remove(deleting.value.id)
-    rows.value = rows.value.filter((row) => row.id !== deleting.value.id)
-    total.value = Math.max(0, total.value - 1)
-    confirmOpen.value = false
-    alert.value = { type: 'success', message: 'Usuario eliminado. Ya no tiene acceso.' }
-  } catch (error) {
-    alert.value = { type: 'error', message: getErrorMessage(error) }
-  } finally {
-    removing.value = false
-  }
-}
-
-onMounted(() => {
-  cargarRoles()
-  load()
+  }),
+  cleanPayload,
+  duplicateMessage: 'Ya existe un usuario con ese correo. Probá con otro.',
+  mensajes: {
+    creado: (clean) => `Usuario creado. "${clean.nombre}" ya puede iniciar sesión.`,
+    actualizado: 'Usuario actualizado. Los cambios ya están guardados.',
+    eliminado: 'Usuario eliminado. Ya no tiene acceso.',
+    sinCambios: 'No hay cambios: el usuario ya estaba guardado.',
+    fallbackGuardar: 'No se pudo guardar el usuario.',
+  },
+  confirmacion: {
+    titulo: 'Eliminar usuario',
+    mensaje: 'El usuario perderá el acceso. Esta acción no se puede deshacer.',
+  },
+  paramsExtra: () => (effectiveRole.value ? { rol: effectiveRole.value } : {}),
+  filtros: [roleFilter],
+  antesDeAbrir: cargarRoles,
+  alMontar: cargarRoles,
 })
 </script>
 
@@ -302,7 +217,7 @@ onMounted(() => {
       :limit="limit"
       :q="q"
       :loading="loading"
-      create-label="Nuevo usuario"
+      :create-label="createLabel"
       :can-create="canCreate"
       :can-edit="canEdit"
       :can-delete="canDelete"
@@ -327,8 +242,8 @@ onMounted(() => {
 
     <ConfirmDelete
       :open="confirmOpen"
-      title="Eliminar usuario"
-      message="El usuario perderá el acceso. Esta acción no se puede deshacer."
+      :title="confirmacion.titulo"
+      :message="confirmacion.mensaje"
       :item-label="deleting?.nombre || ''"
       :loading="removing"
       @confirm="confirmDelete"

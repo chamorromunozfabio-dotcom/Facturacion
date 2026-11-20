@@ -9,8 +9,8 @@ Esta guía responde una pregunta simple: **¿dónde pongo esto y dónde lo busco
 | Una pantalla con ruta | `views/` | `FacturaView.vue`, `PermisosView.vue` |
 | Una pieza de una sola pantalla | `components/<modulo>/` | `components/facturas/FacturaLineas.vue` |
 | Una pieza usada en varias pantallas | `components/ui/` | `DataTable.vue`, `AlertMessage.vue` |
-| Estado, efectos o carga de datos | `composables/` | `useFacturas.js`, `usePermisos.js` |
-| Cálculos o validaciones sin Vue | `utils/` | `facturaCampos.js`, `facturas.js` |
+| Estado, efectos o carga de datos | `composables/` | `useFacturas.js`, `useCrud.js`, `usePermisos.js` |
+| Cálculos o validaciones sin Vue | `utils/` | `facturaCampos.js`, `facturas.js`, `crud.js` |
 | Llamadas al backend | `api/` | `api/facturas.js`, `api/axios.js` |
 | Catálogos fijos y menú | `config/` | `permissions.js`, `navigation.js` |
 | Sesión global | `stores/` | `stores/auth.js` |
@@ -30,11 +30,13 @@ src/
 ├─ composables/
 │  ├─ useFacturas.js            ← lógica de FacturaView
 │  ├─ useFacturaForm.js         ← lógica del formulario de factura
+│  ├─ useCrud.js                ← esqueleto común de Bodegas/Roles/Tipos/Usuarios
 │  ├─ usePermisos.js            ← lógica de PermisosView
 │  └─ useModalA11y.js           ← foco y Escape para diálogos
 ├─ utils/
 │  ├─ facturas.js               ← estados, columnas y mapeos puros
 │  ├─ facturaCampos.js          ← validación y mensajes del formulario
+│  ├─ crud.js                   ← diferencias, parámetros y errores compartidos
 │  └─ permisos.js               ← texto e iniciales
 ├─ api/                         ← endpoints reales y mocks
 ├─ config/                      ← permisos y navegación por rol
@@ -48,6 +50,16 @@ src/
 3. Si es una regla sin efectos (validar, formatear, traducir), buscá `<modulo>.js` en `utils/`.
 4. Si es una llamada al backend, buscá `api/<modulo>.js`.
 5. Si es un permiso o una opción del menú, buscá `config/`.
+
+## Agregar un listado CRUD
+
+`BodegasView`, `RolesView`, `TiposView` y `UsuariosView` no repiten el esqueleto: llaman a `useCrud({ ... })` con su configuración. Para crear uno nuevo:
+
+1. Definí `modulo`, `api`, `columns`, `fields`, `createLabel`, `emptyForm` y `formFromRow`.
+2. Si el formulario necesita otro guardado, pasá `cleanPayload`.
+3. Si la comparación de cambios es especial, pasá `normalizarCambio` y/o `actualParaCambios`.
+4. Poné los textos en `mensajes` y `confirmacion`; el composable se encarga de paginación, búsqueda con debounce, alertas, modales y baja.
+5. Para cargas o efectos extra usá `alMontar`, `antesDeAbrir`, `paramsExtra`, `filtros`, `transformarFila` y `despuesDeGuardar`.
 
 ## Convención de nombres
 
