@@ -81,3 +81,17 @@ src/
 Los archivos en la raíz de `components/` ya no contienen implementación: solo re-exportan el componente real desde `ui/` o `facturas/`. Están ahí para no romper imports antiguos.
 
 Código nuevo: importá siempre desde `components/ui/` o `components/<modulo>/`. Los re-exports de la raíz se pueden quitar cuando ya no queden imports que los usen.
+
+## Estado y decisiones
+
+- Cobertura actual: **56 archivos de test / 302 pruebas** en verde con `npm test`.
+- Regla adoptada para código nuevo: **regla de 3**. Si algo se repite en 3 pantallas, se extrae a `ui/` o `composables/`; si aparece en una sola, se queda en `components/<modulo>/`. Un archivo = una razón de cambiar.
+
+Se evaluaron y **se decidieron no hacer** estas dos mejoras:
+
+| Mejora descartada | Motivo |
+|---|---|
+| `api/createResource.js` para unificar `list/create/update/remove` | Cada módulo tiene particularidades (firma/PDF, roles, permisos) y los tests mockean por ruta. El riesgo supera el ahorro. Solo tendría sentido si apareciera un quinto CRUD simple e idéntico. |
+| Mover vistas a `views/catalogos/` y tests a `test/views/` | Es puramente estético: rompe imports del router y de los tests sin reducir código. |
+
+Pendiente fuera del alcance de los tests: revisión visual en DevTools a **320 / 375 / 768 / 1024 px** (jsdom no calcula CSS real).

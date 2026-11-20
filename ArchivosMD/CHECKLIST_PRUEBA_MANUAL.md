@@ -42,7 +42,8 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 - [ ] `/ordenes` y `/factura` redirigen a `/facturas`.
 - [ ] Color de acento: admin violeta, bodeguero verde, cliente ámbar.
 - [ ] Al cambiar de vista hay una transición suave.
-- [ ] En ventana angosta el menú se vuelve horizontal y sigue siendo usable.
+- [ ] A **1024 px o menos** el menú se abre con el botón hamburguesa (drawer); por encima de 1024 px queda fijo en pantalla.
+- [ ] El `<meta name="theme-color">` de `index.html` combina con la barra del navegador en el celular.
 
 ## 3. Tipos (admin)
 
@@ -101,7 +102,6 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 
 - [ ] Admin: crear un rol “supervisor” → aparece en la tabla y sale “Rol creado.”
 - [ ] Admin: editar y eliminar un rol con confirmación.
-- [ ] Admin: crear un permiso “editar_factura” → sale “Permiso creado.”
 - [ ] Admin: en **Permisos**, elegir un usuario → aparece “Editando los permisos de … (rol …)” con sus checks actuales (`GET /usuarios/{id}/permisos`).
 - [ ] Admin: marcar un permiso y tocar **Guardar permisos** → sale “Permisos de "Nombre" actualizados.” y se deshabilita el botón.
 - [ ] Admin: cambiar a otro usuario → carga **sus** permisos, no los del anterior.
@@ -120,7 +120,27 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 - [ ] Facturas: crear `FE-0001` en `emitida`, entregar, aceptar con firma → `firmada`, recibir → `recibida` y descargar `FE-0001.pdf`.
 - [ ] **No tocar CORS del backend**: seguimos llamando a `/api` (proxy de Vite).
 
+## 9. Verificación después de los refactors (entregas 6 a 8)
+
+Estos cambios fueron internos: **no deben notarse en la pantalla**. Si algo de esta lista falla, es una regresión.
+
+- [ ] Ingresar sigue enviando `POST /login` con `{ "correo": "...", "contrasena": "..." }` (sin `usuario`, `username`, `password` ni form-data).
+- [ ] El login muestra igual el logo, los mensajes de validación, el aviso de sesión vencida y los botones de cuentas demo (si `VITE_USE_MOCKS=true`).
+- [ ] En Roles, Bodegas, Tipos y Usuarios: crear, buscar, editar, eliminar, paginar y los mensajes de éxito/duplicado/sin cambios funcionan igual.
+- [ ] Los botones siguen diciendo **“Nuevo producto”**, **“Nueva bodega”**, **“Nuevo rol”**, **“Nuevo usuario”**; el formulario de Tipos sigue diciendo **“Producto *”**.
+- [ ] El menú “Tipos” y el título “Tipos de producto” se mantienen.
+- [ ] Los permisos del menú, botones y rutas siguen leyéndose de `auth.permisos` (recargar la página tras cambiarlos en backend).
+- [ ] Las animaciones de modales y alertas siguen funcionando; los avisos se cierran solos a los 5 s (salvo `duration: 0`).
+
+### Revisión visual (jsdom no la cubre)
+
+- [ ] **320 px:** sin desbordes horizontales; tarjeta de login y tablas scrolleables.
+- [ ] **375 px:** drawer hamburguesa, botones y campos touched sin solaparse.
+- [ ] **768 px:** misma maquetación con drawer; la alerta flotante de facturas pasa a `position: static`.
+- [ ] **1024 px:** comprobar el corte exacto entre drawer y menú fijo.
+- [ ] Confirmar en DevTools que no hay errores en consola ni estilos perdidos al navegar entre las 4 vistas CRUD y el login.
+
 ---
 
-**Estado actual:** 36 archivos de test / 178 aserciones en verde + build correcto.
-**Rama:** pendiente de merge del Test 36 (versión permisos por usuario).
+**Estado actual:** 56 archivos de test / 302 pruebas en verde + build correcto.
+**Rama:** `main`, con los cambios de arquitectura ya integrados y subidos.
