@@ -145,6 +145,7 @@ Estos cambios fueron internos: **no deben notarse en la pantalla**. Si algo de e
 Novedad visible: hay una opción **Estadísticas** en el menú y una ruta `/estadisticas`. El backend **ya publicó** el permiso `estadisticas_view` (en la plantilla de los 3 roles y asignado a los usuarios actuales) y el endpoint `GET /estadisticas/resumen`. En modo demo (`VITE_USE_MOCKS=true`) el panel funciona con datos falsos con la misma forma que la respuesta real.
 
 - [ ] Con `VITE_USE_MOCKS=true`: entrar como admin, bodeguero y cliente; en los tres casos el menú muestra **Estadísticas** y el panel abre sin errores.
+- [ ] La descripción bajo el título cambia por rol: admin → “Analiza las cifras globales de todos los usuarios y el rendimiento general.”; bodeguero → “Consulta las cifras de las facturas que creaste y de tus bodegas.”; cliente → “Consulta las cifras y la evolución de tus facturas.”
 - [ ] El panel muestra tarjetas, barras y la serie temporal `por_fecha` con CSS puro (sin librerías de gráficos, PrimeVue ni Tailwind).
 - [ ] En admin se ven 4 gráficos (`por_estado`, `por_fecha`, `por_bodega`, `top_productos`); en cliente solo 2 (`por_estado`, `por_fecha`).
 - [ ] La serie temporal se puede recorrer horizontalmente en el celular y marca cada día (o cada mes si el periodo es largo).
@@ -156,5 +157,5 @@ Novedad visible: hay una opción **Estadísticas** en el menú y una ruta `/esta
 
 ---
 
-**Estado actual:** 57 archivos de test / 310 pruebas en verde + build correcto.
+**Estado actual:** 57 archivos de test / 311 pruebas en verde + build correcto.
 **Rama:** `main`, con el módulo de estadísticas integrado con el endpoint ya publicado.

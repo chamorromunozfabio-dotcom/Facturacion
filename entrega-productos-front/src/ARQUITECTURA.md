@@ -77,7 +77,7 @@ src/
 Módulo propio (no va dentro de Facturas ni del Inicio): ruta `/estadisticas`, menú **Estadísticas** y permiso `estadisticas_view` en el catálogo fijo.
 
 - `api/estadisticas.js`: un solo `GET /estadisticas/resumen?desde=&hasta=`; en modo demo usa `mockResumenEstadisticas`.
-- `composables/useEstadisticas.js`: rango del mes corriente, carga, error y derivados (`tarjetas`, `barras`, `sinDatos`).
+- `composables/useEstadisticas.js`: rango del mes corriente, carga, error, derivados (`tarjetas`, `barras`, `sinDatos`) y la descripción bajo el título, personalizada por rol con `auth.role` (la vista solo la pinta).
 - `utils/estadisticas.js`: fechas ISO, formato de montos y normalización de la respuesta.
 - `components/estadisticas/`: `StatCard.vue`, `BarrasPorEstado.vue` (series `tipo: barras`) y `SerieTiempo.vue` (serie `por_fecha`, `tipo: linea`). Gráficos con CSS puro, sin librería de gráficos.
 

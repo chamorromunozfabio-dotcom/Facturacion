@@ -6,6 +6,7 @@ import SerieTiempo from '../components/estadisticas/SerieTiempo.vue'
 import { useEstadisticas } from '../composables/useEstadisticas'
 
 const {
+  descripcion,
   desde,
   hasta,
   invalido,
@@ -22,9 +23,7 @@ const {
 <template>
   <section>
     <h1>Estadísticas</h1>
-    <p class="subtitle">
-      El admin ve las cifras globales; los demás usuarios, solo las suyas.
-    </p>
+    <p class="subtitle">{{ descripcion }}</p>
 
     <div class="filtros">
       <label>

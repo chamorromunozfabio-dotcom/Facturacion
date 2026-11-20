@@ -1,6 +1,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import estadisticasApi from '../api/estadisticas'
 import { getErrorMessage } from '../api/axios'
+import { useAuthStore } from '../stores/auth'
 import {
   esSerieBarras,
   esSerieLinea,
@@ -14,6 +15,18 @@ import {
  * Qué datos llegan lo decide el backend según el token; acá solo se pintan.
  */
 export function useEstadisticas() {
+  const auth = useAuthStore()
+
+  const descripcion = computed(() => {
+    if (auth.role === 'admin') {
+      return 'Analiza las cifras globales de todos los usuarios y el rendimiento general.'
+    }
+    if (auth.role === 'bodeguero') {
+      return 'Consulta las cifras de las facturas que creaste y de tus bodegas.'
+    }
+    return 'Consulta las cifras y la evolución de tus facturas.'
+  })
+
   const inicial = rangoPorDefecto()
   const desde = ref(inicial.desde)
   const hasta = ref(inicial.hasta)
@@ -53,6 +66,7 @@ export function useEstadisticas() {
   watch([desde, hasta], () => cargar())
 
   return {
+    descripcion,
     desde,
     hasta,
     invalido,

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { defineComponent } from 'vue'
+import { createPinia, setActivePinia } from 'pinia'
 import { readFileSync } from 'node:fs'
 
 import { CATALOGO_PERMISOS, claveDelNombreBackend, tienePermiso } from '../src/config/permissions'
@@ -43,6 +44,7 @@ describe('Test 59 — Estadísticas por rol: reglas, permiso, API y panel', () =
   beforeEach(() => {
     localStorage.clear()
     vi.restoreAllMocks()
+    setActivePinia(createPinia())
   })
 
   it('las reglas de fechas, formato y series son puras', () => {
@@ -177,6 +179,24 @@ describe('Test 59 — Estadísticas por rol: reglas, permiso, API y panel', () =
     expect(wrapper.find('[data-test="rango-invalido"]').exists()).toBe(true)
     expect(wrapper.find('[data-test="recargar"]').attributes('disabled')).toBeDefined()
     expect(wrapper.findAll('[data-test="stat-card"]')).toHaveLength(0)
+  })
+
+  it('la descripción bajo el título se personaliza por rol', async () => {
+    const textos = {
+      admin: 'Analiza las cifras globales de todos los usuarios y el rendimiento general.',
+      bodeguero: 'Consulta las cifras de las facturas que creaste y de tus bodegas.',
+      cliente: 'Consulta las cifras y la evolución de tus facturas.',
+    }
+
+    for (const [rol, texto] of Object.entries(textos)) {
+      localStorage.setItem('user', JSON.stringify({ rol }))
+      setActivePinia(createPinia())
+      const wrapper = mount(EstadisticasView)
+      await flushPromises()
+
+      expect(wrapper.find('.subtitle').text()).toBe(texto)
+      wrapper.unmount()
+    }
   })
 
   it('pinta la serie por_fecha (linea) del backend real y respeta su contrato', async () => {
