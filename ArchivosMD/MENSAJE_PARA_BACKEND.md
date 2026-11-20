@@ -257,13 +257,13 @@ No hicieron falta backfills ni cambios de parámetros. Todo en verde: 45 archivo
 
 ---
 
-## Pedido (20-11-2026) — módulo new de Estadísticas por rol
+## Pedido (20-11-2026) — módulo nuevo de Estadísticas por usuario autenticado
 
-Hola equipo 👋 Queremos agregar un módulo **Estadísticas** con un panel distinto según el rol. La decisión del líder fue **módulo nuevo** (ruta `/estadisticas`, menú y permiso propios), no meterlo dentro de Facturas ni del Inicio.
+Hola equipo 👋 Queremos agregar un módulo **Estadísticas** donde **cada usuario vea sus propias cifras**. La decisión del líder fue **módulo nuevo** (ruta `/estadisticas`, menú y permiso propios), no meterlo dentro de Facturas ni del Inicio.
 
 ### 1. Permiso nuevo (catálogo fijo)
 
-Agregar a la tabla `permisos` un permiso con nombre **`estadisticas_view`** (módulo `estadisticas`, acción `view`) y poder asignarlo por usuario con los endpoints que ya existen (`POST/DELETE /usuarios/{id}/permisos/{permiso_id}`). El admin lo tiene por defecto; bodeguero y cliente recibirán el que corresponda.
+Agregar a la tabla `permisos` un permiso con nombre **`estadisticas_view`** (módulo `estadisticas`, acción `view`) y poder asignarlo **por usuario** con los endpoints que ya existen (`POST/DELETE /usuarios/{id}/permisos/{permiso_id}`). El admin lo tiene por defecto; a bodeguero y cliente se lo damos usuario por usuario. El menú y la ruta del front se leen de los permisos reales de la sesión, no de un rol fijo.
 
 > Como hicimos con los otros 29, no necesitamos un id concreto: resolvemos el id por `nombre` desde `GET /permisos`.
 
@@ -304,17 +304,17 @@ GET /estadisticas/resumen?desde=2026-11-01&hasta=2026-11-30
 
 `generado_para` es solo informativo: el front **no decide** qué mostrar según ese campo, pinta lo que llegue.
 
-### 4. Regla de datos por rol (esto es lo importante)
+### 4. Regla de datos por usuario autenticado (esto es lo importante)
 
-El filtro debe hacerse **en el backend**, igual que ya hacemos con `GET /facturas`:
+El filtro debe hacerse **en el backend**, igual que ya hacemos con `GET /facturas`. **El front nunca envía un `usuario_id`, `cliente_id` ni `bodega_id`: el usuario se toma del token.** Así nadie puede pedir las cifras de otro.
 
-| Rol | Datos que puede contar |
+| Usuario autenticado | Datos que puede contar |
 |---|---|
 | admin | Todas las facturas, todas las bodegas, top de productos y usuarios activos |
-| bodeguero | Solo las facturas que creó (`creado_por_id`) y/o de sus bodegas, y los tipos de esas bodegas |
-| cliente | Solo sus facturas (`creado_por_id`), sin series de bodegas ni de otros usuarios |
+| bodeguero | Solo las facturas que **ese usuario** creó (`creado_por_id`) y/o de sus bodegas, y los tipos de esas bodegas |
+| cliente | Solo las facturas de **ese usuario** (`creado_por_id`), sin series de bodegas ni de otros usuarios |
 
-Nunca devolver una serie que el rol no puede ver: es mejor omitirla que mandarla y ocultarla en el front.
+Dos bodegueros (o dos clientes) con el mismo rol deben recibir cifras distintas si sus facturas son distintas. Nunca devolver una serie que ese usuario no puede ver: es mejor omitirla que mandarla y ocultarla en el front.
 
 ### 5. De nuestro lado (front)
 
