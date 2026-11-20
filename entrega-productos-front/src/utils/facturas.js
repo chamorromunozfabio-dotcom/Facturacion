@@ -14,12 +14,6 @@ export function estadosPara(esCliente) {
   return esCliente ? ESTADOS.filter((estado) => estado !== 'emitida') : ESTADOS
 }
 
-export function textoAlcancePara(role) {
-  if (role === 'admin') return 'Ves todas las facturas.'
-  if (role === 'bodeguero') return 'Solo ves las facturas que creaste.'
-  return 'Solo ves tus facturas.'
-}
-
 /** El backend filtra por token; esto solo evita mostrar filas ajenas si vienen en la respuesta. */
 export function creadorDe(fila) {
   const valor = fila?.creado_por_id ?? fila?.creada_por_id

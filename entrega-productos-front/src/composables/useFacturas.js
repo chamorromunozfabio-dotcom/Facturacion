@@ -11,7 +11,6 @@ import {
   creadorDe,
   estadosPara,
   mensajeCreacion,
-  textoAlcancePara,
 } from '../utils/facturas'
 
 /**
@@ -34,8 +33,12 @@ export function useFacturas() {
   const esBodeguero = computed(() => auth.role === 'bodeguero')
   const idUsuario = computed(() => Number(auth.user?.id) || null)
 
-  const textoAlcance = computed(() => textoAlcancePara(auth.role))
   const estadoOptions = computed(() => estadosPara(esCliente.value))
+  const descripcion = computed(() =>
+    esAdmin.value
+      ? 'Supervisa todas las facturas y el ciclo completo de entrega.'
+      : 'Consulta el estado de tus facturas y gestiona la entrega.',
+  )
 
   const rows = ref([])
   const total = ref(0)
@@ -336,7 +339,7 @@ export function useFacturas() {
     canAceptar,
     canRechazar,
     canPdf,
-    textoAlcance,
+    descripcion,
     estadoOptions,
     columns: COLUMNAS,
     rows,

@@ -11,7 +11,6 @@ const {
   invalido,
   loading,
   error,
-  resumen,
   tarjetas,
   barras,
   lineas,
@@ -48,12 +47,6 @@ const {
     <AlertMessage v-if="error" :message="error" type="error" @close="error = ''" />
 
     <template v-if="!invalido">
-      <p class="alcance" data-test="generado-para">
-        {{ resumen.generado_para === 'admin' ? 'Vista global de todos los usuarios' : 'Solo tus propias cifras' }}
-        · {{ resumen.generado_para || 'tu usuario' }} ·
-        {{ resumen.periodo.desde || desde }} a {{ resumen.periodo.hasta || hasta }}
-      </p>
-
       <p v-if="sinDatos" class="aviso" data-test="sin-datos">
         No hay datos para el período seleccionado.
       </p>
@@ -129,12 +122,6 @@ button {
 button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-.alcance {
-  color: #6b7280;
-  font-size: 0.82rem;
-  margin: 0 0 16px;
 }
 
 .aviso {

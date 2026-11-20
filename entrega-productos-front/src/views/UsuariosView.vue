@@ -210,12 +210,6 @@ const {
     @cancel="confirmOpen = false"
     @close-alert="alert = null"
   >
-    <template #notice>
-      <p v-if="isBodeguero" class="notice">
-        Estás viendo solo usuarios con rol <strong>cliente</strong>.
-      </p>
-    </template>
-
     <template #filter>
       <label v-if="!isBodeguero" class="filter">
         Filtrar por rol
@@ -236,11 +230,6 @@ const {
 </template>
 
 <style scoped>
-p {
-  margin: 4px 0 0;
-  color: #6b7280;
-}
-
 .filter {
   display: flex;
   align-items: center;
@@ -252,13 +241,5 @@ p {
   border: 1px solid #d1d5db;
   border-radius: 8px;
   padding: 8px 10px;
-}
-
-.notice {
-  background: #eff6ff;
-  border-left: 4px solid #2563eb;
-  border-radius: 6px;
-  padding: 10px 14px;
-  font-size: 0.9rem;
 }
 </style>

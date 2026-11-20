@@ -200,29 +200,5 @@ const {
     @cancel="confirmOpen = false"
     @close-alert="alert = null"
   >
-    <template #notice>
-      <p class="notice">
-        {{
-          esAdmin
-            ? 'Puedes asignar el bodeguero dueño de cada bodega.'
-            : 'Solo ves y gestionas las bodegas que te pertenecen.'
-        }}
-      </p>
-    </template>
   </CrudPage>
 </template>
-
-<style scoped>
-p {
-  margin: 4px 0 0;
-  color: #6b7280;
-}
-
-.notice {
-  background: #fffbeb;
-  border-left: 4px solid #f59e0b;
-  border-radius: 6px;
-  padding: 10px 14px;
-  font-size: 0.9rem;
-}
-</style>

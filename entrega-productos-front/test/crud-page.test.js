@@ -165,9 +165,26 @@ describe('Test 57 — CrudPage: plantilla y eventos compartidos', () => {
     }
 
     expect(leer('../src/views/RolesView.vue')).toContain('#cell-estado')
-    expect(leer('../src/views/BodegasView.vue')).toContain('class="notice"')
+    expect(leer('../src/views/BodegasView.vue')).toContain(
+      'descripcion="Administra las bodegas y sus datos de contacto."',
+    )
     expect(leer('../src/views/TiposView.vue')).toContain('data-test="bodega-filter"')
     expect(leer('../src/views/UsuariosView.vue')).toContain('data-test="role-filter"')
+
+    // Solo queda la descripción bajo el título: sin carteles explicativos extra.
+    const avisosViejos = [
+      'Cada bodega tiene su catálogo',
+      'Estás viendo los productos de tu bodega',
+      'Puedes asignar el bodeguero dueño',
+      'Solo ves y gestionas las bodegas',
+      'Estás viendo solo usuarios con rol',
+    ]
+    for (const nombre of vistas) {
+      const codigo = leer(`../src/views/${nombre}.vue`)
+      expect(codigo).toContain('descripcion="')
+      expect(codigo).not.toContain('class="notice"')
+      for (const aviso of avisosViejos) expect(codigo).not.toContain(aviso)
+    }
 
     const mapa = leer('../src/ARQUITECTURA.md')
     expect(mapa).toContain('CrudPage.vue')

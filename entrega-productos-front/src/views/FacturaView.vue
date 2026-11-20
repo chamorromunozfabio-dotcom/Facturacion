@@ -30,7 +30,7 @@ const {
   canAceptar,
   canRechazar,
   canPdf,
-  textoAlcance,
+  descripcion,
   estadoOptions,
   columns,
   filasVisibles,
@@ -89,12 +89,10 @@ const {
     <header class="facturas-page__header">
       <div>
         <h1>Facturas</h1>
-        <p>Consulta el estado de tus facturas y gestiona la entrega.</p>
+        <p>{{ descripcion }}</p>
       </div>
       <span class="badge">Documentos</span>
     </header>
-
-    <p class="aviso-alcance" data-test="aviso-alcance">{{ textoAlcance }}</p>
 
     <div class="alert-flotante" data-test="alert-flotante">
       <Transition name="alert">
@@ -266,7 +264,6 @@ const {
 h1 { margin: 0; font-size: 1.5rem; }
 p { margin: 4px 0 0; color: #6b7280; font-size: 0.9rem; }
 .badge { background: #e0e7ff; color: #3730a3; border-radius: 999px; padding: 4px 10px; font-size: 0.8rem; font-weight: 600; }
-.aviso-alcance { background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 8px 12px; color: #3730a3; font-size: 0.9rem; }
 
 /* La alerta flota por encima de los modales (z-index 50). */
 .alert-flotante { position: fixed; top: 16px; right: 16px; left: 16px; z-index: 100; max-width: 480px; margin-inline: auto; pointer-events: none; }

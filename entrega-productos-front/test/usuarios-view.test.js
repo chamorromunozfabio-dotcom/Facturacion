@@ -71,7 +71,8 @@ describe('Test 19 — UsuariosView (roles y campos condicionales)', () => {
     expect(wrapper.find('[data-test="role-filter"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="create"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="edit"]').exists()).toBe(false)
-    expect(wrapper.text()).toContain('solo usuarios con rol cliente')
+    // El filtro sigue por cliente, pero ya no mostramos el cartel explicativo.
+    expect(wrapper.text()).not.toContain('solo usuarios con rol cliente')
   })
 
   it('muestra los campos de cliente al elegir ese rol', async () => {

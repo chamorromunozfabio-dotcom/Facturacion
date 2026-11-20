@@ -39,7 +39,6 @@ import {
   creadorDe,
   estadosPara,
   mensajeCreacion,
-  textoAlcancePara,
 } from '../src/utils/facturas'
 
 const leer = (ruta) => readFileSync(new URL(ruta, import.meta.url), 'utf8')
@@ -84,6 +83,7 @@ describe('Test 54 — FacturaView modular: lógica, modales y mapa', () => {
       expect(vista).toContain(pieza)
     }
     expect(vista).not.toContain('async function confirmarAceptar')
+    expect(vista).not.toContain('aviso-alcance')
     expect(vista).toContain('alert-flotante')
     expect(vista).toContain('z-index: 100')
     expect(vista).toContain('@media (max-width: 768px)')
@@ -110,7 +110,7 @@ describe('Test 54 — FacturaView modular: lógica, modales y mapa', () => {
     expect(COLUMNAS.map((columna) => columna.key)).toContain('numero')
     expect(estadosPara(true)).not.toContain('emitida')
     expect(estadosPara(false)).toContain('emitida')
-    expect(textoAlcancePara('bodeguero')).toContain('creaste')
+    expect(leer('../src/utils/facturas.js')).not.toContain('textoAlcancePara')
     expect(creadorDe({ creado_por_id: '7' })).toBe(7)
     expect(creadorDe({})).toBeNull()
     expect(mensajeCreacion({ numero: 'FE-0009' })).toContain('FE-0009')

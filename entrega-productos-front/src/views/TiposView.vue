@@ -187,16 +187,6 @@ watch(bodegaId, () => {
     @cancel="confirmOpen = false"
     @close-alert="alert = null"
   >
-    <template #notice>
-      <p class="notice">
-        {{
-          esAdmin
-            ? 'Cada bodega tiene su catálogo. También podés crear un producto general sin bodega o ver "Todas las bodegas".'
-            : 'Estás viendo los productos de tu bodega. Los que crees solo aparecerán aquí.'
-        }}
-      </p>
-    </template>
-
     <template #filter>
       <label v-if="esAdmin || bodegas.length > 1" class="filter">
         Bodega
@@ -212,20 +202,6 @@ watch(bodegaId, () => {
 </template>
 
 <style scoped>
-p {
-  margin: 4px 0 0;
-  color: #6b7280;
-}
-
-.notice {
-  background: #eef2ff;
-  border: 1px solid #c7d2fe;
-  border-radius: 8px;
-  padding: 10px 12px;
-  color: #3730a3;
-  font-size: 0.9rem;
-}
-
 .filter {
   display: flex;
   flex-direction: column;

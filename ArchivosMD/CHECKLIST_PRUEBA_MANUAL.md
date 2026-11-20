@@ -151,7 +151,6 @@ Novedad visible: hay una opción **Estadísticas** en el menú y una ruta `/esta
 - [ ] El rango de fechas arranca en el mes corriente; al cambiar “Desde” o “Hasta” se recarga automáticamente.
 - [ ] Si “Desde” > “Hasta”: aparece el aviso, el botón **Actualizar** queda deshabilitado y no se llama a la API.
 - [ ] Si el backend devuelve 403 (sin `estadisticas_view`), el guard devuelve al inicio y el menú no muestra la opción al recargar.
-- [ ] Con `VITE_USE_MOCKS=false`: el cartel superior dice **“Vista global de todos los usuarios”** para el admin y **“Solo tus propias cifras”** para bodeguero y cliente.
 - [ ] Con `VITE_USE_MOCKS=false`: las cifras cuadran con el listado de facturas de cada usuario (admin **todas las facturas, bodegas, usuarios activos y top de productos**; bodeguero las que creó; cliente las de su `cliente_id` sin contar `emitida`).
 - [ ] El permiso `estadisticas_view` aparece en la matriz de Permisos y **ya no figura como pendiente de backend**.
 

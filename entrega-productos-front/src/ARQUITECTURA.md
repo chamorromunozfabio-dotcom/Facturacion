@@ -81,7 +81,7 @@ Módulo propio (no va dentro de Facturas ni del Inicio): ruta `/estadisticas`, m
 - `utils/estadisticas.js`: fechas ISO, formato de montos y normalización de la respuesta.
 - `components/estadisticas/`: `StatCard.vue`, `BarrasPorEstado.vue` (series `tipo: barras`) y `SerieTiempo.vue` (serie `por_fecha`, `tipo: linea`). Gráficos con CSS puro, sin librería de gráficos.
 
-**Regla de oro:** el backend filtra los datos por token. El **admin ve las cifras globales de todos los usuarios** (todas las facturas, bodegas, usuarios activos y top de productos); bodeguero y cliente ven solo lo suyo. El front nunca elige qué métricas corresponde a cada uno: pinta lo que llega. `generado_para` solo se usa para el cartel de alcance (“Vista global…” / “Solo tus propias cifras”). El backend ya publicó el endpoint; los mocks solo sirven para el modo demo y replican la forma de la respuesta real.
+**Regla de oro:** el backend filtra los datos por token. El **admin ve las cifras globales de todos los usuarios** (todas las facturas, bodegas, usuarios activos y top de productos); bodeguero y cliente ven solo lo suyo. El front nunca elige qué métricas corresponde a cada uno: pinta lo que llega. `generado_para` es solo un dato informativo del backend; no se muestra en pantalla. El backend ya publicó el endpoint; los mocks solo sirven para el modo demo y replican la forma de la respuesta real.
 
 ## Convención de nombres
 

@@ -163,7 +163,7 @@ describe('Test 59 — Estadísticas por rol: reglas, permiso, API y panel', () =
     expect(wrapper.find('h1').text()).toBe('Estadísticas')
     expect(wrapper.find('[data-test="desde"]').element.value).toMatch(/^\d{4}-\d{2}-\d{2}$/)
     expect(wrapper.find('[data-test="hasta"]').element.value).toMatch(/^\d{4}-\d{2}-\d{2}$/)
-    expect(wrapper.find('[data-test="generado-para"]').text()).toContain('admin')
+    expect(wrapper.find('[data-test="generado-para"]').exists()).toBe(false)
     expect(wrapper.findAll('[data-test="stat-card"]').length).toBeGreaterThan(0)
     expect(wrapper.findAll('[data-test="serie-barras"]').length).toBeGreaterThan(0)
     expect(wrapper.find('[data-test="barra-0"] .barras__relleno').attributes('style')).toContain(
@@ -241,9 +241,7 @@ describe('Test 59 — Estadísticas por rol: reglas, permiso, API y panel', () =
     )
     expect(wrapper.find('[data-test="sin-datos"]').exists()).toBe(false)
     expect(wrapper.findAll('[data-test="stat-card"]')[1].text()).toContain('14.796.540 $')
-    expect(wrapper.find('[data-test="generado-para"]').text()).toContain(
-      'Vista global de todos los usuarios',
-    )
+    expect(wrapper.find('[data-test="generado-para"]').exists()).toBe(false)
     spy.mockRestore()
 
     const respuestaCliente = {
@@ -260,7 +258,7 @@ describe('Test 59 — Estadísticas por rol: reglas, permiso, API y panel', () =
 
     expect(cliente.findAll('[data-test="serie-barras"]')).toHaveLength(1)
     expect(cliente.findAll('[data-test="serie-linea"]')).toHaveLength(1)
-    expect(cliente.find('[data-test="generado-para"]').text()).toContain('Solo tus propias cifras')
+    expect(cliente.find('[data-test="generado-para"]').exists()).toBe(false)
     spyCliente.mockRestore()
 
     expect(

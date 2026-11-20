@@ -68,7 +68,10 @@ describe('Test 46 — Facturas propias por usuario', () => {
     const wrapper = await montarComo('admin', 1)
 
     expect(wrapper.findAll('tbody tr')).toHaveLength(5)
-    expect(wrapper.find('[data-test="aviso-alcance"]').text()).toBe('Ves todas las facturas.')
+    expect(wrapper.find('[data-test="aviso-alcance"]').exists()).toBe(false)
+    expect(wrapper.find('.facturas-page__header p').text()).toBe(
+      'Supervisa todas las facturas y el ciclo completo de entrega.',
+    )
     expect(api.list).toHaveBeenCalledWith({ q: '', page: 1, limit: 10 })
   })
 
@@ -81,8 +84,9 @@ describe('Test 46 — Facturas propias por usuario', () => {
     expect(wrapper.text()).toContain('FE-0007')
     expect(wrapper.text()).not.toContain('FE-0008')
     expect(wrapper.text()).not.toContain('FE-0009')
-    expect(wrapper.find('[data-test="aviso-alcance"]').text()).toBe(
-      'Solo ves las facturas que creaste.',
+    expect(wrapper.find('[data-test="aviso-alcance"]').exists()).toBe(false)
+    expect(wrapper.find('.facturas-page__header p').text()).toBe(
+      'Consulta el estado de tus facturas y gestiona la entrega.',
     )
   })
 
@@ -97,7 +101,7 @@ describe('Test 46 — Facturas propias por usuario', () => {
     const wrapper = await montarComo('cliente', 5)
 
     expect(wrapper.findAll('tbody tr')).toHaveLength(5)
-    expect(wrapper.find('[data-test="aviso-alcance"]').text()).toBe('Solo ves tus facturas.')
+    expect(wrapper.find('[data-test="aviso-alcance"]').exists()).toBe(false)
   })
 
   it('compatibilidad: si el backend aún no envía creado_por_id, se muestra lo que devuelve', async () => {
