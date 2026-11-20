@@ -34,10 +34,11 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 
 | Rol | Módulos que debe ver |
 |---|---|
-| admin | Inicio, Tipos, Bodegas, Usuarios, Permisos, Roles, Facturas (7) |
-| bodeguero | Inicio, Tipos, Bodegas, Facturas (4) |
-| cliente | Inicio, Facturas (2) |
+| admin | Inicio, Tipos, Bodegas, Usuarios, Permisos, Roles, Facturas, Estadísticas (8) |
+| bodeguero | Inicio, Tipos, Bodegas, Facturas, Estadísticas (5) |
+| cliente | Inicio, Facturas, Estadísticas (3) |
 
+- [ ] El texto del Inicio se ajusta al rol y menciona **Estadísticas** (admin habla de cifras globales; bodeguero y cliente, de las suyas).
 - [ ] No aparece “Órdenes” en ningún rol.
 - [ ] `/ordenes` y `/factura` redirigen a `/facturas`.
 - [ ] Color de acento: admin violeta, bodeguero verde, cliente ámbar.
@@ -157,5 +158,5 @@ Novedad visible: hay una opción **Estadísticas** en el menú y una ruta `/esta
 
 ---
 
-**Estado actual:** 57 archivos de test / 311 pruebas en verde + build correcto.
+**Estado actual:** 57 archivos de test / 312 pruebas en verde + build correcto.
 **Rama:** `main`, con el módulo de estadísticas integrado con el endpoint ya publicado.

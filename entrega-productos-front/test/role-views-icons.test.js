@@ -87,6 +87,24 @@ describe('Test 25 — Vistas por rol con iconos Lucide y transiciones', () => {
     expect(wrapper.text()).not.toContain('Estado del día 1')
   })
 
+  it('el mensaje del inicio menciona Estadísticas y se ajusta a cada rol', () => {
+    const mensajes = {
+      admin: 'Supervisa todos los módulos, el ciclo completo de las facturas y las estadísticas globales.',
+      bodeguero:
+        'Gestionas Tipos, tus bodegas, el ciclo de las facturas y consultas tus estadísticas.',
+      cliente:
+        'Consulta tus facturas, acéptalas o recházalas, descarga el PDF y revisa tus estadísticas.',
+    }
+
+    for (const [rol, mensaje] of Object.entries(mensajes)) {
+      login(rol)
+      const wrapper = mount(DashboardView, { global: globalOptions })
+
+      expect(wrapper.find('.subtitle').text()).toBe(mensaje)
+      wrapper.unmount()
+    }
+  })
+
   it('el contenido del layout usa una transición de Vue', () => {
     login('admin')
 

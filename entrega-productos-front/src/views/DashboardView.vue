@@ -10,9 +10,9 @@ const modules = computed(() =>
 
 /** Cada rol ve un panel distinto: solo sus módulos y un mensaje acorde. */
 const roleMessages = {
-  admin: 'Gestionas todos los módulos y el ciclo completo de las facturas.',
-  bodeguero: 'Gestionas Tipos, tus bodegas y el ciclo de las facturas.',
-  cliente: 'Consulta tus facturas, acéptalas o recházalas y descarga el PDF.',
+  admin: 'Supervisa todos los módulos, el ciclo completo de las facturas y las estadísticas globales.',
+  bodeguero: 'Gestionas Tipos, tus bodegas, el ciclo de las facturas y consultas tus estadísticas.',
+  cliente: 'Consulta tus facturas, acéptalas o recházalas, descarga el PDF y revisa tus estadísticas.',
 }
 const roleMessage = computed(() => roleMessages[auth.role] || 'Bienvenido al sistema.')
 </script>
