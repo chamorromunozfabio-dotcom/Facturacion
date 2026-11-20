@@ -1,5 +1,7 @@
 # Registro del chat — Proyecto "Entrega de Productos" (Frontend, Día 1)
 
+> **Documento histórico del día 1.** Las decisiones confirmadas después (sin Órdenes, con Estadísticas y permisos reales) están en `indicaciones/info-proyecto.md`.
+
 **Fecha:** 17-11-2026
 **Ubicación del proyecto:** `C:\Users\SOPORTE03\Pictures\Proyecto`
 **Stack acordado:** Vue 3 + Vue Router + Pinia + Axios (frontend) / FastAPI + SQLAlchemy + MySQL (backend)

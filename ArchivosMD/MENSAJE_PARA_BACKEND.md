@@ -32,6 +32,8 @@
 
 También quedó sin efecto nuestro pedido anterior de filtrar `GET /facturas` por bodega: tu cuadro v2 dice que el bodeguero **ve todas** y solo puede crear desde las suyas. Nos alineamos con eso.
 
+> **Actualización posterior:** eso se corrigió después. La regla vigente es que el bodeguero ve **solo las facturas que creó** (`creado_por_id`), el cliente las de su `cliente_id` (sin `emitida`) y el admin todas. El front no envía ids para filtrar: el backend lo hace por token. Ver `ArchivosMD/RESPUESTA_ESTADISTICAS.md` e `indicaciones/info-proyecto.md`.
+
 ## Cuentas con las que estoy probando
 
 | Rol | Correo | Contraseña |
@@ -192,6 +194,8 @@ Ya preparamos el `bodega_id` en el envío y el filtro en la pantalla de Tipos, a
 
 Pusimos un **fallback**: si el backend todavía no devuelve `bodega_id`, el front sigue mostrando todos los tipos como hoy. O sea que nuestro cambio no rompe nada mientras publican esto. Cuando esté listo, avisen y lo verificamos en vivo con el admin y el bodeguero de prueba. Gracias 🚀
 
+> **Resuelto (ver respuesta recibida abajo):** el backend ya devuelve `bodega_id`, el front usa los tipos por bodega reales y el catálogo de facturas pide `GET /tipos?estado=true`. El fallback quedó solo para modo demo.
+
 ### Respuesta recibida (19-11-2026) — `RESPUESTA_TIPOS_POR_BODEGA.md` ✅ adoptado
 
 Gracias, quedó claro y ya adaptamos el front:
@@ -201,7 +205,7 @@ Gracias, quedó claro y ya adaptamos el front:
 - **Solo activos**: el catálogo de facturas ahora pide `GET /tipos?estado=true`.
 - **Verificación en vivo**: creé un tipo temporal en la bodega del bodeguero de prueba → `201` con `bodega_id`/`bodega_nombre`; lo vio el admin filtrando y el propio bodeguero; una bodega ajena devolvió `total: 0`; lo borré (`204`). No quedaron datos.
 
-Todo en verde: 44 archivos / 234 pruebas y build correcto. Si el catálogo de facturas debe mostrar también tipos inactivos en algún caso, avisen y lo ajustamos.
+Todo en verde: **57 archivos / 312 pruebas** y build correcto (en ese momento eran 44 / 234). Si el catálogo de facturas debe mostrar también tipos inactivos en algún caso, avisen y lo ajustamos.
 
 ---
 

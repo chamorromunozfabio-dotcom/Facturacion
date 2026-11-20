@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
       proxy: {
         // El navegador llama a /api (mismo origen) y Vite lo reenvía al backend.
-        // Así evitamos el CORS de la IP: el backend solo permite localhost:5173.
+        // Así no dependemos de los orígenes permitidos por el CORS del backend.
         '/api': {
           target: backendUrl,
           changeOrigin: true,

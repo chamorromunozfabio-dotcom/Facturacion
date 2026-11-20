@@ -1,5 +1,7 @@
 # Backend – Entrega de Productos
 
+> **Estado vigente (20-11-2026):** este era el instructivo inicial. Ya no hay módulo “Órdenes”: la orden es la factura. Están publicados `/facturas` con sus acciones y PDF, y `/estadisticas/resumen` con el permiso `estadisticas_view`. El front llama a `/api` mediante el proxy de Vite, así que **no hace falta ampliar el CORS**. Fuentes confiables: `indicaciones/info-proyecto.md` y `ArchivosMD/RESPUESTA_ESTADISTICAS.md`.
+
 **Stack:** FastAPI + SQLAlchemy + MySQL (Laragon / phpMyAdmin)
 **Rol:** Es el "cerebro". Guarda los datos, aplica las reglas, valida el login y los permisos, y entrega todo al frontend por medio de una API REST en formato JSON.
 
@@ -87,7 +89,7 @@ app = FastAPI(title="Entrega de Productos")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173"],  # el front usa el proxy /api: no hace falta ampliar la lista
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -113,10 +115,12 @@ Cuando Tipos funcione, se **copia el mismo patrón** para Bodegas, Usuarios y Pe
 - `POST /login` valida usuario y contraseña y devuelve un token JWT.
 - Una dependencia revisa el token y el rol antes de ejecutar cada endpoint protegido.
 
-### Paso 8 – Órdenes y factura (fase 2)
-- Órdenes de producto con estados.
-- Endpoint para **recibir y firmar** (guarda la firma que envía el frontend).
+### Paso 8 – Facturas y estadísticas (fase 2)
+- No hay módulo “Órdenes”: la orden es la factura, un solo recurso `/facturas`.
+- Estados `emitida → entregada → firmada → recibida`, o `rechazada` con motivo.
+- Aceptar guarda la firma PNG en data URL (máx. 500 KB) que envía el frontend; recibir cierra el ciclo; PDF generado por el backend.
 - Factura con encabezado, emisor, adquiriente, detalle, totales, pie de página, validación electrónica y datos del software.
+- `GET /estadisticas/resumen?desde=&hasta=` con permiso `estadisticas_view`: admin global, bodeguero solo lo que creó, cliente lo suyo sin `emitida`.
 
 ### Paso 9 – Pruebas y entrega
 - Probar cada endpoint en `/docs`.
@@ -194,10 +198,10 @@ Error:
 ## 7. Checklist de entrega
 
 - [ ] BD importada y conectada
-- [ ] CORS habilitado
+- [x] CORS para `localhost:5173` (el front en IP usa el proxy `/api`; no hubo que ampliar la lista)
 - [ ] Login con JWT funcionando
 - [ ] Roles y permisos aplicados
 - [ ] CRUD Tipos, Bodegas, Usuarios y Permisos
-- [ ] Órdenes con recibir y firmar
-- [ ] Factura completa
+- [x] Facturas: entregar, aceptar con firma, rechazar, recibir y PDF (sin módulo “Órdenes”)
+- [x] Estadísticas: `GET /estadisticas/resumen` y permiso `estadisticas_view`
 - [ ] README y `requirements.txt`

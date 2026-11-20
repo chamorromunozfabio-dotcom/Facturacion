@@ -1,7 +1,7 @@
 # Preguntas para el líder — estado actual
 
 > Equipo: frontend (Vue) + backend (FastAPI). Entrega: lunes 23-11-2026.
-> **Actualizado:** 18-11-2026 — ya no hay preguntas bloqueantes. El líder respondió todo en `CONTRATO_FACTURAS.MD` y en su mensaje posterior.
+> **Actualizado:** 20-11-2026 — ya no hay preguntas bloqueantes. Las decisiones iniciales se confirmaron en `CONTRATO_FACTURAS.md` y se ajustaron con las respuestas posteriores del backend. Fuente confiable: `indicaciones/info-proyecto.md`.
 
 ---
 
@@ -9,30 +9,31 @@
 
 | Tema | Respuesta definitiva |
 |---|---|
-| Roles | `admin`, `bodeguero`, `cliente`. Matriz completa en `CONTRATO_FACTURAS.MD`. |
-| Menú | Solo **Facturas**. Se quitó "Órdenes" porque la orden es la factura. |
-| Bodeguero en Tipos/Bodegas | Solo ver (`GET` permitido); el backend devolverá `403` en `POST`/`PUT`/`DELETE`. |
-| Bodeguero en Usuarios | Solo ver clientes: `GET /usuarios?rol=cliente` (el backend fuerza el filtro). |
-| Bodegas — "quién recibe" | 8 campos: `nombre`, `direccion`, `ciudad`, `telefono` y 4 `responsable_*`. Solo `nombre` obligatorio. |
-| Usuario cliente | `tipo_documento` (CC/NIT/CE), `numero_documento`, `telefono`, `direccion` en el mismo `POST`/`PUT`; `rol_id` numérico. |
+| Roles | `admin`, `bodeguero`, `cliente`. Matriz vigente en `indicaciones/info-proyecto.md`. |
+| Menú | Inicio, Tipos, Bodegas, Usuarios, Permisos, Roles, Facturas y **Estadísticas** (según permisos). Se quitó "Órdenes" porque la orden es la factura. |
+| Bodeguero en Tipos/Bodegas | CRUD de los suyos; el backend filtra por dueño (`creado_por_id` / bodega propia). |
+| Bodeguero en Usuarios | No tiene menú ni ruta: `/usuarios` responde `403`. |
+| Bodegas — "quién recibe" | `nombre` obligatorio, más `codigo`, `departamento`, `correo` y campos `recibe_*`. Los antiguos `responsable_*` ya no se usan. |
+| Usuario cliente | `tipo_documento` (CC/NIT/CE/PA), `numero_documento`, `telefono`, `direccion` y `ciudad` en el mismo `POST`/`PUT`; `rol_id` numérico. |
 | Listados y `q` | `{ data, total, page, limit }`. `q` busca por número y nombre del cliente. `estado` un solo valor. |
 | Firma | Data URL PNG completa, base64 válido, máx. 500 KB. Campo `firma`, se devuelve en `trazabilidad.firma`. |
-| Factura y PDF | Entidad única `/facturas`. PDF con `blob` y `Content-Disposition`. Totales los calcula el backend. |
-| Líneas del formulario | `GET /tipos?limit=100`, descripción precargada y editable, cantidades y validaciones confirmadas. |
-| Diseño | Sin Figma por ahora: se armó un diseño limpio propio con CSS. |
+| Factura y PDF | Entidad única `/facturas`, estados `emitida → entregada → firmada → recibida` (o `rechazada`). PDF `FE-0001.pdf` con `blob` y `Content-Disposition`. Totales los calcula el backend. |
+| Líneas del formulario | `GET /tipos?estado=true`, descripción precargada y editable, cantidades y validaciones confirmadas. |
+| Estadísticas | `GET /estadisticas/resumen?desde=&hasta=`, permiso `estadisticas_view`. Admin global, bodeguero solo lo que creó, cliente lo suyo sin `emitida`. |
+| Diseño | Sin Figma por ahora: diseño limpio propio con CSS, iconos Lucide y animaciones CSS puras. |
 
 ---
 
 ## Mensaje que se envió al líder (respondido)
 
-> Confirmado todo: menú solo con Facturas, bodeguero con permisos de solo lectura en Tipos/Bodegas y solo clientes en Usuarios, filtros del listado, transiciones de estado, firma con data URL PNG de 500 KB, PDF con blob, líneas del formulario y campos nuevos de Bodega y Usuario. Gracias.
+> Confirmado el contrato inicial y aplicadas las correcciones posteriores: sin Órdenes, bodeguero con CRUD en sus Tipos/Bodegas, permisos por usuario, estados vigentes de Facturas, firma de 500 KB, PDF por blob y módulo de Estadísticas. Gracias.
 
 ---
 
 ## Notas para nuestro equipo
 
-- Los permisos se cambian en **un solo lugar**: `src/config/permissions.js`.
-- El menú se arma desde `src/config/navigation.js` con `visibleMenuFor(rol)`.
-- El front oculta botones; el backend es quien bloquea con `403`.
-- Los tests están en verde: `npm test` → **24 archivos, 128 aserciones** (fuerzan mocks en `vite.config.js`).
+- El catálogo fijo de permisos está en `src/config/permissions.js` (30, incluido `estadisticas_view`); no se crean permisos desde la UI.
+- El menú se arma desde `src/config/navigation.js` con `visibleMenuFor(rol, permisos)`.
+- El menú, los botones y las rutas leen `auth.permisos`; la matriz por rol es solo respaldo. El backend revalida y bloquea con `403`.
+- Los tests están en verde: `npm test` → **57 archivos, 312 pruebas** (fuerzan mocks en `vite.config.js`).
 - `npm run build` compila correctamente.

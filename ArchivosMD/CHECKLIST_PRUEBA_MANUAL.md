@@ -84,7 +84,8 @@ Para el lunes. Tildá cada ítem mientras probás. Si algo falla, anotá **rol +
 
 ### Cliente
 
-- [ ] Solo ve Inicio y Facturas.
+- [ ] Solo ve Inicio, Facturas y Estadísticas (3 módulos).
+- [ ] La descripción bajo el título de Facturas dice “Consulta el estado de tus facturas y gestiona la entrega.”
 - [ ] En `entregada`: Aceptar (con firma) → `firmada`, y Rechazar (con motivo) → `rechazada`.
 - [ ] Dibujar la firma → se ve la vista previa; `Limpiar` la borra.
 - [ ] Aceptar sin firma → error “imagen PNG”.

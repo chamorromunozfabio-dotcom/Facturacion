@@ -391,7 +391,7 @@ describe('Test 40 — Permisos por usuario con buscador y tarjetas de funciones'
     expect(wrapper.find('[data-test="confirmar-bar"]').exists()).toBe(false)
   })
 
-  it('muestra como pendientes las funciones que el backend todavía no publicó', async () => {
+  it('marca como pendientes las funciones que faltan en la respuesta del backend', async () => {
     permisos.list.mockResolvedValue({
       data: [{ id: 6, nombre: 'usuarios_view' }],
       total: 1,

@@ -1,8 +1,8 @@
-# Integración con el backend — estado final (contrato v2)
+# Integración con el backend — estado de la v2 + novedades posteriores
 
-Fecha: 18-11-2026. El backend publicó `ArchivosMD/CAMBIOS_PARA_FRONTENDv2.md` y el frontend ya aplicó todos sus cambios. La verificación en vivo confirmó los endpoints y permisos.
+Fecha: 18-11-2026 (actualizado el 20-11-2026). El backend publicó `ArchivosMD/CAMBIOS_PARA_FRONTENDv2.md` y el frontend aplicó todos sus cambios. La verificación en vivo confirmó los endpoints y permisos. Después se sumaron las acciones definitivas de Facturas, los permisos por usuario y el módulo de Estadísticas.
 
-> `ArchivosMD/CONTRATO_FACTURASv2.md` trae valores viejos (`creada`, `aceptada`, `cerrada`, `FAC-000001`, `responsable_nombre`); **no es la referencia válida**. Manda `CAMBIOS_PARA_FRONTENDv2.md` + `CAMBIOS_PARA_FRONTEND.md`.
+> `ArchivosMD/CONTRATO_FACTURASv2.md` trae valores viejos (`creada`, `aceptada`, `cerrada`, `FAC-000001`, `responsable_nombre`); **no es la referencia válida**. Los contratos originales quedaron como registro y ya fueron corregidos en `ArchivosMD/CONTRATO_FACTURAS.md` e `indicaciones/CONTRATO_FACTURAS.md`. Manda `CAMBIOS_PARA_FRONTENDv2.md` + `CAMBIOS_PARA_FRONTEND.md` + `RESPUESTA_ESTADISTICAS.md`, y el resumen vigente en `indicaciones/info-proyecto.md`.
 
 ## Configuración actual
 
@@ -40,20 +40,21 @@ El backend aceptó el pedido y publicó:
 | POST | `/usuarios/{id}/permisos/{permiso_id}` | `usuariosApi.addPermiso(id, permisoId)` |
 | DELETE | `/usuarios/{id}/permisos/{permiso_id}` | `usuariosApi.removePermiso(id, permisoId)` |
 
-- `/usuarios`, `/usuarios/{id}`, `/me` y el `user` de `/login` traen `permisos: [{id, nombre}]`. El store los guarda en `auth.permisos` (no se usan aún para el menú: los guards siguen por rol y la matriz `permissions.js` sigue fija).
-- Permisos efectivos = **solo los del usuario**; el rol es plantilla al crear y cambiarlo después no modifica usuarios existentes. `PUT /roles/{id}/permisos` sigue disponible como plantilla.
-- En vivo: `/openapi.json` trae los 4 endpoints nuevos; `GET /usuarios/1/permisos` → `200 {data: []}`; `login` y `/me` traen `permisos: []`. Hay 1 permiso (`comra`) y los 3 roles con `permisos: []`. Las pruebas no cambiaron datos reales: simularon axios.
+- `/usuarios`, `/usuarios/{id}`, `/me` y el `user` de `/login` traen `permisos: [{id, nombre}]`. El store los guarda en `auth.permisos` y **el menú, los botones y las guardas de ruta leen esa lista real**; la matriz por rol de `permissions.js` queda solo como respaldo.
+- Permisos efectivos = **solo los del usuario**; el rol es plantilla al crear y cambiarlo después no modifica usuarios existentes. `PUT /roles/{id}/permisos` sigue disponible como plantilla. El catálogo es fijo: 30 permisos, incluido `estadisticas_view`; no se crean ni nombran desde la UI.
+- En vivo se sembraron los permisos y se asignaron a los usuarios. Las pruebas no cambiaron datos reales: simulan axios. Estado actual: **57 archivos / 312 pruebas** en verde.
 
 ## Permisos finales
 
 | Módulo | admin | bodeguero | cliente |
 |---|---|---|---|
-| Tipos | CRUD | CRUD | — |
+| Tipos | CRUD global | CRUD solo de los suyos | — |
 | Bodegas | CRUD de todas + asignar dueño | CRUD solo de las suyas | — |
 | Usuarios, Roles, Permisos | CRUD | 403 / sin menú ni ruta | 403 |
-| Facturas | todo | crear desde sus bodegas, editar, borrar, entregar, recibir, PDF | ver las suyas, aceptar y rechazar |
+| Facturas | todo, excepto aceptar/rechazar ajenas (403) | crear desde sus bodegas, editar, borrar, entregar, recibir, PDF; solo ve las que creó | ver las suyas por `cliente_id`, aceptar y rechazar |
+| Estadísticas | cifras globales | solo las facturas que creó | solo las suyas, sin `emitida` |
 
-Según el cuadro de `CAMBIOS_PARA_FRONTENDv2.md`, el bodeguero **ve todas** las facturas; el parámetro `bodega_id` que el front envía cuando `/me` lo trae es un refuerzo opcional que hoy se ignora.
+Regla vigente confirmada después de la v2: el bodeguero **ve solo las facturas que creó** (`creado_por_id`) y el admin todas. El front no envía ids para filtrar: el backend aplica el filtro según el token. El detalle está en `ArchivosMD/RESPUESTA_ESTADISTICAS.md` e `indicaciones/info-proyecto.md`.
 
 ## Credenciales reales (verificadas en vivo)
 

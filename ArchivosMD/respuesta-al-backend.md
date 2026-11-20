@@ -1,5 +1,7 @@
 # Respuesta al backend — decisiones del frontend
 
+> **Documento histórico:** refleja el contrato inicial. Los cambios posteriores (bodeguero con CRUD en sus Tipos/Bodegas, permisos por usuario, estados `emitida/firmada/recibida` y Estadísticas) están en `indicaciones/info-proyecto.md`.
+
 > Copiar y pegar en el chat del equipo.
 
 ---
@@ -30,7 +32,7 @@ Matriz que dejamos armada:
 
 Agregué el módulo `GET/POST/PUT/DELETE /roles` al frontend para el selector de rol en Usuarios.
 
-## 3) Bodegas ⏳
+## 3) Bodegas ✅ (resuelto: campos `codigo`, `departamento`, `correo` y `recibe_*`)
 
 Lo consultamos con el líder. Por ahora dejamos `nombre` + `direccion` opcional. En cuanto confirme los campos de "quién recibe", te aviso para que ajustes el schema.
 

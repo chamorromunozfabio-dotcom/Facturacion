@@ -1,5 +1,7 @@
 # Respuestas al frontend: roles, bodegas y facturas
 
+> **Versión anterior (no usar como referencia).** Trae valores viejos (`creada`, `aceptada`, `cerrada`, `FAC-000001`, `responsable_nombre`). Manda `CAMBIOS_PARA_FRONTENDv2.md` y el resumen vigente en `indicaciones/info-proyecto.md`.
+
 ## 1. Roles
 
 Roles: `admin`, `bodeguero`, `cliente`.

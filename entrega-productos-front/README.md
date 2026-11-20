@@ -102,7 +102,7 @@ src/
 - **Listados:** confirmado `{ data, total, page, limit }`, `page` empieza en 1, `limit` por defecto 10 y máximo 100 (exceso → 422).
 - **Búsqueda:** `q` con coincidencia parcial y sin distinguir mayúsculas.
 - CORS habilitado para `http://localhost:5173`; para otras IPs se usa el proxy `/api` de Vite (ver arriba).
-- Endpoints publicados y en uso: `/login`, `/me`, `/tipos`, `/bodegas`, `/usuarios`, `/roles`, `/permisos` y `/facturas` con sus acciones y PDF (más `/solo-admin`, temporal).
+- Endpoints publicados y en uso: `/login`, `/me`, `/tipos`, `/bodegas`, `/usuarios`, `/roles`, `/permisos`, `/facturas` con sus acciones y PDF, y `/estadisticas/resumen`.
 
 ### Tipos (Día 3 — publicado por el backend)
 
@@ -141,6 +141,13 @@ src/
 - `forma_pago`: `contado`, `credito` o `crédito`; con crédito, `fecha_vencimiento` es obligatoria.
 - Interfaz: el estado se muestra con `StatusBadge.vue` (mismo componente en listado y detalle). Colores: gris `emitida`, ámbar `entregada`, verde `firmada`, rojo `rechazada`, azul `recibida`. `DataTable` admite slots `cell-<key>` para personalizar celdas.
 
+### Estadísticas (módulo propio)
+
+- Ruta `/estadisticas`, menú **Estadísticas** y permiso fijo `estadisticas_view`.
+- Un solo endpoint: `GET /estadisticas/resumen?desde=YYYY-MM-DD&hasta=YYYY-MM-DD`. El backend filtra por token: admin ve todo, bodeguero solo lo que creó y cliente lo suyo sin `emitida`.
+- Tarjetas y series (`barras` y `por_fecha` tipo `linea`) pintadas con CSS puro en `components/estadisticas/`; sin librería de gráficos.
+- La descripción bajo el título cambia por rol. No hay carteles de alcance: solo esa línea debajo del título.
+
 ## Roles y permisos definitivos
 
 Definidos por el líder en `CONTRATO_FACTURAS.MD`. Se cambian en un solo lugar: `src/config/permissions.js` y `src/config/navigation.js`. El front oculta botones; el backend bloquea con `403`.
@@ -151,17 +158,18 @@ Definidos por el líder en `CONTRATO_FACTURAS.MD`. Se cambian en un solo lugar: 
 | Bodegas | CRUD de todas; asigna dueño con `bodeguero_id` | CRUD **solo de las suyas** (el backend filtra) | — |
 | Usuarios | CRUD | **Sin acceso** (ni menú, ni ruta; API da 403) | — |
 | Roles, Permisos | CRUD de roles/permisos; **permisos por usuario** con `PUT /usuarios/{id}/permisos` | — | — |
-| Facturas | Todo | Crear solo desde sus bodegas, editar, borrar, entregar, recibir y ver PDF | Ver las suyas, aceptar con firma y rechazar |
+| Facturas | Todo, excepto aceptar/rechazar facturas ajenas (backend da `403`) | Crear desde sus bodegas, editar, borrar, entregar, recibir y ver PDF | Ver las suyas, aceptar con firma y rechazar |
+| Estadísticas | Cifras globales de todos los usuarios | Solo las facturas que creó | Solo las suyas por `cliente_id`, sin contar `emitida` |
 
 El selector de clientes de Facturas ya no usa `/usuarios`: viene de `GET /facturas/clientes` (admin y bodeguero). El bodeguero tampoco ve el campo `bodeguero_id` en Bodegas: al crear, el backend lo pone como dueño automáticamente.
 
-**Cómo funcionan los permisos (respuesta del backend en `ArchivosMD/RESPUESTA_PERMISOS_FRONTEND.md`):** son **por usuario**. En `Permisos` el admin elige un usuario, ve sus permisos actuales (`GET /usuarios/{id}/permisos`), los marca/desmarca y guarda con `PUT /usuarios/{id}/permisos` → `{ permisos_ids: [...] }`; `[]` quita todos. También existen `POST`/`DELETE /usuarios/{id}/permisos/{permiso_id}` para uno solo. El **rol es solo la plantilla** al crear usuarios: cambiar un rol después no altera permisos de usuarios existentes. `/login`, `/me` y `/usuarios` ya traen `permisos: [{id, nombre}]` y la sesión los guarda (`auth.permisos`). Por ahora los guards siguen siendo por rol y el menú/botones usan la matriz fija `permissions.js`: cuando el backend pase a bloquear por permiso, se ajusta esa matriz. El menú y las rutas de `Roles`/`Permisos` son solo del admin.
+**Cómo funcionan los permisos:** son **por usuario**. En `Permisos` el admin elige un usuario, ve sus permisos actuales (`GET /usuarios/{id}/permisos`), los marca/desmarca y guarda con `PUT /usuarios/{id}/permisos` → `{ permisos_ids: [...] }`; `[]` quita todos. También existen `POST`/`DELETE /usuarios/{id}/permisos/{permiso_id}` para uno solo. El **rol es solo la plantilla** al crear usuarios: cambiar un rol después no altera permisos de usuarios existentes. `/login` y `/me` traen `permisos: [{id, nombre}]` y la sesión los guarda en `auth.permisos`. El menú, los botones y las guardas de ruta leen **esa lista real**; la matriz por rol de `permissions.js` queda solo como respaldo si la sesión no trae permisos. El backend revalida contra la BD en cada request y bloquea con `403`. El catálogo es fijo (30 permisos, incluido `estadisticas_view`): no se crean ni se nombran permisos desde la UI.
 
 `Órdenes` se quitó del menú: **la orden es la factura**, un solo módulo en `/facturas`. Las rutas viejas `/ordenes` y `/factura` redirigen ahí.
 
 ### Interfaz por rol
 
-- El menú y el dashboard se construyen con `visibleMenuFor(rol)`: admin ve 7 módulos, bodeguero 4 (Inicio, Tipos, Bodegas y Facturas) y cliente solo Inicio + Facturas.
+- El menú y el dashboard se construyen con `visibleMenuFor(rol, permisos)`: admin ve 8 módulos (Inicio, Tipos, Bodegas, Usuarios, Permisos, Roles, Facturas y Estadísticas), bodeguero 5 (Inicio, Tipos, Bodegas, Facturas y Estadísticas) y cliente 3 (Inicio, Facturas y Estadísticas).
 - Los iconos son componentes SVG de **`@lucide/vue`** (paquete oficial de Lucide; `lucide-vue-next` quedó deprecated). Están declarados en `src/config/navigation.js` y se pintan con `<component :is="item.icon" />`.
 - No se agregó ninguna librería de animación: el cambio de vista usa `<Transition name="fade" mode="out-in">` en `MainLayout.vue` y las tarjetas del dashboard usan una animación CSS escalonada.
 - Si el sistema pide “reducir movimiento”, las animaciones CSS se desactivan automáticamente (`prefers-reduced-motion`).
@@ -190,7 +198,7 @@ El selector de clientes de Facturas ya no usa `/usuarios`: viene de `GET /factur
 - [x] Vistas base y mocks para trabajar sin backend
 - [x] Login adaptado a `correo` + `contrasena`
 - [x] Módulo y ruta `/roles` agregados
-- [x] 24 archivos de tests unitarios (128 aserciones) en `test/`
+- [x] 24 archivos de tests unitarios (128 aserciones) en `test/` — cifra de ese día; hoy son **57 archivos / 312 pruebas**
 - [x] `GET /me` para recuperar la sesión al recargar
 - [x] Normalización de errores 422 (`detail` lista → texto)
 - [x] Frontend accesible desde la red (`npm run dev` con `--host`)
@@ -206,10 +214,10 @@ El selector de clientes de Facturas ya no usa `/usuarios`: viene de `GET /factur
 - [x] Usuarios con campos condicionales de cliente y filtro `?rol=`
 - [x] `SignaturePad` con firma PNG y límite de 500 KB
 - [x] Facturas: listado, detalle, formulario de líneas, estados, firma, rechazo y PDF
-- [x] 24 archivos de test en verde y `npm run build` correcto
+- [x] Tests en verde (hoy **57 archivos / 312 pruebas**) y `npm run build` correcto
 
 ## Pendiente del backend / líder
 
 - [ ] Definir el diseño visual (¿hay Figma/paleta?) si el líder lo tiene.
 
-Ya resuelto por el backend: `DELETE /tipos` para bodeguero, `/facturas/clientes`, bodegas con dueño y `403` en `/usuarios`. Según `CAMBIOS_PARA_FRONTENDv2.md`, el bodeguero **ve todas** las facturas (solo puede crear desde las suyas), así que el filtro `bodega_id` que enviamos es un refuerzo opcional que hoy se ignora. Detalle en `ArchivosMD/INTEGRACION_BACKEND.md`.
+Ya resuelto por el backend: `DELETE /tipos` para bodeguero, `/facturas/clientes`, bodegas con dueño y `403` en `/usuarios`. Regla vigente confirmada después: el **bodeguero ve solo las facturas que creó** (`creado_por_id`), el cliente las de su `cliente_id` (sin contar `emitida`) y el admin todas. El front no envía ids: el backend filtra por token. Detalle en `ArchivosMD/RESPUESTA_ESTADISTICAS.md` e `info-proyecto.md`.

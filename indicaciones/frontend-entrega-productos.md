@@ -1,5 +1,7 @@
 # Frontend – Entrega de Productos
 
+> **Estado vigente (20-11-2026):** este era el instructivo inicial. Ya no existe el módulo “Órdenes” (la orden es la factura) y se sumó **Estadísticas**. La fuente confiable es `indicaciones/info-proyecto.md`, `entrega-productos-front/README.md` y `src/ARQUITECTURA.md`. Abajo se conserva el plan original con las correcciones aplicadas.
+
 **Stack:** Vue 3 + Vue Router + Pinia + Axios
 **Rol:** Es la parte visual. Muestra datos, recoge lo que escribe el usuario y se comunica con el backend (FastAPI) por medio de la API REST. **No guarda datos ni aplica reglas de negocio:** eso lo hace el backend.
 
@@ -35,7 +37,7 @@
 - Botón cerrar sesión.
 
 ### 3.2 Layout principal
-- Menú lateral: Tipos, Bodegas, Usuarios, Permisos, Órdenes, Facturas.
+- Menú lateral: Inicio, Tipos, Bodegas, Usuarios, Permisos, Roles, Facturas y Estadísticas (según permisos del usuario).
 - Barra superior con el nombre del usuario y cerrar sesión.
 - Las opciones del menú dependen del rol.
 
@@ -54,14 +56,16 @@
 ### 3.6 CRUD Permisos
 - Listado y gestión de permisos por rol.
 
-### 3.7 Órdenes de producto (fase 2)
-- Listado de órdenes con su estado.
-- Detalle de la orden.
-- Pantalla **Recibir y Firmar**: lienzo para dibujar la firma y botón de confirmar.
+### 3.7 Facturas (antes “Órdenes”, fase 2)
+- Listado con su estado (`emitida` → `entregada` → `firmada` → `recibida`, o `rechazada`).
+- Detalle con emisor, adquiriente, bodega, líneas, totales y trazabilidad.
+- Aceptar con **Recibir y Firmar**: canvas con mouse/touch, firma PNG en base64 (máx. 500 KB).
+- Descargar el PDF generado por el backend (`FE-0001.pdf`, response `blob`).
 
-### 3.8 Factura (fase 2)
-- Ver la factura con encabezado, emisor, adquiriente, detalle, totales, pie de página y validación electrónica.
-- Botón para descargar o imprimir (PDF generado por el backend).
+### 3.8 Estadísticas (módulo nuevo)
+- Ruta `/estadisticas` con permiso `estadisticas_view`; menú y descripción por rol.
+- Un solo endpoint `GET /estadisticas/resumen?desde=&hasta=`: admin global, bodeguero solo lo que creó, cliente lo suyo sin `emitida`.
+- Tarjetas y series en CSS puro (`StatCard`, `BarrasPorEstado`, `SerieTiempo`).
 
 ---
 
@@ -91,7 +95,7 @@ src/
 
 ## 6. Conexión con el backend
 
-- Variable de entorno: `VITE_API_URL=http://localhost:8000`
+- Variables: `VITE_API_URL=/api` y `VITE_BACKEND_URL=http://192.168.20.49:8000`. Vite reenvía `/api` al backend y quita el header `Origin`.
 - Axios con `baseURL` y un interceptor que agrega `Authorization: Bearer <token>`.
 - Si el backend responde `401`, se cierra sesión y se redirige al login.
 - Rutas protegidas: si no hay token, se redirige a `/login`.
@@ -115,8 +119,8 @@ GET    /permisos     (mismo patrón)
 | 1 | Proyecto Vue, estructura, router, layout, axios |
 | 2 | Login + guardas de rutas + manejo de token |
 | 3 | Componentes reutilizables + CRUD Tipos y Bodegas |
-| 4 | CRUD Usuarios y Permisos, Órdenes y Recibir/Firmar |
-| 5 | Factura, integración final, pruebas y ajustes |
+| 4 | CRUD Usuarios, Roles y Permisos; Recibir/Firmar dentro de Facturas |
+| 5 | Facturas, Estadísticas, integración final, pruebas y ajustes |
 
 Mientras el backend no esté listo, se trabaja con **datos falsos (mock)** y luego se cambian por las llamadas reales.
 
@@ -130,11 +134,12 @@ Mientras el backend no esté listo, se trabaja con **datos falsos (mock)** y lue
 
 ## 9. Checklist de entrega
 
-- [ ] Login funcionando con token
-- [ ] Rutas protegidas por sesión y rol
-- [ ] CRUD Tipos, Bodegas, Usuarios y Permisos conectados a la API
-- [ ] Validaciones y mensajes de error
-- [ ] Diseño usable en móvil
-- [ ] Órdenes con Recibir y Firmar
-- [ ] Vista de factura
-- [ ] README con cómo ejecutar el proyecto
+- [x] Login funcionando con token
+- [x] Rutas protegidas por permisos reales (`auth.permisos`, con respaldo por rol)
+- [x] CRUD Tipos, Bodegas, Usuarios, Roles y Permisos conectados a la API
+- [x] Validaciones y mensajes de error
+- [x] Diseño responsive (falta la revisión visual final en 320/375/768/1024 px)
+- [x] Facturas con Recibir y Firmar (antes “Órdenes”)
+- [x] Vista de factura y descarga de PDF
+- [x] Módulo de Estadísticas conectado a `/estadisticas/resumen`
+- [x] README con cómo ejecutar el proyecto
