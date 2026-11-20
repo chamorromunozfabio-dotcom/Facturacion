@@ -7,18 +7,21 @@ function leer(ruta) {
 }
 
 describe('Test 50 — Reglas responsive para distintos dispositivos', () => {
-  it('la página declara el viewport para móviles', () => {
-    expect(leer('../index.html')).toContain(
-      '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
-    )
+  it('la página declara el viewport y el color de tema para móviles', () => {
+    const html = leer('../index.html')
+
+    expect(html).toContain('<meta name="viewport" content="width=device-width, initial-scale=1.0">')
+    expect(html).toContain('<meta name="theme-color" content="#111827">')
   })
 
-  it('el menú se apila y se desplaza en tablet', () => {
+  it('el menú se vuelve un drawer lateral en tablet y celular', () => {
     const css = leer('../src/layouts/MainLayout.vue')
 
-    expect(css).toContain('@media (max-width: 768px)')
+    expect(css).toContain('@media (max-width: 1024px)')
     expect(css).toContain('grid-template-columns: 1fr')
-    expect(css).toContain('overflow-x: auto')
+    expect(css).toContain('transform: translateX(-100%)')
+    expect(css).toContain('.sidebar--abierto')
+    expect(css).not.toContain('overflow-x: auto')
   })
 
   it('el buscador de tablas cabe en celulares chicos', () => {

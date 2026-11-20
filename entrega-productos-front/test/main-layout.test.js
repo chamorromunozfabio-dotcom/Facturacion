@@ -82,4 +82,64 @@ describe('Test 8 — MainLayout', () => {
     expect(useAuthStore().isAuthenticated).toBe(false)
     expect(push).toHaveBeenCalledWith({ name: 'login' })
   })
+
+  it('abre el menú con el botón hamburguesa y lo cierra con el fondo', async () => {
+    useAuthStore().saveSession('token-123', { nombre: 'Ana', rol: 'admin' })
+    const wrapper = mountLayout()
+    const toggle = wrapper.find('[data-test="menu-toggle"]')
+
+    expect(toggle.attributes('aria-expanded')).toBe('false')
+    expect(wrapper.find('[data-test="sidebar"]').classes()).not.toContain('sidebar--abierto')
+    expect(wrapper.find('[data-test="sidebar-backdrop"]').exists()).toBe(false)
+
+    await toggle.trigger('click')
+    await flushPromises()
+
+    expect(toggle.attributes('aria-expanded')).toBe('true')
+    expect(wrapper.find('[data-test="sidebar"]').classes()).toContain('sidebar--abierto')
+    expect(wrapper.find('[data-test="sidebar-backdrop"]').exists()).toBe(true)
+
+    await wrapper.find('[data-test="sidebar-backdrop"]').trigger('click')
+    await flushPromises()
+
+    expect(toggle.attributes('aria-expanded')).toBe('false')
+    expect(wrapper.find('[data-test="sidebar-backdrop"]').exists()).toBe(false)
+  })
+
+  it('cierra el menú al elegir una opción o al presionar Escape', async () => {
+    useAuthStore().saveSession('token-123', { nombre: 'Ana', rol: 'admin' })
+    const wrapper = mountLayout()
+    const toggle = wrapper.find('[data-test="menu-toggle"]')
+
+    await toggle.trigger('click')
+    await flushPromises()
+    expect(toggle.attributes('aria-expanded')).toBe('true')
+
+    await wrapper.findAll('.menu__item')[0].trigger('click')
+    await flushPromises()
+    expect(toggle.attributes('aria-expanded')).toBe('false')
+
+    await toggle.trigger('click')
+    await flushPromises()
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    await flushPromises()
+
+    expect(toggle.attributes('aria-expanded')).toBe('false')
+  })
+
+  it('cierra el menú al cerrar sesión', async () => {
+    useAuthStore().saveSession('token-123', { nombre: 'Ana', rol: 'admin' })
+    const wrapper = mountLayout()
+    const toggle = wrapper.find('[data-test="menu-toggle"]')
+
+    await toggle.trigger('click')
+    await flushPromises()
+    expect(toggle.attributes('aria-expanded')).toBe('true')
+
+    await wrapper.find('.logout').trigger('click')
+    await flushPromises()
+
+    expect(toggle.attributes('aria-expanded')).toBe('false')
+    expect(push).toHaveBeenCalledWith({ name: 'login' })
+  })
 })

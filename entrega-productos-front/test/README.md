@@ -23,7 +23,7 @@ npm run test:watch
 | 5 | CRUD con mocks: paginación y búsqueda | ⏳ Por ejecutar | [mocks-crud.test.js](mocks-crud.test.js) |
 | 6 | Componente `PagePlaceholder` | ⏳ Por ejecutar | [page-placeholder.test.js](page-placeholder.test.js) |
 | 7 | `LoginView`: validación y login demo | ✅ PASÓ (actualizado) | [login-view.test.js](login-view.test.js) |
-| 8 | `MainLayout`: menú por rol y logout | ✅ PASÓ | [main-layout.test.js](main-layout.test.js) |
+| 8 | `MainLayout`: menú por rol, drawer hamburguesa y logout | ⏳ Por ejecutar | [main-layout.test.js](main-layout.test.js) |
 | 9 | `DataTable`: filas, búsqueda, paginación y acciones | ✅ PASÓ | [data-table.test.js](data-table.test.js) |
 | 10 | `FormModal`: campos, validación y eventos | ✅ PASÓ | [form-modal.test.js](form-modal.test.js) |
 | 11 | `ConfirmDelete`: confirmación antes de borrar | ✅ PASÓ | [confirm-delete.test.js](confirm-delete.test.js) |
@@ -69,7 +69,7 @@ npm run test:watch
 
 ---
 
-**48 archivos de test, 261 pruebas.** Ejecutar todo con `npm test`.
+**48 archivos de test, 264 pruebas.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >
