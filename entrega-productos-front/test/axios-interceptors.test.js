@@ -56,5 +56,21 @@ describe('Test 3 — interceptores de Axios', () => {
 
     expect(localStorage.getItem('token')).toBeNull()
     expect(localStorage.getItem('user')).toBeNull()
+    expect(localStorage.getItem('sesion_vencida')).toBe('1')
+  })
+
+  it('un 401 del login son credenciales incorrectas, no sesión vencida', async () => {
+    // Estar ya en /login evita la navegación real (jsdom no soporta location.assign)
+    window.history.pushState({}, '', '/login')
+
+    const unauthorized = new Error('Credenciales incorrectas')
+    unauthorized.response = { status: 401, data: { detail: 'Credenciales incorrectas' } }
+    unauthorized.config = { url: '/login', headers: {} }
+
+    await expect(
+      api.post('/login', {}, { adapter: () => Promise.reject(unauthorized) }),
+    ).rejects.toMatchObject({ response: { status: 401 } })
+
+    expect(localStorage.getItem('sesion_vencida')).toBeNull()
   })
 })

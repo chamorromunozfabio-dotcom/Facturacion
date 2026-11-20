@@ -63,10 +63,12 @@ npm run test:watch
 | 45 | Eliminación de facturas emitidas tras confirmación | ✅ PASÓ | [factura-view.test.js](factura-view.test.js) |
 | 46 | Facturas propias por usuario y bloqueo 404 de ajenas | ✅ PASÓ | [facturas-por-usuario.test.js](facturas-por-usuario.test.js) |
 | 47 | Permisos: marcar todos, desmarcar todos y plantilla del rol | ⏳ Por ejecutar | [permisos-matriz.test.js](permisos-matriz.test.js) |
+| 48 | Avisos flotantes con cierre automático y cierre manual | ⏳ Por ejecutar | [alerta-auto-cierre.test.js](alerta-auto-cierre.test.js) |
+| 49 | Aviso de sesión vencida al volver al login | ⏳ Por ejecutar | [aviso-sesion-vencida.test.js](aviso-sesion-vencida.test.js) |
 
 ---
 
-**45 archivos de test, 244 pruebas.** Ejecutar todo con `npm test`.
+**47 archivos de test, 252 pruebas.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >

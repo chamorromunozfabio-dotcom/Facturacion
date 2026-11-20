@@ -4,12 +4,20 @@ import { useRoute, useRouter } from 'vue-router'
 import { getErrorMessage, useAuthStore } from '../stores/auth'
 import { MOCK_ACCOUNTS } from '../api/mocks'
 import { resolveApiModes } from '../config/apiModes'
+import {
+  avisoSesionVencida,
+  MENSAJE_SESION_VENCIDA,
+  prepararAvisoSesionVencida,
+} from '../config/sessionNotice'
 
 const auth = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 const isMockMode = resolveApiModes().authMocks
 const logoUrl = `${import.meta.env.BASE_URL}logo.png`
+
+// Recogemos el aviso que dejó el 401. Se limpia al entrar al login.
+prepararAvisoSesionVencida()
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const MIN_PASSWORD = 8
@@ -89,6 +97,24 @@ function usarCuenta(cuenta) {
       <img :src="logoUrl" alt="Logo de Entrega de Productos" class="login-card__logo" />
       <h1>Iniciar sesión</h1>
       <p class="subtitle">Entrega de Productos</p>
+
+      <div
+        v-if="avisoSesionVencida"
+        data-test="sesion-vencida"
+        class="aviso-sesion"
+        role="status"
+        aria-live="polite"
+      >
+        <span>{{ MENSAJE_SESION_VENCIDA }}</span>
+        <button
+          type="button"
+          class="aviso-sesion__cerrar"
+          aria-label="Cerrar aviso de sesión vencida"
+          @click="avisoSesionVencida = false"
+        >
+          ×
+        </button>
+      </div>
 
       <label>
         Correo electrónico <span class="required">*</span>
@@ -242,6 +268,27 @@ button {
 button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.aviso-sesion {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 0.85rem;
+}
+
+.aviso-sesion__cerrar {
+  margin-left: auto;
+  background: transparent;
+  color: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0 2px;
 }
 
 .error {

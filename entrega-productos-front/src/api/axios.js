@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { marcarSesionVencida } from '../config/sessionNotice'
 
 const TOKEN_KEY = 'token'
 
@@ -27,6 +28,13 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      // Un 401 del login son credenciales incorrectas, no una sesión vencida.
+      // Solo avisamos si había una sesión activa en otra petición.
+      const esLogin = String(error.config?.url || '').includes('/login')
+      if (!esLogin && localStorage.getItem(TOKEN_KEY)) {
+        marcarSesionVencida()
+      }
+
       localStorage.removeItem(TOKEN_KEY)
       localStorage.removeItem('user')
 

@@ -1,14 +1,36 @@
 <script setup>
+import { onMounted, onUnmounted, watch } from 'vue'
+
 /**
- * Mensaje de éxito o error. No decide nada: solo muestra y avisa al cerrar.
+ * Mensaje de éxito o error. Se cierra solo y también avisa al cerrar a mano.
+ * `duration: 0` deja el aviso fijo para los casos que lo necesiten.
  */
-defineProps({
+const props = defineProps({
   message: { type: String, required: true },
   type: { type: String, default: 'info' },
   dismissible: { type: Boolean, default: true },
+  duration: { type: Number, default: 5000 },
 })
 
 const emit = defineEmits(['close'])
+
+let closeTimer
+
+function programarCierre() {
+  clearTimeout(closeTimer)
+  if (props.duration > 0) {
+    closeTimer = setTimeout(() => emit('close'), props.duration)
+  }
+}
+
+function cerrar() {
+  clearTimeout(closeTimer)
+  emit('close')
+}
+
+onMounted(programarCierre)
+onUnmounted(() => clearTimeout(closeTimer))
+watch(() => [props.message, props.duration], programarCierre)
 </script>
 
 <template>
@@ -25,7 +47,7 @@ const emit = defineEmits(['close'])
       type="button"
       class="alert__close"
       aria-label="Cerrar mensaje"
-      @click="emit('close')"
+      @click="cerrar"
     >
       ×
     </button>
