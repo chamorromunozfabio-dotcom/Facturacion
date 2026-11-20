@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import SignaturePad from '../src/components/SignaturePad.vue'
+import { scalePoint } from '../src/utils/signature'
 
 const contextMock = {
   lineWidth: 0,
@@ -66,6 +67,34 @@ describe('Test 20 — SignaturePad (firma con canvas)', () => {
 
     expect(contextMock.clearRect).toHaveBeenCalled()
     expect(wrapper.emitted('update:modelValue')[0][0]).toBe('')
+  })
+
+  it('escala el dedo al tamaño real del canvas cuando se muestra más chico', async () => {
+    const wrapper = mountPad()
+    const canvas = wrapper.find('[data-test="signature-canvas"]')
+
+    // En un celular el canvas de 480x180 se muestra a 240x90.
+    canvas.element.getBoundingClientRect = () => ({ left: 0, top: 0, width: 240, height: 90 })
+
+    await canvas.trigger('pointerdown', { clientX: 120, clientY: 45 })
+
+    expect(contextMock.moveTo).toHaveBeenCalledWith(240, 90)
+  })
+
+  it('escala las coordenadas con el tamaño del canvas', () => {
+    const escalado = scalePoint(
+      { x: 150, y: 60 },
+      { width: 480, height: 180 },
+      { width: 300, height: 120 },
+    )
+
+    expect(escalado).toEqual({ x: 240, y: 90 })
+  })
+
+  it('no escala si no hay medidas disponibles (jsdom)', () => {
+    expect(scalePoint({ x: 10, y: 20 }, { width: 480, height: 180 }, { width: 0, height: 0 })).toEqual(
+      { x: 10, y: 20 },
+    )
   })
 
   it('rechaza una firma mayor al límite de 500 KB', async () => {

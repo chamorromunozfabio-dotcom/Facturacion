@@ -35,7 +35,7 @@ npm run test:watch
 | 17 | Botones Crear/Editar/Eliminar según permiso | ✅ PASÓ | [action-permissions.test.js](action-permissions.test.js) |
 | 18 | Campos nuevos de Bodega y validaciones | ✅ PASÓ | [bodegas-fields.test.js](bodegas-fields.test.js) |
 | 19 | `UsuariosView`: roles, filtro y campos condicionales de cliente | ✅ PASÓ | [usuarios-view.test.js](usuarios-view.test.js) |
-| 20 | `SignaturePad`: dibujar, limpiar y límite de 500 KB | ✅ PASÓ | [signature-pad.test.js](signature-pad.test.js) |
+| 20 | `SignaturePad`: dibujar, escalar al celular, limpiar y límite de 500 KB | ⏳ Por ejecutar | [signature-pad.test.js](signature-pad.test.js) |
 | 21 | API de Facturas: acciones, firma y descarga PDF | ✅ PASÓ | [facturas-api.test.js](facturas-api.test.js) |
 | 22 | `FacturaDetail`: detalle, totales, firma y rechazo | ✅ PASÓ | [factura-detail.test.js](factura-detail.test.js) |
 | 23 | `FacturaForm`: líneas dinámicas y validaciones | ✅ PASÓ | [factura-form.test.js](factura-form.test.js) |
@@ -65,10 +65,11 @@ npm run test:watch
 | 47 | Permisos: marcar todos, desmarcar todos y plantilla del rol | ⏳ Por ejecutar | [permisos-matriz.test.js](permisos-matriz.test.js) |
 | 48 | Avisos flotantes con cierre automático y cierre manual | ⏳ Por ejecutar | [alerta-auto-cierre.test.js](alerta-auto-cierre.test.js) |
 | 49 | Aviso de sesión vencida al volver al login | ⏳ Por ejecutar | [aviso-sesion-vencida.test.js](aviso-sesion-vencida.test.js) |
+| 50 | Reglas responsive para celular, tablet y escritorio | ⏳ Por ejecutar | [responsive-layout.test.js](responsive-layout.test.js) |
 
 ---
 
-**47 archivos de test, 252 pruebas.** Ejecutar todo con `npm test`.
+**48 archivos de test, 261 pruebas.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >

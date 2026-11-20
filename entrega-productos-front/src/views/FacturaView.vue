@@ -653,4 +653,13 @@ textarea { width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 
 .btn--primary { background: #4f46e5; border-color: #4f46e5; color: #fff; }
 .btn--danger { color: #b91c1c; border-color: #fca5a5; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* En pantallas chicas el aviso va dentro del flujo y no tapa el menú. */
+@media (max-width: 768px) {
+  .alert-flotante {
+    position: static;
+    max-width: none;
+    margin-inline: 0;
+  }
+}
 </style>

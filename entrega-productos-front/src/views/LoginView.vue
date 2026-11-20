@@ -327,4 +327,15 @@ button:disabled {
 .demo-accounts__btn:hover {
   background: #dbeafe;
 }
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 22px 18px;
+  }
+
+  .login-card__logo {
+    width: 60px;
+    height: 60px;
+  }
+}
 </style>

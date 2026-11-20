@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import { scalePoint } from '../utils/signature'
 
 /**
  * Lienzo para dibujar la firma con mouse o dedo.
@@ -33,8 +34,10 @@ function context() {
 }
 
 function point(event) {
-  const rect = canvasRef.value?.getBoundingClientRect?.() ?? { left: 0, top: 0 }
-  return { x: event.clientX - rect.left, y: event.clientY - rect.top }
+  const canvas = canvasRef.value
+  const rect = canvas?.getBoundingClientRect?.() ?? { left: 0, top: 0, width: 0, height: 0 }
+  const relativo = { x: event.clientX - rect.left, y: event.clientY - rect.top }
+  return scalePoint(relativo, canvas, rect)
 }
 
 function start(event) {

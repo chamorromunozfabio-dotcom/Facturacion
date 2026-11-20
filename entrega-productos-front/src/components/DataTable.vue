@@ -288,4 +288,27 @@ th {
   color: #b91c1c;
   border-color: #fecaca;
 }
+
+@media (max-width: 480px) {
+  .data-table__toolbar,
+  .data-table__footer {
+    padding: 12px;
+  }
+
+  .data-table__search {
+    width: 100%;
+  }
+
+  .data-table__search input {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .data-table__pager {
+    width: 100%;
+    justify-content: space-between;
+    gap: 6px;
+  }
+}
 </style>
