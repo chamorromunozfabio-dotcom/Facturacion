@@ -34,7 +34,7 @@ describe('Test 50 — Reglas responsive para distintos dispositivos', () => {
   })
 
   it('el login reduce su tarjeta en celulares chicos', () => {
-    const css = leer('../src/views/LoginView.vue')
+    const css = leer('../src/components/auth/LoginForm.vue')
 
     expect(css).toContain('@media (max-width: 480px)')
     expect(css).toMatch(/\.login-card\s*\{[^}]*padding:\s*22px 18px/s)

@@ -8,7 +8,7 @@ Esta guía responde una pregunta simple: **¿dónde pongo esto y dónde lo busco
 |---|---|---|
 | Una pantalla con ruta | `views/` | `FacturaView.vue`, `PermisosView.vue` |
 | Una pieza de una sola pantalla | `components/<modulo>/` | `components/facturas/FacturaLineas.vue` |
-| Una pieza usada en varias pantallas | `components/ui/` | `DataTable.vue`, `AlertMessage.vue` |
+| Una pieza usada en varias pantallas | `components/ui/` | `DataTable.vue`, `CrudPage.vue`, `AlertMessage.vue` |
 | Estado, efectos o carga de datos | `composables/` | `useFacturas.js`, `useCrud.js`, `usePermisos.js` |
 | Cálculos o validaciones sin Vue | `utils/` | `facturaCampos.js`, `facturas.js`, `crud.js` |
 | Llamadas al backend | `api/` | `api/facturas.js`, `api/axios.js` |
@@ -22,21 +22,24 @@ src/
 ├─ ARQUITECTURA.md              ← este mapa
 ├─ views/                       ← pantallas conectadas al router
 ├─ components/
-│  ├─ ui/                       ← genéricos: DataTable, AlertMessage, FormModal, ...
+│  ├─ ui/                       ← genéricos: DataTable, CrudPage, AlertMessage, FormModal, ...
 │  ├─ facturas/                 ← formulario, detalle, buscador de tipos y modales
 │  ├─ permisos/                 ← buscador, cabecera, matriz y confirmación
+│  ├─ auth/                     ← LoginForm (solo presentación del ingreso)
 │  ├─ layout/                   ← SidebarMenu y TopBar
 │  └─ (raíz)                    ← solo re-exports de compatibilidad
 ├─ composables/
 │  ├─ useFacturas.js            ← lógica de FacturaView
 │  ├─ useFacturaForm.js         ← lógica del formulario de factura
 │  ├─ useCrud.js                ← esqueleto común de Bodegas/Roles/Tipos/Usuarios
+│  ├─ useLogin.js               ← estado y envío del formulario de ingreso
 │  ├─ usePermisos.js            ← lógica de PermisosView
 │  └─ useModalA11y.js           ← foco y Escape para diálogos
 ├─ utils/
 │  ├─ facturas.js               ← estados, columnas y mapeos puros
 │  ├─ facturaCampos.js          ← validación y mensajes del formulario
 │  ├─ crud.js                   ← diferencias, parámetros y errores compartidos
+│  ├─ login.js                  ← validación y mensajes del ingreso (sin Vue)
 │  └─ permisos.js               ← texto e iniciales
 ├─ api/                         ← endpoints reales y mocks
 ├─ config/                      ← permisos y navegación por rol
@@ -45,7 +48,7 @@ src/
 
 ## Cómo leer una pantalla
 
-1. Abrí `views/<Nombre>View.vue`: ahí están el encabezado, las piezas que usa y los eventos.
+1. Abrí `views/<Nombre>View.vue`: ahí están la configuración del CRUD, el encabezado y los slots. La plantilla repetida vive en `components/ui/CrudPage.vue`.
 2. Si la lógica no está ahí, buscá `use<Modulo>` en `composables/`.
 3. Si es una regla sin efectos (validar, formatear, traducir), buscá `<modulo>.js` en `utils/`.
 4. Si es una llamada al backend, buscá `api/<modulo>.js`.
@@ -60,6 +63,11 @@ src/
 3. Si la comparación de cambios es especial, pasá `normalizarCambio` y/o `actualParaCambios`.
 4. Poné los textos en `mensajes` y `confirmacion`; el composable se encarga de paginación, búsqueda con debounce, alertas, modales y baja.
 5. Para cargas o efectos extra usá `alMontar`, `antesDeAbrir`, `paramsExtra`, `filtros`, `transformarFila` y `despuesDeGuardar`.
+6. En el `<template>`, usá `<CrudPage>` con esos datos. Solo agregá slots `#notice`, `#filter` o `#cell-<columna>` si esa pantalla necesita algo distinto; no vuelvas a repetir la tabla ni los modales.
+
+## El ingreso
+
+`LoginView.vue` es solo el contenedor de la ruta `/login`. La lógica (credenciales, envío, errores, aviso de sesión vencida) está en `composables/useLogin.js`, las reglas puras en `utils/login.js` y el markup con su CSS en `components/auth/LoginForm.vue`.
 
 ## Convención de nombres
 

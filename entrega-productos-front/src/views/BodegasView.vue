@@ -1,9 +1,6 @@
 <script setup>
+import CrudPage from '../components/ui/CrudPage.vue'
 import { computed, ref } from 'vue'
-import AlertMessage from '../components/ui/AlertMessage.vue'
-import ConfirmDelete from '../components/ui/ConfirmDelete.vue'
-import DataTable from '../components/ui/DataTable.vue'
-import FormModal from '../components/ui/FormModal.vue'
 import bodegasApi from '../api/bodegas'
 import usuariosApi from '../api/usuarios'
 import { useAuthStore } from '../stores/auth'
@@ -162,95 +159,60 @@ const {
 </script>
 
 <template>
-  <section class="crud-page">
-    <header class="crud-page__header">
-      <div>
-        <h1>Bodegas</h1>
-        <p>Administra las bodegas y sus datos de contacto.</p>
-      </div>
-      <span class="badge">Inventario</span>
-    </header>
-
-    <p class="notice">
-      {{
-        esAdmin
-          ? 'Puedes asignar el bodeguero dueño de cada bodega.'
-          : 'Solo ves y gestionas las bodegas que te pertenecen.'
-      }}
-    </p>
-
-    <Transition name="alert">
-      <AlertMessage
-        v-if="alert"
-        :type="alert.type"
-        :message="alert.message"
-        @close="alert = null"
-      />
-    </Transition>
-
-    <DataTable
-      :columns="columns"
-      :rows="rows"
-      :total="total"
-      :page="page"
-      :limit="limit"
-      :q="q"
-      :loading="loading"
-      :create-label="createLabel"
-      :can-create="canCreate"
-      :can-edit="canEdit"
-      :can-delete="canDelete"
-      @update:q="q = $event"
-      @update:page="page = $event"
-      @create="openCreate"
-      @edit="openEdit"
-      @delete="askDelete"
-    />
-
-    <FormModal
-      :open="modalOpen"
-      :title="editing ? 'Editar bodega' : 'Nueva bodega'"
-      :fields="formFields"
-      :model-value="form"
-      :submit-label="editing ? 'Guardar cambios' : 'Crear bodega'"
-      :loading="saving"
-      @update:model-value="form = $event"
-      @submit="save"
-      @close="modalOpen = false"
-    />
-
-    <ConfirmDelete
-      :open="confirmOpen"
-      :title="confirmacion.titulo"
-      :message="confirmacion.mensaje"
-      :item-label="deleting?.nombre || ''"
-      :loading="removing"
-      @confirm="confirmDelete"
-      @cancel="confirmOpen = false"
-    />
-  </section>
+  <CrudPage
+    titulo="Bodegas"
+    descripcion="Administra las bodegas y sus datos de contacto."
+    badge="Inventario"
+    :alert="alert"
+    :columns="columns"
+    :rows="rows"
+    :total="total"
+    :page="page"
+    :limit="limit"
+    :q="q"
+    :loading="loading"
+    :create-label="createLabel"
+    :can-create="canCreate"
+    :can-edit="canEdit"
+    :can-delete="canDelete"
+    :modal-open="modalOpen"
+    :editing="editing"
+    :fields="formFields"
+    :form="form"
+    :saving="saving"
+    crear-titulo="Nueva bodega"
+    editar-titulo="Editar bodega"
+    crear-submit-label="Crear bodega"
+    :confirm-open="confirmOpen"
+    :confirm-titulo="confirmacion.titulo"
+    :confirm-mensaje="confirmacion.mensaje"
+    :deleting="deleting"
+    :removing="removing"
+    @update:q="q = $event"
+    @update:page="page = $event"
+    @create="openCreate"
+    @edit="openEdit"
+    @delete="askDelete"
+    @update:model-value="form = $event"
+    @submit="save"
+    @close-modal="modalOpen = false"
+    @confirm="confirmDelete"
+    @cancel="confirmOpen = false"
+    @close-alert="alert = null"
+  >
+    <template #notice>
+      <p class="notice">
+        {{
+          esAdmin
+            ? 'Puedes asignar el bodeguero dueño de cada bodega.'
+            : 'Solo ves y gestionas las bodegas que te pertenecen.'
+        }}
+      </p>
+    </template>
+  </CrudPage>
 </template>
 
 <style scoped>
-.crud-page {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.crud-page__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-h1 {
-  margin: 0;
-  font-size: 1.5rem;
-}
-
 p {
   margin: 4px 0 0;
   color: #6b7280;
@@ -262,14 +224,5 @@ p {
   border-radius: 6px;
   padding: 10px 14px;
   font-size: 0.9rem;
-}
-
-.badge {
-  background: #e0e7ff;
-  color: #3730a3;
-  border-radius: 999px;
-  padding: 4px 10px;
-  font-size: 0.8rem;
-  font-weight: 600;
 }
 </style>
