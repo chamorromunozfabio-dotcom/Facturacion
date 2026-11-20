@@ -1,9 +1,9 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import AlertMessage from '../components/AlertMessage.vue'
-import ConfirmDelete from '../components/ConfirmDelete.vue'
-import DataTable from '../components/DataTable.vue'
-import FormModal from '../components/FormModal.vue'
+import AlertMessage from '../components/ui/AlertMessage.vue'
+import ConfirmDelete from '../components/ui/ConfirmDelete.vue'
+import DataTable from '../components/ui/DataTable.vue'
+import FormModal from '../components/ui/FormModal.vue'
 import rolesApi from '../api/roles'
 import { getErrorMessage, isDuplicateError } from '../api/axios'
 import { useAuthStore } from '../stores/auth'

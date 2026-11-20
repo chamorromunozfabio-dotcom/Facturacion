@@ -27,7 +27,7 @@ describe('Test 50 — Reglas responsive para distintos dispositivos', () => {
   })
 
   it('el buscador de tablas cabe en celulares chicos', () => {
-    const css = leer('../src/components/DataTable.vue')
+    const css = leer('../src/components/ui/DataTable.vue')
 
     expect(css).toContain('@media (max-width: 480px)')
     expect(css).toMatch(/\.data-table__search input\s*\{[^}]*min-width:\s*0/s)
@@ -47,6 +47,6 @@ describe('Test 50 — Reglas responsive para distintos dispositivos', () => {
   })
 
   it('el formulario de factura pasa a una columna en celulares', () => {
-    expect(leer('../src/components/FacturaForm.vue')).toContain('@media (max-width: 700px)')
+    expect(leer('../src/components/facturas/FacturaForm.vue')).toContain('@media (max-width: 700px)')
   })
 })

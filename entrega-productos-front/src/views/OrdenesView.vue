@@ -1,5 +1,5 @@
 <script setup>
-import PagePlaceholder from '../components/PagePlaceholder.vue'
+import PagePlaceholder from '../components/ui/PagePlaceholder.vue'
 </script>
 
 <template>

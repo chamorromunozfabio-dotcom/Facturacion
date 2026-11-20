@@ -9,15 +9,15 @@ import {
   Truck,
   X,
 } from '@lucide/vue'
-import AlertMessage from '../components/AlertMessage.vue'
-import ConfirmDelete from '../components/ConfirmDelete.vue'
-import DataTable from '../components/DataTable.vue'
-import FacturaForm from '../components/FacturaForm.vue'
+import AlertMessage from '../components/ui/AlertMessage.vue'
+import ConfirmDelete from '../components/ui/ConfirmDelete.vue'
+import DataTable from '../components/ui/DataTable.vue'
+import FacturaForm from '../components/facturas/FacturaForm.vue'
 import FacturaDetailModal from '../components/facturas/FacturaDetailModal.vue'
 import FacturaFiltros from '../components/facturas/FacturaFiltros.vue'
 import FacturaFirmaModal from '../components/facturas/FacturaFirmaModal.vue'
 import FacturaRechazoModal from '../components/facturas/FacturaRechazoModal.vue'
-import StatusBadge from '../components/StatusBadge.vue'
+import StatusBadge from '../components/ui/StatusBadge.vue'
 import { useFacturas } from '../composables/useFacturas'
 
 /** La vista solo arma la pantalla: la lógica vive en useFacturas. */

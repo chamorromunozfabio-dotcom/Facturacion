@@ -17,7 +17,7 @@ const leer = (ruta) => readFileSync(new URL(ruta, import.meta.url), 'utf8')
 
 describe('Test 52 — FacturaForm modular: encabezado, líneas y validación', () => {
   it('el formulario delega y deja de contener la validación completa', () => {
-    const vista = leer('../src/components/FacturaForm.vue')
+    const vista = leer('../src/components/facturas/FacturaForm.vue')
 
     expect(vista).toContain('useFacturaForm')
     expect(vista).toContain('FacturaEncabezado')

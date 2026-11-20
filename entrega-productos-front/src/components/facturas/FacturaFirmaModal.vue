@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import SignaturePad from '../SignaturePad.vue'
+import SignaturePad from '../ui/SignaturePad.vue'
 import { useModalA11y } from '../../composables/useModalA11y'
 
 /** Diálogo para aceptar una factura dibujando la firma. */

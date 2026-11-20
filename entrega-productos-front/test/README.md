@@ -67,13 +67,14 @@ npm run test:watch
 | 52 | FacturaForm modular: encabezado, líneas y validación pura | ⏳ Por ejecutar | [factura-form-modular.test.js](factura-form-modular.test.js) |
 | 53 | MainLayout modular: sidebar y barra superior | ⏳ Por ejecutar | [main-layout-modular.test.js](main-layout-modular.test.js) |
 | 54 | FacturaView modular: lógica, modales y mapa | ⏳ Por ejecutar | [factura-view-modular.test.js](factura-view-modular.test.js) |
+| 55 | Componentes `ui`/`facturas` y re-exports de compatibilidad | ⏳ Por ejecutar | [componentes-ui.test.js](componentes-ui.test.js) |
 | 48 | Avisos flotantes con cierre automático y cierre manual | ⏳ Por ejecutar | [alerta-auto-cierre.test.js](alerta-auto-cierre.test.js) |
 | 49 | Aviso de sesión vencida al volver al login | ⏳ Por ejecutar | [aviso-sesion-vencida.test.js](aviso-sesion-vencida.test.js) |
 | 50 | Reglas responsive para celular, tablet y escritorio | ⏳ Por ejecutar | [responsive-layout.test.js](responsive-layout.test.js) |
 
 ---
 
-**52 archivos de test, 285 pruebas.** Ejecutar todo con `npm test`.
+**53 archivos de test, 289 pruebas.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >

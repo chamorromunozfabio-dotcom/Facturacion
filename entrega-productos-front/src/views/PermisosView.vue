@@ -9,7 +9,7 @@ import {
   Users,
   Warehouse,
 } from '@lucide/vue'
-import AlertMessage from '../components/AlertMessage.vue'
+import AlertMessage from '../components/ui/AlertMessage.vue'
 import PermisosBuscador from '../components/permisos/PermisosBuscador.vue'
 import PermisosCabecera from '../components/permisos/PermisosCabecera.vue'
 import PermisosMatriz from '../components/permisos/PermisosMatriz.vue'

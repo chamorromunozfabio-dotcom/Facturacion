@@ -8,7 +8,7 @@ Esta guía responde una pregunta simple: **¿dónde pongo esto y dónde lo busco
 |---|---|---|
 | Una pantalla con ruta | `views/` | `FacturaView.vue`, `PermisosView.vue` |
 | Una pieza de una sola pantalla | `components/<modulo>/` | `components/facturas/FacturaLineas.vue` |
-| Una pieza usada en varias pantallas | `components/ui/` (cuando se migre) | `DataTable.vue`, `AlertMessage.vue` |
+| Una pieza usada en varias pantallas | `components/ui/` | `DataTable.vue`, `AlertMessage.vue` |
 | Estado, efectos o carga de datos | `composables/` | `useFacturas.js`, `usePermisos.js` |
 | Cálculos o validaciones sin Vue | `utils/` | `facturaCampos.js`, `facturas.js` |
 | Llamadas al backend | `api/` | `api/facturas.js`, `api/axios.js` |
@@ -22,10 +22,11 @@ src/
 ├─ ARQUITECTURA.md              ← este mapa
 ├─ views/                       ← pantallas conectadas al router
 ├─ components/
-│  ├─ facturas/                 ← filtro, encabezado, líneas y modales de factura
+│  ├─ ui/                       ← genéricos: DataTable, AlertMessage, FormModal, ...
+│  ├─ facturas/                 ← formulario, detalle, buscador de tipos y modales
 │  ├─ permisos/                 ← buscador, cabecera, matriz y confirmación
 │  ├─ layout/                   ← SidebarMenu y TopBar
-│  └─ (raíz)                    ← genéricos pendientes de mover a ui/
+│  └─ (raíz)                    ← solo re-exports de compatibilidad
 ├─ composables/
 │  ├─ useFacturas.js            ← lógica de FacturaView
 │  ├─ useFacturaForm.js         ← lógica del formulario de factura
@@ -55,6 +56,8 @@ src/
 - Utilidad pura: `<modulo>.js` o `<modulo>Campos.js` → `facturas.js`, `facturaCampos.js`.
 - `data-test`: se mantiene igual aunque el markup se mueva de archivo.
 
-## Pendiente opcional
+## Compatibilidad
 
-Los componentes genéricos que hoy están en la raíz de `components/` (`DataTable.vue`, `AlertMessage.vue`, `FormModal.vue`, `TipoSearch.vue`, etc.) pueden moverse a `components/ui/`. Se hace en una entrega aparte porque varios tests los importan por ruta directa; con re-exports se puede hacer sin romperlos.
+Los archivos en la raíz de `components/` ya no contienen implementación: solo re-exportan el componente real desde `ui/` o `facturas/`. Están ahí para no romper imports antiguos.
+
+Código nuevo: importá siempre desde `components/ui/` o `components/<modulo>/`. Los re-exports de la raíz se pueden quitar cuando ya no queden imports que los usen.

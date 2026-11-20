@@ -1,5 +1,5 @@
 <script setup>
-import TipoSearch from '../TipoSearch.vue'
+import TipoSearch from './TipoSearch.vue'
 
 /** Productos de la factura. Cada línea es un renglón editable. */
 defineProps({

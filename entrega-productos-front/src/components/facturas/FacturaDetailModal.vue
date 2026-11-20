@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import FacturaDetail from '../FacturaDetail.vue'
+import FacturaDetail from './FacturaDetail.vue'
 import { useModalA11y } from '../../composables/useModalA11y'
 
 /** Diálogo de solo lectura con el detalle de una factura. */
