@@ -15,13 +15,15 @@ describe('Test 50 — Reglas responsive para distintos dispositivos', () => {
   })
 
   it('el menú se vuelve un drawer lateral en tablet y celular', () => {
-    const css = leer('../src/layouts/MainLayout.vue')
+    const layout = leer('../src/layouts/MainLayout.vue')
+    const sidebar = leer('../src/components/layout/SidebarMenu.vue')
 
-    expect(css).toContain('@media (max-width: 1024px)')
-    expect(css).toContain('grid-template-columns: 1fr')
-    expect(css).toContain('transform: translateX(-100%)')
-    expect(css).toContain('.sidebar--abierto')
-    expect(css).not.toContain('overflow-x: auto')
+    expect(layout).toContain('@media (max-width: 1024px)')
+    expect(layout).toContain('grid-template-columns: 1fr')
+    expect(layout).not.toContain('overflow-x: auto')
+    expect(sidebar).toContain('@media (max-width: 1024px)')
+    expect(sidebar).toContain('transform: translateX(-100%)')
+    expect(sidebar).toContain('.sidebar--abierto')
   })
 
   it('el buscador de tablas cabe en celulares chicos', () => {

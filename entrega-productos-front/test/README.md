@@ -40,8 +40,8 @@ npm run test:watch
 | 22 | `FacturaDetail`: detalle, totales, firma y rechazo | ✅ PASÓ | [factura-detail.test.js](factura-detail.test.js) |
 | 23 | `FacturaForm`: producto por línea y validaciones | ⏳ Por ejecutar | [factura-form.test.js](factura-form.test.js) |
 | 24 | `FacturaView`: listado, detalle y acciones por estado/rol | ✅ PASÓ | [factura-view.test.js](factura-view.test.js) |
-| 25 | Vistas por rol: iconos Lucide y transiciones | ✅ PASÓ | [role-views-icons.test.js](role-views-icons.test.js) |
-| 26 | Iconos en acciones y color de acento por rol | ✅ PASÓ | [action-icons-role-colors.test.js](action-icons-role-colors.test.js) |
+| 25 | Vistas por rol: iconos Lucide y transiciones | ⏳ Por ejecutar | [role-views-icons.test.js](role-views-icons.test.js) |
+| 26 | Iconos en acciones y color de acento por rol | ⏳ Por ejecutar | [action-icons-role-colors.test.js](action-icons-role-colors.test.js) |
 | 27 | Badge de estado con color en listado y detalle | ✅ PASÓ | [status-badge.test.js](status-badge.test.js) |
 | 28 | Transiciones en modales y alertas | ⏳ Por ejecutar | [transitions.test.js](transitions.test.js) |
 | 29 | Accesibilidad: Escape, foco y aria-label | ⏳ Por ejecutar | [accessibility.test.js](accessibility.test.js) |
@@ -65,13 +65,14 @@ npm run test:watch
 | 47 | Permisos: marcar todos, desmarcar todos y plantilla del rol | ⏳ Por ejecutar | [permisos-matriz.test.js](permisos-matriz.test.js) |
 | 51 | Permisos modular: vista pequeña, composable y piezas con contrato | ⏳ Por ejecutar | [permisos-modular.test.js](permisos-modular.test.js) |
 | 52 | FacturaForm modular: encabezado, líneas y validación pura | ⏳ Por ejecutar | [factura-form-modular.test.js](factura-form-modular.test.js) |
+| 53 | MainLayout modular: sidebar y barra superior | ⏳ Por ejecutar | [main-layout-modular.test.js](main-layout-modular.test.js) |
 | 48 | Avisos flotantes con cierre automático y cierre manual | ⏳ Por ejecutar | [alerta-auto-cierre.test.js](alerta-auto-cierre.test.js) |
 | 49 | Aviso de sesión vencida al volver al login | ⏳ Por ejecutar | [aviso-sesion-vencida.test.js](aviso-sesion-vencida.test.js) |
 | 50 | Reglas responsive para celular, tablet y escritorio | ⏳ Por ejecutar | [responsive-layout.test.js](responsive-layout.test.js) |
 
 ---
 
-**50 archivos de test, 276 pruebas.** Ejecutar todo con `npm test`.
+**51 archivos de test, 280 pruebas.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >
