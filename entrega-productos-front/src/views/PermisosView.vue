@@ -1,28 +1,21 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed } from 'vue'
 import {
   Check,
-  ChevronLeft,
   KeyRound,
   ReceiptText,
-  Search,
   ShieldCheck,
   Tags,
   Users,
   Warehouse,
-  X,
 } from '@lucide/vue'
 import AlertMessage from '../components/AlertMessage.vue'
-import permisosApi from '../api/permisos'
-import rolesApi from '../api/roles'
-import usuariosApi from '../api/usuarios'
-import { getErrorMessage } from '../api/axios'
-import {
-  CATALOGO_PERMISOS,
-  MODULOS_PERMISO,
-  claveDelNombreBackend,
-  plantillaDelRol,
-} from '../config/permissions'
+import PermisosBuscador from '../components/permisos/PermisosBuscador.vue'
+import PermisosCabecera from '../components/permisos/PermisosCabecera.vue'
+import PermisosMatriz from '../components/permisos/PermisosMatriz.vue'
+import PermisosConfirmacion from '../components/permisos/PermisosConfirmacion.vue'
+import { usePermisos } from '../composables/usePermisos'
+import { CATALOGO_PERMISOS } from '../config/permissions'
 
 const ICONOS_MODULO = {
   facturas: ReceiptText,
@@ -33,281 +26,42 @@ const ICONOS_MODULO = {
   permisos: KeyRound,
 }
 
-const usuarios = ref([])
-const roles = ref([])
-const permisosBackend = ref([])
-const busqueda = ref('')
-const usuarioSeleccionadoId = ref(null)
-const permisosDelUsuario = ref([])
-const cambiosPendientes = ref(new Map())
-const cargando = ref(false)
-const guardando = ref(false)
-const mensaje = ref(null)
+/** La vista es el director: trae los datos y conecta las cuatro piezas. */
+const {
+  busqueda,
+  cargando,
+  mensaje,
+  usuarioSeleccionadoId,
+  usuarioSeleccionado,
+  rolDelUsuario,
+  plantillaSeleccionada,
+  coincidencias,
+  resultados,
+  modulosConPermisos,
+  permisosVisibles,
+  tieneCambios,
+  resumenPermisos,
+  faltanEnBackend,
+  todosMarcados,
+  opcionesCambiables,
+  cambiosPendientes,
+  guardando,
+  seleccionarUsuario,
+  cambiarUsuario,
+  togglePermiso,
+  aplicarRol,
+  desmarcarTodos,
+  toggleTodos,
+  descartarCambios,
+  confirmarCambios,
+} = usePermisos()
 
-const usuarioSeleccionado = computed(
-  () => usuarios.value.find((usuario) => usuario.id === usuarioSeleccionadoId.value) ?? null,
-)
-const rolDelUsuario = computed(
-  () => roles.value.find((rol) => rol.id === usuarioSeleccionado.value?.rol_id) ?? null,
-)
-const plantillaSeleccionada = computed(() => plantillaDelRol(usuarioSeleccionado.value?.rol))
-
-function normalizar(texto) {
-  return String(texto ?? '')
-    .toLocaleLowerCase('es')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-}
-
-const coincidencias = computed(() => {
-  const texto = normalizar(busqueda.value).trim()
-  if (!texto || !usuarios.value.length) return []
-  return usuarios.value.filter((usuario) =>
-    [usuario.nombre, usuario.correo, usuario.rol].some((valor) =>
-      normalizar(valor).includes(texto),
-    ),
-  )
-})
-const resultados = computed(() => coincidencias.value.slice(0, 8))
-
-function iniciales(nombre) {
-  return normalizar(nombre)
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((parte) => parte[0]?.toUpperCase() ?? '')
-    .join('')
-}
-
-/** Resuelve el id real del backend por nombre exacto (ej. `facturas_create`). */
-const idPorClave = computed(() => {
-  const map = {}
-  for (const permiso of permisosBackend.value) {
-    const item = CATALOGO_PERMISOS.find((opcion) => opcion.nombre === permiso.nombre)
-    if (item) map[item.clave] = permiso.id
-  }
-  return map
-})
-
-const permisosAsignados = computed(() =>
-  permisosDelUsuario.value.map((permiso) => {
-    const clave = claveDelNombreBackend(permiso.nombre)
-    const item = CATALOGO_PERMISOS.find((opcion) => opcion.clave === clave)
-    return {
-      ...permiso,
-      clave,
-      etiqueta: item?.etiqueta ?? permiso.nombre,
-      enCatalogo: Boolean(item),
-    }
-  }),
-)
-
-function tieneClave(clave) {
-  return permisosAsignados.value.some((permiso) => permiso.clave === clave)
-}
-
-/** Estado que se ve en pantalla: el guardado, salvo que haya un cambio preparado. */
-function estadoCheck(opcion) {
-  return cambiosPendientes.value.get(opcion.clave)?.asignado ?? opcion.asignado
-}
-
-/** Tarjetas por módulo: cada función es un check contra el permiso guardado. */
-const modulosConPermisos = computed(() =>
-  MODULOS_PERMISO.map((modulo) => ({
+const modulos = computed(() =>
+  modulosConPermisos.value.map((modulo) => ({
     ...modulo,
     icono: ICONOS_MODULO[modulo.clave],
-    opciones: CATALOGO_PERMISOS.filter((item) => item.modulo === modulo.clave).map((item) => ({
-      ...item,
-      idBackend: idPorClave.value[item.clave] ?? null,
-      asignado: tieneClave(item.clave),
-    })),
   })),
 )
-
-/** Permisos que se muestran en el resumen, incluyendo los recién tildados. */
-const permisosVisibles = computed(() => {
-  const lista = permisosAsignados.value.filter(
-    (permiso) => cambiosPendientes.value.get(permiso.clave)?.asignado !== false,
-  )
-  for (const [clave, cambio] of cambiosPendientes.value) {
-    if (cambio.asignado && !lista.some((permiso) => permiso.clave === clave)) {
-      lista.push({ clave, etiqueta: cambio.etiqueta, nombre: cambio.nombre })
-    }
-  }
-  return lista
-})
-
-const tieneCambios = computed(() => cambiosPendientes.value.size > 0)
-
-const resumenPermisos = computed(() =>
-  permisosVisibles.value.length
-    ? permisosVisibles.value.map((permiso) => permiso.etiqueta).join(' · ')
-    : 'todavía no tiene permisos asignados.',
-)
-
-const faltanEnBackend = computed(
-  () => CATALOGO_PERMISOS.filter((item) => idPorClave.value[item.clave] === undefined).length,
-)
-
-async function cargarPermisosDelUsuario() {
-  if (!usuarioSeleccionadoId.value) {
-    permisosDelUsuario.value = []
-    return
-  }
-  try {
-    const resultado = await usuariosApi.listPermisos(usuarioSeleccionadoId.value)
-    // Copia nueva para que la vista se actualice aunque el backend reutilice el array.
-    permisosDelUsuario.value = [...(resultado.data ?? [])]
-  } catch (error) {
-    mensaje.value = { type: 'error', message: getErrorMessage(error) }
-  }
-}
-
-async function cargarPagina() {
-  cargando.value = true
-  try {
-    const [listaUsuarios, listaPermisos, listaRoles] = await Promise.all([
-      usuariosApi.list({ page: 1, limit: 100 }),
-      permisosApi.list({ q: '', page: 1, limit: 100 }),
-      rolesApi.list({ page: 1, limit: 100 }),
-    ])
-    usuarios.value = listaUsuarios.data ?? []
-    permisosBackend.value = listaPermisos.data ?? []
-    roles.value = listaRoles.data ?? []
-    // Arranca sin nadie elegido: los permisos aparecen después de consultar un usuario.
-  } catch (error) {
-    mensaje.value = { type: 'error', message: getErrorMessage(error) }
-  } finally {
-    cargando.value = false
-  }
-}
-
-async function seleccionarUsuario(usuario) {
-  if (guardando.value) return
-  usuarioSeleccionadoId.value = usuario.id
-  cambiosPendientes.value = new Map()
-  mensaje.value = null
-  await cargarPermisosDelUsuario()
-}
-
-function cambiarUsuario() {
-  if (guardando.value) return
-  usuarioSeleccionadoId.value = null
-  permisosDelUsuario.value = []
-  cambiosPendientes.value = new Map()
-  busqueda.value = ''
-  mensaje.value = null
-}
-
-/** Solo se puede cambiar lo que el backend ya publicó en su catálogo. */
-const opcionesCambiables = computed(() =>
-  modulosConPermisos.value
-    .flatMap((modulo) => modulo.opciones)
-    .filter((opcion) => opcion.idBackend != null),
-)
-
-const todosMarcados = computed(
-  () =>
-    opcionesCambiables.value.length > 0 &&
-    opcionesCambiables.value.every((opcion) => estadoCheck(opcion)),
-)
-
-function prepararCambio(pendientes, opcion, deseado) {
-  if (deseado === opcion.asignado) {
-    pendientes.delete(opcion.clave)
-  } else {
-    pendientes.set(opcion.clave, {
-      clave: opcion.clave,
-      nombre: opcion.nombre,
-      etiqueta: opcion.etiqueta,
-      idBackend: opcion.idBackend,
-      asignado: deseado,
-    })
-  }
-}
-
-/** El check solo prepara el cambio; se aplica con Confirmar. */
-function togglePermiso(opcion) {
-  if (!usuarioSeleccionado.value || guardando.value || !opcion.idBackend) return
-  mensaje.value = null
-  const pendientes = new Map(cambiosPendientes.value)
-  prepararCambio(pendientes, opcion, !estadoCheck(opcion))
-  cambiosPendientes.value = pendientes
-}
-
-/** Las acciones masivas usan la misma regla: preparar y confirmar después. */
-function aplicarMasivo(deseadoPorOpcion) {
-  if (!usuarioSeleccionado.value || guardando.value) return
-  mensaje.value = null
-  const pendientes = new Map(cambiosPendientes.value)
-  for (const opcion of opcionesCambiables.value) {
-    prepararCambio(pendientes, opcion, deseadoPorOpcion(opcion))
-  }
-  cambiosPendientes.value = pendientes
-}
-
-function marcarTodos() {
-  aplicarMasivo(() => true)
-}
-
-function desmarcarTodos() {
-  aplicarMasivo(() => false)
-}
-
-function aplicarRol() {
-  const delRol = new Set(plantillaSeleccionada.value)
-  aplicarMasivo((opcion) => delRol.has(opcion.clave))
-}
-
-function toggleTodos() {
-  if (todosMarcados.value) desmarcarTodos()
-  else marcarTodos()
-}
-
-function descartarCambios() {
-  cambiosPendientes.value = new Map()
-  mensaje.value = null
-}
-
-/** Aplica todos los cambios preparados con los endpoints reales (POST/DELETE). */
-async function confirmarCambios() {
-  if (!tieneCambios.value || guardando.value || !usuarioSeleccionado.value) return
-  guardando.value = true
-  mensaje.value = null
-  const usuario = usuarioSeleccionado.value
-  const cambios = [...cambiosPendientes.value.values()]
-  let aplicados = 0
-  let fallidos = 0
-
-  for (const cambio of cambios) {
-    try {
-      if (cambio.asignado) {
-        await usuariosApi.addPermiso(usuario.id, cambio.idBackend)
-      } else {
-        await usuariosApi.removePermiso(usuario.id, cambio.idBackend)
-      }
-      aplicados += 1
-    } catch {
-      fallidos += 1
-    }
-  }
-
-  // Leemos el estado real y descartamos lo preparado: lo que falló sigue sin aplicar.
-  await cargarPermisosDelUsuario()
-  cambiosPendientes.value = new Map()
-  guardando.value = false
-  mensaje.value = fallidos
-    ? {
-        type: 'error',
-        message: `Se aplicaron ${aplicados} cambios y fallaron ${fallidos}. Revisá los permisos del usuario.`,
-      }
-    : {
-        type: 'success',
-        message: `${aplicados} ${aplicados === 1 ? 'cambio guardado' : 'cambios guardados'} en "${usuario.nombre}".`,
-      }
-}
-
-onMounted(cargarPagina)
 </script>
 
 <template>
@@ -333,115 +87,26 @@ onMounted(cargarPagina)
       />
     </Transition>
 
-    <section class="card card--buscar">
-      <div class="paso">
-        <span class="paso__numero">1</span>
-        <div>
-          <h2>¿A quién querés revisar?</h2>
-          <p>Escribí el nombre, el correo o el rol. No mostramos la lista completa.</p>
-        </div>
-      </div>
-
-      <div class="buscador">
-        <Search class="buscador__icono" :size="18" aria-hidden="true" />
-        <input
-          v-model="busqueda"
-          data-test="user-search"
-          type="search"
-          placeholder="Ej: Juan, cliente@gmail.com, bodeguero..."
-          aria-label="Buscar usuario"
-        />
-        <button
-          v-if="busqueda"
-          type="button"
-          class="buscador__limpiar"
-          aria-label="Limpiar búsqueda"
-          @click="busqueda = ''"
-        >
-          <X :size="16" aria-hidden="true" />
-        </button>
-      </div>
-
-      <p v-if="cargando" class="estado">Cargando usuarios y catálogos...</p>
-
-      <template v-else-if="coincidencias.length">
-        <div class="resultados" data-test="assignment-user">
-          <button
-            v-for="usuario in resultados"
-            :key="usuario.id"
-            type="button"
-            class="usuario"
-            :class="{ 'usuario--activo': usuario.id === usuarioSeleccionadoId }"
-            :aria-pressed="usuario.id === usuarioSeleccionadoId"
-            :data-test="`usuario-${usuario.id}`"
-            @click="seleccionarUsuario(usuario)"
-          >
-            <span class="avatar">{{ iniciales(usuario.nombre) }}</span>
-            <span class="usuario__datos">
-              <strong>{{ usuario.nombre }}</strong>
-              <small>{{ usuario.correo }}</small>
-            </span>
-            <span class="rol">{{ usuario.rol }}</span>
-          </button>
-        </div>
-        <p v-if="coincidencias.length > resultados.length" class="estado">
-          Mostrando {{ resultados.length }} de {{ coincidencias.length }} coincidencias. Seguí
-          escribiendo para afinar.
-        </p>
-      </template>
-
-      <div v-else-if="busqueda.trim()" class="estado estado--vacio" data-test="sin-resultados">
-        <Search :size="20" aria-hidden="true" />
-        <span>No encontramos usuarios para “{{ busqueda.trim() }}”.</span>
-      </div>
-      <div v-else class="estado estado--vacio">
-        <Users :size="20" aria-hidden="true" />
-        <span>Empezá a escribir para ver los usuarios disponibles.</span>
-      </div>
-    </section>
+    <PermisosBuscador
+      v-model="busqueda"
+      :cargando="cargando"
+      :coincidencias="coincidencias"
+      :resultados="resultados"
+      :seleccionado-id="usuarioSeleccionadoId"
+      @select="seleccionarUsuario"
+    />
 
     <Transition name="panel">
       <section v-if="usuarioSeleccionado" class="card card--detalle" data-test="permisos-panel">
-        <header class="detalle__head">
-          <span class="avatar avatar--grande">{{ iniciales(usuarioSeleccionado.nombre) }}</span>
-          <div class="detalle__titulo">
-            <h2 data-test="assignment-affected">
-              Permisos de <strong>{{ usuarioSeleccionado.nombre }}</strong>
-              <template v-if="rolDelUsuario">({{ rolDelUsuario.nombre }})</template>
-            </h2>
-            <p>{{ usuarioSeleccionado.correo }}</p>
-          </div>
-          <button type="button" class="btn btn--suave" @click="cambiarUsuario">
-            <ChevronLeft :size="16" aria-hidden="true" />
-            Cambiar usuario
-          </button>
-        </header>
-
-        <div class="metricas">
-          <div class="metrica">
-            <strong>{{ permisosVisibles.length }}</strong>
-            <span>permisos activos</span>
-          </div>
-          <div class="metrica">
-            <strong>{{ CATALOGO_PERMISOS.length }}</strong>
-            <span>funciones posibles</span>
-          </div>
-          <div class="metrica metrica--clara">
-            <strong>{{ plantillaSeleccionada.length }}</strong>
-            <span>en su rol</span>
-          </div>
-        </div>
-
-        <p class="nota" data-test="plantilla-rol">
-          Referencia del rol: {{ plantillaSeleccionada.length }} permisos predefinidos. No se aplican
-          automáticamente, pero podés usar el botón “Por defecto del rol”.
-        </p>
-
-        <p v-if="faltanEnBackend" class="aviso" data-test="permisos-pendientes">
-          <KeyRound :size="15" aria-hidden="true" />
-          Faltan {{ faltanEnBackend }} funciones en el catálogo del backend. Quedan marcadas como
-          pendientes.
-        </p>
+        <PermisosCabecera
+          :usuario="usuarioSeleccionado"
+          :rol="rolDelUsuario"
+          :plantilla="plantillaSeleccionada"
+          :activos="permisosVisibles.length"
+          :total="CATALOGO_PERMISOS.length"
+          :faltan="faltanEnBackend"
+          @cambiar="cambiarUsuario"
+        />
 
         <div class="paso paso--segundo">
           <span class="paso__numero">2</span>
@@ -451,125 +116,28 @@ onMounted(cargarPagina)
           </div>
         </div>
 
-        <div class="acciones-masivas" data-test="acciones-masivas">
-          <label class="acciones-masivas__check">
-            <input
-              type="checkbox"
-              data-test="check-todos"
-              :checked="todosMarcados"
-              :disabled="guardando || !opcionesCambiables.length"
-              @change="toggleTodos"
-            />
-            <span>Marcar todos</span>
-          </label>
-          <button
-            type="button"
-            class="btn btn--suave"
-            data-test="aplicar-rol"
-            :disabled="guardando || !opcionesCambiables.length"
-            @click="aplicarRol"
-          >
-            Por defecto del rol
-          </button>
-          <button
-            type="button"
-            class="btn btn--suave"
-            data-test="desmarcar-todos"
-            :disabled="guardando || !opcionesCambiables.length"
-            @click="desmarcarTodos"
-          >
-            Desmarcar todos
-          </button>
-        </div>
+        <PermisosMatriz
+          :modulos="modulos"
+          :todos-marcados="todosMarcados"
+          :guardando="guardando"
+          :opciones-length="opcionesCambiables.length"
+          @toggle="togglePermiso"
+          @toggle-todos="toggleTodos"
+          @aplicar-rol="aplicarRol"
+          @desmarcar-todos="desmarcarTodos"
+        />
 
-        <div class="modulos" data-test="matriz-permisos">
-          <article
-            v-for="modulo in modulosConPermisos"
-            :key="modulo.clave"
-            class="modulo"
-            :data-test="`modulo-${modulo.clave}`"
-          >
-            <header class="modulo__head" :data-test="`columna-${modulo.clave}`">
-              <span class="modulo__icono"><component :is="modulo.icono" :size="17" /></span>
-              <h4>{{ modulo.etiqueta }}</h4>
-              <span class="modulo__conteo">
-                {{ modulo.opciones.filter((opcion) => estadoCheck(opcion)).length }}/{{
-                  modulo.opciones.length
-                }}
-              </span>
-            </header>
-            <ul class="modulo__lista">
-              <li
-                v-for="opcion in modulo.opciones"
-                :key="opcion.clave"
-                class="funcion"
-                :class="{
-                  'funcion--activa': estadoCheck(opcion),
-                  'funcion--pendiente': !opcion.idBackend,
-                }"
-              >
-                <label class="check" :title="opcion.etiqueta">
-                  <input
-                    type="checkbox"
-                    :checked="estadoCheck(opcion)"
-                    :disabled="guardando || opcion.idBackend == null"
-                    :data-test="`check-${opcion.clave}`"
-                    :aria-label="`${opcion.etiqueta}${estadoCheck(opcion) ? ' (ya lo tiene)' : ''}`"
-                    @change="togglePermiso(opcion)"
-                  />
-                  <span class="check__caja"><Check :size="12" aria-hidden="true" /></span>
-                  <span class="check__texto">{{ opcion.accionEtiqueta }}</span>
-                </label>
-                <span v-if="!opcion.idBackend" class="pendiente">
-                  <KeyRound :size="11" aria-hidden="true" />
-                  pendiente
-                </span>
-              </li>
-            </ul>
-          </article>
-        </div>
-
-        <Transition name="panel">
-          <div v-if="tieneCambios" class="confirmar" data-test="confirmar-bar">
-            <span class="confirmar__icono"><Check :size="18" aria-hidden="true" /></span>
-            <div class="confirmar__texto">
-              <strong>
-                {{ cambiosPendientes.size }}
-                {{ cambiosPendientes.size === 1 ? 'cambio listo' : 'cambios listos' }}
-              </strong>
-              <small>Revisalos y confirmá para aplicarlos a {{ usuarioSeleccionado.nombre }}.</small>
-            </div>
-            <button
-              type="button"
-              class="btn btn--suave"
-              :disabled="guardando"
-              data-test="descartar-permisos"
-              @click="descartarCambios"
-            >
-              Descartar
-            </button>
-            <button
-              type="button"
-              class="btn btn--primario"
-              :disabled="guardando"
-              data-test="confirmar-permisos"
-              @click="confirmarCambios"
-            >
-              <Check :size="16" aria-hidden="true" />
-              {{ guardando ? 'Guardando...' : 'Confirmar cambios' }}
-            </button>
-          </div>
-        </Transition>
-
-        <footer class="detalle__pie" data-test="permisos-actuales">
-          <span>
-            <strong>{{ permisosVisibles.length }} de {{ CATALOGO_PERMISOS.length }} permisos
-              activos:</strong>
-            {{ resumenPermisos }}
-          </span>
-          <small v-if="tieneCambios" class="detalle__pie--pendiente">Cambios sin guardar</small>
-          <small v-else>Todo guardado</small>
-        </footer>
+        <PermisosConfirmacion
+          :cambios="cambiosPendientes.size"
+          :guardando="guardando"
+          :usuario-nombre="usuarioSeleccionado.nombre"
+          :activos="permisosVisibles.length"
+          :total="CATALOGO_PERMISOS.length"
+          :resumen="resumenPermisos"
+          :tiene-cambios="tieneCambios"
+          @descartar="descartarCambios"
+          @confirmar="confirmarCambios"
+        />
       </section>
     </Transition>
   </section>
@@ -615,10 +183,7 @@ h1 {
   letter-spacing: -0.02em;
 }
 
-.hero p,
-.card p,
-.estado,
-.nota {
+.hero p {
   margin: 4px 0 0;
   color: #6b7280;
   font-size: 0.9rem;
@@ -649,15 +214,12 @@ h1 {
   box-shadow: 0 8px 26px rgb(79 70 229 / 8%);
 }
 
-.paso {
+.paso--segundo {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 16px;
-}
-
-.paso--segundo {
-  margin: 22px 0 14px;
+  margin-top: 22px;
+  margin-bottom: 14px;
 }
 
 .paso__numero {
@@ -673,532 +235,17 @@ h1 {
   font-size: 0.9rem;
 }
 
-h2 {
-  margin: 0;
-  font-size: 1.1rem;
-  color: #1f2937;
-}
-
 h3 {
   margin: 0;
   font-size: 1rem;
   color: #1f2937;
 }
 
-h4 {
-  margin: 0;
+.paso--segundo p {
+  margin: 4px 0 0;
+  color: #6b7280;
   font-size: 0.9rem;
-  color: #374151;
-}
-
-.buscador {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.buscador__icono {
-  position: absolute;
-  left: 14px;
-  color: #818cf8;
-  pointer-events: none;
-}
-
-.buscador input {
-  width: 100%;
-  box-sizing: border-box;
-  border: 1px solid #d8dbe3;
-  border-radius: 12px;
-  padding: 13px 44px 13px 42px;
-  font-size: 0.95rem;
-  color: #1f2937;
-  background: #fbfbfd;
-  outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-}
-
-.buscador input:focus {
-  background: #fff;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 4px rgb(99 102 241 / 12%);
-}
-
-.buscador input::placeholder {
-  color: #9ca3af;
-}
-
-.buscador__limpiar {
-  position: absolute;
-  right: 10px;
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border: 0;
-  border-radius: 50%;
-  background: #f3f4f6;
-  color: #6b7280;
-  cursor: pointer;
-}
-
-.buscador__limpiar:hover {
-  background: #e5e7eb;
-}
-
-.resultados {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 10px;
-  margin-top: 16px;
-}
-
-.usuario {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-align: left;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  background: #fff;
-  padding: 10px 12px;
-  cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.usuario:hover {
-  transform: translateY(-2px);
-  border-color: #a5b4fc;
-  box-shadow: 0 6px 14px rgb(15 23 42 / 6%);
-}
-
-.usuario--activo {
-  background: #eef2ff;
-  border-color: #6366f1;
-}
-
-.avatar {
-  display: grid;
-  place-items: center;
-  flex: 0 0 36px;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: #e0e7ff;
-  color: #4338ca;
-  font-weight: 700;
-  font-size: 0.85rem;
-}
-
-.avatar--grande {
-  flex-basis: 52px;
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  font-size: 1.1rem;
-  background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
-}
-
-.usuario__datos {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  flex: 1;
-}
-
-.usuario__datos strong {
-  font-size: 0.9rem;
-  color: #1f2937;
-}
-
-.usuario__datos small {
-  font-size: 0.76rem;
-  color: #9ca3af;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.rol {
-  border-radius: 999px;
-  background: #f3f4f6;
-  color: #4b5563;
-  padding: 3px 9px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.usuario--activo .rol {
-  background: #c7d2fe;
-  color: #3730a3;
-}
-
-.estado--vacio {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 16px;
-  padding: 22px;
-  border: 1px dashed #d1d5db;
-  border-radius: 12px;
-  color: #9ca3af;
-  background: #fcfcfd;
-}
-
-.detalle__head {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
-  padding-bottom: 18px;
-  border-bottom: 1px solid #eef2ff;
-}
-
-.detalle__titulo {
-  flex: 1 1 240px;
-}
-
-.detalle__titulo p {
-  color: #9ca3af;
-  font-size: 0.85rem;
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border-radius: 10px;
-  padding: 9px 13px;
-  font-size: 0.85rem;
-  cursor: pointer;
-}
-
-.btn--suave {
-  border: 1px solid #c7d2fe;
-  background: #fff;
-  color: #4338ca;
-  font-weight: 600;
-}
-
-.btn--suave:hover {
-  background: #eef2ff;
-}
-
-.metricas {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 10px;
-  margin-top: 18px;
-}
-
-.metrica {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 14px 16px;
-  border-radius: 12px;
-  background: #eef2ff;
-  color: #3730a3;
-}
-
-.metrica strong {
-  font-size: 1.4rem;
-  line-height: 1;
-}
-
-.metrica span {
-  font-size: 0.78rem;
-  color: #6366f1;
-}
-
-.metrica--clara {
-  background: #f5f3ff;
-  color: #6d28d9;
-}
-
-.metrica--clara span {
-  color: #8b5cf6;
-}
-
-.nota {
-  margin-top: 12px;
-  font-size: 0.82rem;
-}
-
-.aviso {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 12px;
-  padding: 10px 12px;
-  border: 1px solid #fde68a;
-  border-radius: 10px;
-  background: #fffbeb;
-  color: #92400e;
-  font-size: 0.84rem;
-}
-
-.acciones-masivas {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 14px;
-  padding: 10px 12px;
-  border: 1px solid #e0e7ff;
-  border-radius: 12px;
-  background: #f8faff;
-}
-
-.acciones-masivas__check {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #3730a3;
-  cursor: pointer;
-}
-
-.acciones-masivas__check input {
-  width: 16px;
-  height: 16px;
-  accent-color: #4f46e5;
-  cursor: pointer;
-}
-
-.acciones-masivas .btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.modulos {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(265px, 1fr));
-  gap: 12px;
-}
-
-.modulo {
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  overflow: hidden;
-  background: #fff;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.modulo:hover {
-  border-color: #c7d2fe;
-  box-shadow: 0 4px 14px rgb(15 23 42 / 5%);
-}
-
-.modulo__head {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 12px 13px;
-  background: #f9fafb;
-  border-bottom: 1px solid #eef0f4;
-}
-
-.modulo__icono {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: #eef2ff;
-  color: #4f46e5;
-}
-
-.modulo__head h4 {
-  flex: 1;
-}
-
-.modulo__conteo {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #6366f1;
-  background: #eef2ff;
-  border-radius: 999px;
-  padding: 3px 8px;
-}
-
-.modulo__lista {
-  list-style: none;
-  margin: 0;
-  padding: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.funcion {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  border-radius: 9px;
-  padding: 2px 6px;
-  transition: background 0.15s ease;
-}
-
-.funcion:hover {
-  background: #f9fafb;
-}
-
-.funcion--activa {
-  background: #f5f6ff;
-}
-
-.check {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  flex: 1;
-  padding: 7px 4px;
-  cursor: pointer;
-  color: #6b7280;
-  font-size: 0.86rem;
-}
-
-.check input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-}
-
-.check__caja {
-  display: grid;
-  place-items: center;
-  flex: 0 0 19px;
-  width: 19px;
-  height: 19px;
-  border: 1.5px solid #cbd5e1;
-  border-radius: 6px;
-  background: #fff;
-  color: transparent;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-}
-
-.check input:focus-visible + .check__caja {
-  outline: 3px solid rgb(99 102 241 / 30%);
-  outline-offset: 2px;
-}
-
-.check input:checked + .check__caja {
-  background: #4f46e5;
-  border-color: #4f46e5;
-  color: #fff;
-}
-
-.check input:disabled + .check__caja {
-  opacity: 0.45;
-}
-
-.funcion--activa .check__texto {
-  color: #3730a3;
-  font-weight: 600;
-}
-
-.funcion--pendiente {
-  opacity: 0.6;
-}
-
-.pendiente {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 0.7rem;
-  color: #92400e;
-  white-space: nowrap;
-}
-
-.detalle__pie {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 20px;
-  padding: 13px 15px;
-  border-radius: 12px;
-  background: #f8fafc;
-  border: 1px solid #e5e7eb;
-  color: #6b7280;
-  font-size: 0.84rem;
   line-height: 1.5;
-}
-
-.detalle__pie small {
-  color: #10b981;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.detalle__pie--pendiente {
-  color: #d97706 !important;
-}
-
-.confirmar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 18px;
-  padding: 14px 16px;
-  border: 1px solid #a5b4fc;
-  border-radius: 14px;
-  background: linear-gradient(120deg, #eef2ff, #f5f3ff);
-  box-shadow: 0 6px 18px rgb(79 70 229 / 10%);
-}
-
-.confirmar__icono {
-  display: grid;
-  place-items: center;
-  flex: 0 0 34px;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: #4f46e5;
-  color: #fff;
-}
-
-.confirmar__texto {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 220px;
-}
-
-.confirmar__texto strong {
-  color: #3730a3;
-  font-size: 0.92rem;
-}
-
-.confirmar__texto small {
-  color: #6b7280;
-  font-size: 0.8rem;
-}
-
-.btn--primario {
-  border: 1px solid #4f46e5;
-  background: #4f46e5;
-  color: #fff;
-  font-weight: 600;
-  box-shadow: 0 4px 10px rgb(79 70 229 / 25%);
-}
-
-.btn--primario:hover:not(:disabled) {
-  background: #4338ca;
-  border-color: #4338ca;
-}
-
-.btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
 }
 
 .panel-enter-active,
@@ -1225,24 +272,13 @@ h4 {
   .card {
     padding: 16px;
   }
-
-  .detalle__head {
-    align-items: flex-start;
-  }
-
-  .detalle__pie small {
-    white-space: normal;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .panel-enter-active,
   .panel-leave-active,
   .alert-enter-active,
-  .alert-leave-active,
-  .usuario,
-  .modulo,
-  .check__caja {
+  .alert-leave-active {
     transition: none;
   }
 }

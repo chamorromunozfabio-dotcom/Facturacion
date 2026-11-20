@@ -51,11 +51,11 @@ npm run test:watch
 | 33 | Contrato definitivo: estados, FE-0001 y campos renombrados | ✅ PASÓ | [contrato-definitivo.test.js](contrato-definitivo.test.js) |
 | 34 | Permisos reales del bodeguero: CRUD de Tipos y facturas de su bodega | ✅ PASÓ | [permisos-bodeguero.test.js](permisos-bodeguero.test.js) |
 | 35 | Contrato v2: bodegas propias, sin Usuarios y selector `/facturas/clientes` | ✅ PASÓ | [contrato-v2.test.js](contrato-v2.test.js) |
-| 36 | Permisos por usuario: dar/quitar con POST/DELETE y sesión | ✅ PASÓ | [permisos-asignacion.test.js](permisos-asignacion.test.js) |
+| 36 | Permisos por usuario: dar/quitar con POST/DELETE y sesión | ⏳ Por ejecutar | [permisos-asignacion.test.js](permisos-asignacion.test.js) |
 | 37 | Facturas: mensajes descriptivos por dato y alerta sobre el modal | ⏳ Por ejecutar | [facturas-mensajes-descriptivos.test.js](facturas-mensajes-descriptivos.test.js) |
 | 38 | Errores 422 del backend traducidos a mensajes junto al campo | ✅ PASÓ | [facturas-errores-backend.test.js](facturas-errores-backend.test.js) |
 | 39 | Bodegas con 11 datos obligatorios y avisos cortos por campo | ✅ PASÓ | [bodegas-obligatorias.test.js](bodegas-obligatorias.test.js) |
-| 40 | Permisos por usuario: buscador, tarjetas y confirmación de cambios | ✅ PASÓ | [permisos-matriz.test.js](permisos-matriz.test.js) |
+| 40 | Permisos por usuario: buscador, tarjetas y confirmación de cambios | ⏳ Por ejecutar | [permisos-matriz.test.js](permisos-matriz.test.js) |
 | 41 | Menú, botones y rutas con los permisos reales de la sesión | ✅ PASÓ | [permisos-sesion-real.test.js](permisos-sesion-real.test.js) |
 | 42 | Roles nuevos del backend disponibles al crear/editar usuarios | ✅ PASÓ | [roles-nuevos-usuarios.test.js](roles-nuevos-usuarios.test.js) |
 | 43 | Rutas que se abren según el permiso real, aunque el rol sea otro | ✅ PASÓ | [permisos-rutas-cruzadas.test.js](permisos-rutas-cruzadas.test.js) |
@@ -63,13 +63,14 @@ npm run test:watch
 | 45 | Eliminación de facturas emitidas tras confirmación | ✅ PASÓ | [factura-view.test.js](factura-view.test.js) |
 | 46 | Facturas propias por usuario y bloqueo 404 de ajenas | ✅ PASÓ | [facturas-por-usuario.test.js](facturas-por-usuario.test.js) |
 | 47 | Permisos: marcar todos, desmarcar todos y plantilla del rol | ⏳ Por ejecutar | [permisos-matriz.test.js](permisos-matriz.test.js) |
+| 51 | Permisos modular: vista pequeña, composable y piezas con contrato | ⏳ Por ejecutar | [permisos-modular.test.js](permisos-modular.test.js) |
 | 48 | Avisos flotantes con cierre automático y cierre manual | ⏳ Por ejecutar | [alerta-auto-cierre.test.js](alerta-auto-cierre.test.js) |
 | 49 | Aviso de sesión vencida al volver al login | ⏳ Por ejecutar | [aviso-sesion-vencida.test.js](aviso-sesion-vencida.test.js) |
 | 50 | Reglas responsive para celular, tablet y escritorio | ⏳ Por ejecutar | [responsive-layout.test.js](responsive-layout.test.js) |
 
 ---
 
-**48 archivos de test, 264 pruebas.** Ejecutar todo con `npm test`.
+**49 archivos de test, 270 pruebas.** Ejecutar todo con `npm test`.
 
 > Actualizado tras la respuesta del backend: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, endpoint `/roles`, `GET /me` y normalización de errores 422.
 >
