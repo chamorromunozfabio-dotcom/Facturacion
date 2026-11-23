@@ -1,6 +1,6 @@
 # Plan móvil: Ionic Vue + Capacitor
 
-**Decisión (23-11-2026):** iOS y Android con **Ionic Vue + Capacitor**. Flutter queda descartado: reescribiría la app en Dart y perderíamos los 316 tests.
+**Decisión (23-11-2026):** iOS y Android con **Ionic Vue + Capacitor**. Flutter queda descartado: reescribiría la app en Dart y perderíamos los 324 tests.
 **Estado real:** la carpeta `Movil/` **ya existe y está versionada** desde el commit `a79c029` (envoltorio Capacitor, proyectos `android/` e `ios/`, plugins y `README.md`). La Fase 1 está preparada; no hay que crearla ni volver a agregar la plataforma Android.
 
 ## 0. Estructura existente
@@ -15,7 +15,7 @@ Movil/
 ├─ ios/                      proyecto nativo versionado (NO borrar)
 └─ README.md                 puesta en marcha y solución de problemas
 
-entrega-productos-front/     front Vue: 59 archivos / 316 tests; único cambio de Fase 1: PDF nativo
+entrega-productos-front/     front Vue: 61 archivos / 324 tests; cambios de Fase 1: PDF nativo y refresh token
 ```
 
 - `webDir` apunta al `dist` del front: **no hay código duplicado**.
@@ -39,7 +39,7 @@ Incidencias resueltas (detalle en `Movil/README.md`):
 - Falta de Platform 36 → `android.exe sdk install platforms/android-36`.
 - `npx cap run android` sin `--target` muestra un prompt interactivo; usar `--target <id>`.
 
-## 2. Fase 1 — WebView funcional (compilado e instalado ✅)
+## 2. Fase 1 — WebView funcional (cerrada ✅)
 
 **No ejecutar `npx cap add android`**: la plataforma ya existe y por eso sale `[error] android platform already exists`. Ese comando es solo para crear el proyecto por primera vez.
 
@@ -62,8 +62,8 @@ Resultado verificado: `√ Running Gradle build in 329.61s` → `√ Deploying a
 - [x] Verificar login real (`admin@entrega.com` / `Admin123*`).
 - [x] Recargar → `GET /me` mantiene la sesión.
 - [x] Facturas: listado y firma con el dedo verificados en el emulador.
-- [ ] PDF nativo: implementado con `filesystem` + `share`; validar en dispositivo que abre el visor.
-- [ ] Avisos flotantes con cierre a los 5 s.
+- [x] PDF nativo validado: se guarda en cache y se abre con `Share`. Sin visor instalado, compartir a **Imprimir** muestra la factura correctamente.
+- [x] Avisos flotantes con cierre a los 5 s y cierre manual verificado.
 - [ ] iOS: en una Mac, `npx cap run ios`.
 
 ## 3. Fase 2 — Capa Ionic (look nativo)
@@ -79,8 +79,9 @@ Resultado verificado: `√ Running Gradle build in 329.61s` → `√ Deploying a
 ## 4. Funcionalidad nativa (plugins ya disponibles)
 
 - [ ] Firma: conservar data URL PNG, base64 válido y máx. 500 KB; persistir con `@capacitor/filesystem` si hace falta.
-- [x] PDF: `blob` de `FE-0001.pdf` → `@capacitor/filesystem` + `@capacitor/share` (implementado; falta probar el visor en dispositivo).
-- [ ] Token: migrar de `localStorage` a `@capacitor/preferences`, sin cambiar el contrato del backend.
+- [x] PDF: `blob` de `FE-0001.pdf` → `@capacitor/filesystem` + `@capacitor/share` (validado en emulador vía compartir/Imprimir).
+- [x] Refresh token integrado en `axios.js` y el store: renovación única, reintento y guardado del refresh rotado (tests 62/63).
+- [ ] Token: migrar de `localStorage` a `@capacitor/preferences` usando `src/config/sessionTokens.js` como único punto de cambio, sin tocar el contrato del backend.
 - [ ] Permisos nativos solo los necesarios; el canvas con touch basta para firmar.
 
 ## 5. Backend y CORS (producción)
@@ -89,7 +90,9 @@ Resultado verificado: `√ Running Gradle build in 329.61s` → `√ Deploying a
 - En producción no hay proxy: `VITE_API_URL=/api` no sirve dentro del WebView. Opciones:
   1. Apuntar `VITE_API_URL` a `http://192.168.20.49:8000` y pedir al backend los orígenes nativos (`capacitor://localhost` en iOS, `http://localhost` en Android).
   2. Publicar un reverse proxy `/api` y dejar la URL relativa.
-- [ ] Escribir el pedido en `ArchivosMD/MENSAJE_PARA_BACKEND.md`: CORS nativo y **refresh token** (el JWT vence a los 60 min). No se modifica el CORS usado por el front web.
+- [x] Pedido escrito en `ArchivosMD/MENSAJE_PARA_BACKEND.md` (23-11-2026): CORS nativo + **refresh token**. No se modifica el CORS usado por el front web.
+- [x] Respuesta del backend recibida en `ArchivosMD/cambios-backend-movil.md` (23-11-2026): CORS nativo sumado y `POST /refresh` con rotación de 7 días.
+- [ ] Quitar `server.url` de `Movil/capacitor.config.json`, apuntar `VITE_API_URL` al backend y probar el build de producción en el emulador.
 
 ## 6. Pruebas y entrega
 

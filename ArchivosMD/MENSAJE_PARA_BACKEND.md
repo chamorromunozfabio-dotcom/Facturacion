@@ -1,7 +1,7 @@
 # Mensaje para el backend — contrato v2 aplicado
 
-> Listo para copiar y pegar. Fecha: 18-11-2026 (actualizado).
-> Estado del frontend: **41 archivos de test / 208 pruebas en verde y build correcto.**
+> Listo para copiar y pegar. Fecha: 23-11-2026 (actualizado).
+> Estado del frontend: **61 archivos de test / 324 pruebas en verde y build correcto.**
 
 ---
 
@@ -205,7 +205,7 @@ Gracias, quedó claro y ya adaptamos el front:
 - **Solo activos**: el catálogo de facturas ahora pide `GET /tipos?estado=true`.
 - **Verificación en vivo**: creé un tipo temporal en la bodega del bodeguero de prueba → `201` con `bodega_id`/`bodega_nombre`; lo vio el admin filtrando y el propio bodeguero; una bodega ajena devolvió `total: 0`; lo borré (`204`). No quedaron datos.
 
-Todo en verde: **59 archivos / 316 pruebas** y build correcto (en ese momento eran 44 / 234). Si el catálogo de facturas debe mostrar también tipos inactivos en algún caso, avisen y lo ajustamos.
+Todo en verde: **61 archivos / 324 pruebas** y build correcto (en ese momento eran 44 / 234). Si el catálogo de facturas debe mostrar también tipos inactivos en algún caso, avisen y lo ajustamos.
 
 ---
 
@@ -325,3 +325,50 @@ Dos bodegueros (o dos clientes) con el mismo rol deben recibir cifras distintas 
 Preparamos `api/estadisticas.js`, `useEstadisticas.js`, la vista, el permiso en el menú y la ruta con su test. Mientras el endpoint no esté publicado, el panel funciona con mocks del modo demo; al publicarlo, solo cambia `VITE_USE_MOCKS=false` y lo verificamos en vivo con las tres cuentas de prueba. No tocamos CORS ni el proxy `/api`.
 
 Si prefieren otro nombre de permiso, otra forma de respuesta o un rango distinto, avisen y lo adaptamos antes de cerrar el contrato. Gracias 🚀
+
+---
+
+## Pedido (23-11-2026) — app móvil: CORS nativo y refresh token
+
+Hola equipo 👋 Cerramos la Fase 1 de la app móvil (Ionic Vue + Capacitor): en Android el WebView carga el Vite de desarrollo, así que hoy el proxy `/api` evita cualquier problema de CORS. Para pasar a un build de producción necesitamos dos cosas del backend.
+
+### 1. CORS para los orígenes nativos
+
+Cuando el build deje de usar el Vite, las peticiones saldrán directo del WebView con estos orígenes:
+
+| Plataforma | Origen |
+|---|---|
+| Android | `http://localhost` |
+| iOS | `capacitor://localhost` |
+
+Pedido: agregar esos dos orígenes a la configuración de CORS (además de `http://192.168.20.44:5173`, que ya funciona) para `GET`, `POST`, `PUT`, `DELETE` y `OPTIONS`, con `Authorization` y `Content-Type` en `Access-Control-Allow-Headers`. **No queremos cambiar el CORS que hoy usa el front web**: solo sumar los dos orígenes nuevos.
+
+Si prefieren no abrir CORS, la alternativa es publicar un reverse proxy `/api` delante del backend: en ese caso el front sigue con `VITE_API_URL=/api` y este punto queda resuelto. Nos ajustamos a lo que les sea más cómodo.
+
+### 2. Refresh token
+
+Hoy `POST /login` devuelve un JWT que vence a los 60 minutos y no hay forma de renovarlo. En la app eso significa pedir login otra vez cada hora. Necesitamos:
+
+1. Que `POST /login` devuelva también un `refresh_token` (o el nombre de campo que prefieran).
+2. Un endpoint `POST /refresh` que reciba ese token y devuelva un `access_token` nuevo sin pedir contraseña.
+3. Un vencimiento más largo para el refresh (por ejemplo 7 o 30 días, con rotación si es posible; si no, al menos 24 h).
+
+De nuestro lado: hoy guardamos el `access_token` en `localStorage` bajo `token` y el usuario en `user`. En el celular vamos a migrar eso a `@capacitor/preferences` **sin cambiar el contrato**: seguimos enviando `Authorization: Bearer <access_token>` exactamente igual. Cuando una respuesta dé `401`, vamos a llamar a `/refresh` una vez y reintentar la petición original; si falla, cerramos sesión con el aviso actual (`No ha iniciado sesión`).
+
+### 3. Lo que NO pedimos
+
+- No queremos cambiar `POST /login` a `username`/`password` ni a form-data: sigue siendo `{ "correo": "...", "contrasena": "..." }`.
+- No pedimos cambios en roles, permisos, facturas ni estadísticas.
+- No hace falta que el backend detecte la plataforma: alcanza con el origen/User-Agent.
+
+Cuando nos confirmen qué opción de CORS eligen y el contrato del refresh, lo verificamos en el emulador y cerramos la preparación para producción. Gracias 🚀
+
+### Respuesta recibida (23-11-2026) — `cambios-backend-movil.md` ✅ adoptada
+
+Gracias, quedó confirmado:
+
+- **CORS nativo:** `http://localhost` (Android) y `capacitor://localhost` (iOS) sumados al listado existente, con `GET`/`POST`/`PUT`/`DELETE`/`OPTIONS` y headers `Authorization`/`Content-Type`. El CORS del front web (`http://localhost:5173`) sigue igual.
+- **Refresh token:** `/login` devuelve `refresh_token`; `POST /refresh` recibe `{ "refresh_token": "..." }` y responde `access_token` + `refresh_token` nuevos con rotación. Vencimientos: 60 min para el access y 7 días para el refresh (`REFRESH_TOKEN_EXPIRE_DAYS=7`).
+- **401 del refresh** → `{"detail":"Refresh token inválido o vencido"}`. El front cierra sesión con el aviso actual.
+
+De nuestro lado quedó integrado: guardamos siempre el último refresh recibido, ante un 401 hacemos **una sola** renovación compartida entre peticiones concurrentes, reintentamos la petición original una vez y, si el refresh falla, limpiamos la sesión y mostramos `Tu sesión venció…`. Seguimos enviando `Authorization: Bearer <access_token>` y el body de `/login` con `correo`/`contrasena`, sin cambios. ✅

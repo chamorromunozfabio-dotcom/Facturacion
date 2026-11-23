@@ -77,12 +77,14 @@ npm run test:watch
 | 59 | Estadísticas por usuario: reglas, permiso, API, series del backend y panel | ✅ PASÓ | [estadisticas.test.js](estadisticas.test.js) |
 | 60 | PDF nativo: blob a base64, guardado en cache y visor del sistema | ✅ PASÓ | [pdf-nativo.test.js](pdf-nativo.test.js) |
 | 61 | `descargarPdf` usa el visor nativo y no `<a download>` | ✅ PASÓ | [facturas-pdf-nativo.test.js](facturas-pdf-nativo.test.js) |
+| 62 | Renovación de tokens: reintento, concurrencia y cierre de sesión | ✅ PASÓ | [refresh-token.test.js](refresh-token.test.js) |
+| 63 | Store de autenticación: guardar y limpiar el `refresh_token` | ✅ PASÓ | [auth-refresh-token.test.js](auth-refresh-token.test.js) |
 
 ---
 
-**59 archivos de test, 316 pruebas.** Ejecutar todo con `npm test`.
+**61 archivos de test, 324 pruebas.** Ejecutar todo con `npm test`.
 
-> Última corrida: **todos los archivos en ✅ PASÓ**. Incluye el panel de estadísticas (Test 59, 9 pruebas), los textos por rol de Inicio, Facturas y Estadísticas y el PDF nativo de Capacitor (Tests 60 y 61).
+> Última corrida: **todos los archivos en ✅ PASÓ**. Incluye el panel de estadísticas (Test 59, 9 pruebas), los textos por rol, el PDF nativo de Capacitor (Tests 60 y 61) y el refresh token con rotación (Tests 62 y 63).
 >
 > Contratos vigentes: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, `GET /me`, normalización de errores 422, paginación `{ data, total, page, limit }` y `/estadisticas/resumen`.
 >

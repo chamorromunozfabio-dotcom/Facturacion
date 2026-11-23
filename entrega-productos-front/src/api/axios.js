@@ -1,47 +1,111 @@
 import axios from 'axios'
 import { marcarSesionVencida } from '../config/sessionNotice'
+import {
+  clearSession,
+  getAccessToken,
+  getRefreshToken,
+  saveTokens,
+} from '../config/sessionTokens'
 
-const TOKEN_KEY = 'token'
+const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 /**
  * Cliente HTTP único para todo el frontend.
  * - baseURL viene de .env (VITE_API_URL)
  * - el interceptor agrega el token JWT a cada petición
- * - si el backend responde 401, cerramos sesión y vamos al login
+ * - ante un 401 renueva con POST /refresh una vez y reintenta la petición
+ * - si el refresh falla, cierra sesión y vamos al login
  */
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },
 })
 
+// Una sola renovación aunque vengan varios 401 al mismo tiempo.
+let refreshEnCurso = null
+
+function esRuta(url, tramo) {
+  return String(url || '').includes(tramo)
+}
+
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem(TOKEN_KEY)
+  // /refresh se autentica con su propio token en el body, no con el Bearer viejo.
+  if (esRuta(config.url, '/refresh')) return config
+
+  const token = getAccessToken()
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
   return config
 })
 
+async function renovarTokens() {
+  const refreshToken = getRefreshToken()
+  if (!refreshToken) throw new Error('No hay refresh token guardado')
+
+  const { data } = await api.post('/refresh', { refresh_token: refreshToken })
+  const accessToken = data?.access_token || data?.token || data?.data?.access_token
+  const refreshNuevo = data?.refresh_token || data?.data?.refresh_token
+
+  if (!accessToken || !refreshNuevo) {
+    throw new Error('El backend no devolvió los tokens renovados')
+  }
+
+  // El backend rota el refresh en cada llamada: hay que guardar siempre el último.
+  saveTokens({ accessToken, refreshToken: refreshNuevo })
+  return accessToken
+}
+
+function cerrarSesion(error, config) {
+  // Un 401 del login son credenciales incorrectas, no una sesión vencida.
+  const esLogin = esRuta(config?.url, '/login')
+  if (!esLogin && getAccessToken()) {
+    marcarSesionVencida()
+  }
+
+  clearSession()
+
+  if (window.location.pathname !== '/login') {
+    window.location.assign('/login')
+  }
+  return Promise.reject(error)
+}
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Un 401 del login son credenciales incorrectas, no una sesión vencida.
-      // Solo avisamos si había una sesión activa en otra petición.
-      const esLogin = String(error.config?.url || '').includes('/login')
-      if (!esLogin && localStorage.getItem(TOKEN_KEY)) {
-        marcarSesionVencida()
-      }
+  async (error) => {
+    const config = error.config || {}
+    const es401 = error.response?.status === 401
+    const puedeRenovar =
+      es401 &&
+      !esRuta(config.url, '/login') &&
+      !esRuta(config.url, '/refresh') &&
+      !config._reintentado
 
-      localStorage.removeItem(TOKEN_KEY)
-      localStorage.removeItem('user')
-
-      if (window.location.pathname !== '/login') {
-        window.location.assign('/login')
+    if (puedeRenovar) {
+      try {
+        if (!refreshEnCurso) {
+          refreshEnCurso = renovarTokens().finally(() => {
+            refreshEnCurso = null
+          })
+        }
+        const accessToken = await refreshEnCurso
+        config.headers = config.headers || {}
+        config.headers.Authorization = `Bearer ${accessToken}`
+        config._reintentado = true
+        return api(config)
+      } catch (refreshError) {
+        // El interceptor del propio /refresh ya marcó la sesión vencida si dio 401.
+        if (refreshError.response?.status !== 401) {
+          return cerrarSesion(error, config)
+        }
+        return Promise.reject(error)
       }
     }
+
+    if (es401) return cerrarSesion(error, config)
     return Promise.reject(error)
   },
 )

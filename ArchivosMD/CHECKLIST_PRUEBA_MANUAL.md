@@ -159,5 +159,5 @@ Novedad visible: hay una opción **Estadísticas** en el menú y una ruta `/esta
 
 ---
 
-**Estado actual:** 59 archivos de test / 316 pruebas en verde + build correcto.
+**Estado actual:** 61 archivos de test / 324 pruebas en verde + build correcto.
 **Rama:** `main`, con el módulo de estadísticas integrado con el endpoint ya publicado.

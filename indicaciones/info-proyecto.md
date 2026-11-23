@@ -1,6 +1,6 @@
 # info-proyecto — resumen para responder preguntas
 
-**Estado actual:** último commit en `main` · **59 archivos de test / 316 pruebas en verde** · `npm run build` correcto.
+**Estado actual:** último commit en `main` · **61 archivos de test / 324 pruebas en verde** · `npm run build` correcto.
 **Backend en vivo:** `http://192.168.20.49:8000` (/docs y /openapi.json). **Frontend dev:** `http://192.168.20.44:5173` (o `localhost:5173`).
 
 ---
@@ -14,7 +14,7 @@ Sistema web de **entregas con facturas**: admin, bodeguero y cliente gestionan t
 | Frontend | Vue 3.5 (Composition API, `<script setup>`), Vue Router 5, Pinia 4, Axios 1.21 |
 | Iconos y estilos | `@lucide/vue` (SVG), CSS puro + `<Transition>`; sin PrimeVue, Vuetify, Tailwind ni librerías de animación |
 | Build y tests | Vite 8, Vitest 5, `@vue/test-utils`, jsdom 31, Node 22.18+ o 24.12+ |
-| Backend | FastAPI (Python), JWT de 60 min; SQLAlchemy/MySQL según el instructivo inicial |
+| Backend | FastAPI (Python), JWT de 60 min + refresh token de 7 días; SQLAlchemy/MySQL según el instructivo inicial |
 | Comunicación | REST JSON sobre HTTP, con proxy de Vite en `/api` |
 
 ---
@@ -40,7 +40,7 @@ entrega-productos-front/
 │  ├─ router/index.js     rutas + guardas por permiso
 │  ├─ layouts/MainLayout.vue
 │  └─ assets/main.css
-├─ test/                  59 archivos de prueba
+├─ test/                  61 archivos de prueba
 └─ .env.example
 ```
 
@@ -77,10 +77,10 @@ entrega-productos-front/
 | `src/config/apiModes.js` | Interruptor mocks / API real | `api/*.js` | Lee `.env` (`VITE_USE_MOCKS`, `VITE_FACTURAS_MOCKS`) | Activar demo o integración |
 | `src/config/sessionNotice.js` | Aviso de sesión vencida | Interceptor 401 y `LoginView` | `localStorage` + `ref` de Vue | Cambiar el mensaje al vencer |
 | `src/assets/main.css` | Estilos globales, animaciones y media queries | Todas las vistas | Se importa en `main.js` | Colores, responsive y transiciones |
-| `test/*.test.js` | 59 archivos / 316 pruebas | `npm test` (Vitest) | Importan módulos reales y simulan axios | Agregar tests antes de pedir “Pasa” |
+| `test/*.test.js` | 61 archivos / 324 pruebas | `npm test` (Vitest) | Importan módulos reales y simulan axios | Agregar tests antes de pedir “Pasa” |
 
 Fuera del front:
-- `Movil/` → capa nativa con Capacitor (Fase 1 ya preparada en el commit `a79c029`). `webDir` apunta al `dist` del front, así que no hay código duplicado. Ver `ArchivosMD/PLAN_MOVIL.md`.
+- `Movil/` → capa nativa con Capacitor (**Fase 1 cerrada y validada en emulador**: login, sesión, facturas, firma, PDF y avisos). `webDir` apunta al `dist` del front, así que no hay código duplicado. Ver `ArchivosMD/PLAN_MOVIL.md`.
 - `ArchivosMD/` → contratos, mensajes al backend, respuestas del backend, checklist de prueba manual y el plan móvil.
 - `indicaciones/` → instructivos iniciales de frontend/backend y este resumen.
 - El **código del backend no está en este repo**; solo sus contratos y la API en vivo.
@@ -92,11 +92,11 @@ Fuera del front:
 ## 3. Login, token y sesión
 
 1. `POST /login` con JSON `{"correo":"...","contrasena":"..."}` (nunca `username`/`password` ni form-data).
-2. Respuesta: `access_token` (JWT, **60 min**), `token_type` y `user` con `id`, `nombre`, `rol` y **`permisos`**.
-3. Se guarda en `localStorage`: `token` y `user`. Pinia expone `auth.role`, `auth.userName`, `auth.permisos` e `isAuthenticated`.
-4. Un **interceptor de Axios** agrega `Authorization: Bearer <token>` a cada petición; no se escribe a mano.
+2. Respuesta: `access_token` (JWT, **60 min**), `refresh_token` (**7 días**, rotativo), `token_type` y `user` con `id`, `nombre`, `rol` y **`permisos`**.
+3. Se guarda en `localStorage`: `token`, `refresh_token` y `user` (único punto de acceso: `src/config/sessionTokens.js`). Pinia expone `auth.role`, `auth.userName`, `auth.permisos` e `isAuthenticated`.
+4. Un **interceptor de Axios** agrega `Authorization: Bearer <access_token>` a cada petición; no se escribe a mano.
 5. Al arrancar, `main.js` llama a `GET /me` para refrescar usuario y permisos.
-6. **401 con sesión activa** → se limpia `localStorage`, queda el aviso “Tu sesión venció…” y redirige a `/login`. Un **401 de `/login`** se trata como credenciales incorrectas (sin aviso de vencimiento).
+6. **401 con sesión activa** → se llama una sola vez a `POST /refresh` con `{ "refresh_token": "..." }`; se guardan los dos tokens nuevos (rotación) y se reintenta la petición original. Si el refresh falla, se limpia `localStorage`, queda el aviso “Tu sesión venció…” y redirige a `/login`. Un **401 de `/login`** o de `/refresh` no dispara otra renovación.
 7. **403** → token válido pero sin permiso: muestra mensaje y **no** cierra la sesión.
 8. Cerrar sesión limpia `localStorage` y vuelve al login.
 
@@ -106,7 +106,7 @@ El frontend **no decide permisos reales**: oculta menú y botones con `tienePerm
 
 ## 4. Cómo se habla con el backend
 
-- `VITE_API_URL=/api` es la `baseURL` de Axios. Vite reenvía `/api` a `VITE_BACKEND_URL` y **quita el header `Origin`**, así no hay preflight CORS aunque se abra desde otra IP. No se tocó CORS del backend.
+- `VITE_API_URL=/api` es la `baseURL` de Axios. Vite reenvía `/api` a `VITE_BACKEND_URL` y **quita el header `Origin`**, así no hay preflight CORS aunque se abra desde otra IP. El CORS del front web no se tocó; el backend sumó `http://localhost` y `capacitor://localhost` para los WebView nativos.
 - Listados: `?q=&page=1&limit=10`; respuesta `{ data, total, page, limit }`. Búsqueda con **debounce de 300 ms** y reset a página 1. `DataTable` emite `update:page` y `update:q`.
 - Errores: `getErrorMessage()` convierte `detail` (string, lista de 422 o `message`) a texto; `getFieldErrors()` devuelve errores por campo; `isDuplicateError()` detecta nombres repetidos (400/409).
 - Acciones de factura: `/facturas/{id}/entregar`, `/aceptar` (con firma), `/rechazar` (con motivo), `/recibir` y `/pdf` (blob con nombre del header `Content-Disposition`).
@@ -147,11 +147,11 @@ Los textos bajo el título son por rol en Inicio, Facturas y Estadísticas. Se q
 
 ## 6. ¿Usamos buenas prácticas?
 
-**Sí, en general:** capas bien separadas, código modular, lógica repetida extraída, cliente HTTP único, manejo centralizado de errores, permisos reales del backend con respaldo por rol, catálogo fijo de permisos (30, sin crear desde la UI), rutas con *lazy loading* y guardas, mocks aislados por entorno, 316 pruebas con `data-test` estables, animaciones CSS puras y documentación de arquitectura al día.
+**Sí, en general:** capas bien separadas, código modular, lógica repetida extraída, cliente HTTP único, manejo centralizado de errores, permisos reales del backend con respaldo por rol, catálogo fijo de permisos (30, sin crear desde la UI), rutas con *lazy loading* y guardas, mocks aislados por entorno, 324 pruebas con `data-test` estables, animaciones CSS puras y documentación de arquitectura al día.
 
 **Puntos a tener en cuenta / mejorar (no bloquean):**
 
-- El JWT vive en `localStorage`: es lo habitual en una SPA simple, pero es vulnerable a XSS; lo ideal sería cookie `httpOnly` o almacenamiento seguro en la app móvil. Tampoco hay *refresh token*: a los 60 min hay que reingresar.
+- Los tokens siguen en `localStorage` (vulnerable a XSS); en la app móvil se migrarán a `@capacitor/preferences` detrás de `src/config/sessionTokens.js`. Ya hay **refresh token** con rotación, así que no hay que reingresar cada 60 min.
 - Quedan **re-exports de compatibilidad** en la raíz de `components/`; se pueden borrar cuando no haya imports antiguos (código nuevo importa desde `ui/` o `components/<modulo>/`).
 - Los instructivos iniciales y las bitácoras de `ArchivosMD/` se conservan como registro histórico, pero llevan una nota con el estado vigente. La fuente confiable es este archivo, `entrega-productos-front/README.md` y `src/ARQUITECTURA.md`.
 - jsdom **no valida CSS real**: sigue pendiente la revisión visual en DevTools a **320 / 375 / 768 / 1024 px**.
@@ -166,7 +166,7 @@ Los textos bajo el título son por rol en Inicio, Facturas y Estadísticas. Se q
 npm install
 cp .env.example .env     # en Windows: copy .env.example .env
 npm run dev              # Vite con --host, expuesto en la red
-npm test                 # 59 archivos / 316 pruebas
+npm test                 # 61 archivos / 324 pruebas
 npm run build
 ```
 
@@ -175,6 +175,6 @@ npm run build
 **Cuentas reales:** admin `admin@entrega.com` / `Admin123*` · bodeguero `bodeguero@gmail.com` / `Bodega123*` · cliente `cliente@gmail.com` / `Cliente123*`.
 **Demo (`VITE_USE_MOCKS=true`):** `luis@entrega.com` y `juan@cliente.com`, con botones de acceso rápido en el login.
 
-**Números clave:** 30 permisos en el catálogo · 60 min de JWT · 500 KB máx. de firma · 5 s de avisos · 300 ms de debounce · 62 días para graficar por día · 316 pruebas.
+**Números clave:** 30 permisos en el catálogo · 60 min de JWT · 7 días de refresh · 500 KB máx. de firma · 5 s de avisos · 300 ms de debounce · 62 días para graficar por día · 324 pruebas.
 
 **Flujo de trabajo acordado:** el asistente ajusta código y tests → el usuario ejecuta `npm test` → dice “Pasa” → recién entonces commit y push. Los 6 archivos `ArchivosMD` prohibidos nunca se commitean.
