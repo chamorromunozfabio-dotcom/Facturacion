@@ -1,5 +1,6 @@
 <script setup>
 import { Check } from '@lucide/vue'
+import BotonBase from '../ui/BotonBase.vue'
 
 /** Barra de cambios preparados y resumen final de permisos. */
 defineProps({
@@ -26,7 +27,7 @@ defineEmits(['descartar', 'confirmar'])
         </strong>
         <small>Revisalos y confirmá para aplicarlos a {{ usuarioNombre }}.</small>
       </div>
-      <button
+      <BotonBase
         type="button"
         class="btn btn--suave"
         :disabled="guardando"
@@ -34,8 +35,8 @@ defineEmits(['descartar', 'confirmar'])
         @click="$emit('descartar')"
       >
         Descartar
-      </button>
-      <button
+      </BotonBase>
+      <BotonBase
         type="button"
         class="btn btn--primario"
         :disabled="guardando"
@@ -44,7 +45,7 @@ defineEmits(['descartar', 'confirmar'])
       >
         <Check :size="16" aria-hidden="true" />
         {{ guardando ? 'Guardando...' : 'Confirmar cambios' }}
-      </button>
+      </BotonBase>
     </div>
   </Transition>
 

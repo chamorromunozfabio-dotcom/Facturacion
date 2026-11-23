@@ -1,5 +1,6 @@
 <script setup>
 import { ChevronLeft, KeyRound } from '@lucide/vue'
+import BotonBase from '../ui/BotonBase.vue'
 import { iniciales } from '../../utils/permisos'
 
 /** Paso 2, cabecera: quién se está editando y cuántos permisos tiene. */
@@ -25,10 +26,10 @@ defineEmits(['cambiar'])
       </h2>
       <p>{{ usuario.correo }}</p>
     </div>
-    <button type="button" class="btn btn--suave" @click="$emit('cambiar')">
+    <BotonBase type="button" class="btn btn--suave" @click="$emit('cambiar')">
       <ChevronLeft :size="16" aria-hidden="true" />
       Cambiar usuario
-    </button>
+    </BotonBase>
   </header>
 
   <div class="metricas">

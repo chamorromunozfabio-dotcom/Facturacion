@@ -67,12 +67,27 @@ vi.mock('@ionic/vue', async () => {
     },
   })
 
+  const IonMenu = defineComponent({
+    name: 'IonMenu',
+    inheritAttrs: false,
+    props: { menu: { type: String, default: undefined }, contentId: { type: String, default: undefined } },
+    emits: ['ionDidClose'],
+    setup(_, { attrs, slots }) {
+      return () => h('div', { class: 'IonMenu', ...attrs }, slots.default?.())
+    },
+  })
+
   return {
+    menuController: { open: vi.fn(), close: vi.fn(), toggle: vi.fn() },
+    IonMenu,
     IonicVue: { install() {} },
     IonApp: simple('div', 'IonApp'),
     IonModal,
     IonPage: simple('div', 'IonPage'),
+    IonHeader: simple('header', 'IonHeader'),
+    IonToolbar: simple('div', 'IonToolbar'),
     IonContent: simple('div', 'IonContent'),
+    IonLabel: simple('span', 'IonLabel'),
     IonCard: simple('div', 'IonCard'),
     IonList: simple('div', 'IonList'),
     IonItem: simple('div', 'IonItem'),

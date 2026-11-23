@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import SidebarMenu from '../components/layout/SidebarMenu.vue'
 import TopBar from '../components/layout/TopBar.vue'
+import LayoutBase from './LayoutBase.vue'
 import { visibleMenuFor } from '../config/navigation'
 import { useAuthStore } from '../stores/auth'
 
@@ -19,6 +20,11 @@ function cerrarMenu() {
   menuAbierto.value = false
 }
 
+async function navegar(to) {
+  cerrarMenu()
+  await router.push(to)
+}
+
 async function logout() {
   cerrarMenu()
   auth.logout()
@@ -27,15 +33,26 @@ async function logout() {
 </script>
 
 <template>
-  <div class="layout" :data-role="auth.role || 'invitado'">
-    <SidebarMenu
-      :abierto="menuAbierto"
-      :menu="visibleMenu"
-      :logo-url="logoUrl"
-      @cerrar="cerrarMenu"
-    />
+  <LayoutBase
+    :abierto="menuAbierto"
+    :menu="visibleMenu"
+    :logo-url="logoUrl"
+    :role="auth.role"
+    @cerrar="cerrarMenu"
+    @toggle="menuAbierto = true"
+    @logout="logout"
+    @navigate="navegar"
+  >
+    <template #sidebar>
+      <SidebarMenu
+        :abierto="menuAbierto"
+        :menu="visibleMenu"
+        :logo-url="logoUrl"
+        @cerrar="cerrarMenu"
+      />
+    </template>
 
-    <div class="main">
+    <template #topbar>
       <TopBar
         :abierto="menuAbierto"
         :nombre="auth.userName"
@@ -43,45 +60,17 @@ async function logout() {
         @toggle="menuAbierto = true"
         @logout="logout"
       />
+    </template>
 
-      <main class="content">
-        <RouterView v-slot="{ Component }">
-          <Transition name="fade" mode="out-in">
-            <component :is="Component" />
-          </Transition>
-        </RouterView>
-      </main>
-    </div>
-  </div>
+    <RouterView v-slot="{ Component }">
+      <Transition name="fade" mode="out-in">
+        <component :is="Component" />
+      </Transition>
+    </RouterView>
+  </LayoutBase>
 </template>
 
 <style scoped>
-.layout {
-  --accent: #2563eb;
-  display: grid;
-  grid-template-columns: 240px 1fr;
-  min-height: 100vh;
-}
-
-/* Cada rol tiene un color de acento distinto, heredado por el dashboard. */
-.layout[data-role='admin'] {
-  --accent: #4f46e5;
-}
-
-.layout[data-role='bodeguero'] {
-  --accent: #059669;
-}
-
-.layout[data-role='cliente'] {
-  --accent: #d97706;
-}
-
-.main {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
 /* Transición suave al cambiar de vista (Vue puro, sin librerías extra). */
 .fade-enter-active,
 .fade-leave-active {
@@ -96,22 +85,6 @@ async function logout() {
 .fade-leave-to {
   opacity: 0;
   transform: translateY(-6px);
-}
-
-.content {
-  padding: 24px;
-}
-
-@media (max-width: 1024px) {
-  .layout {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .content {
-    padding: 16px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,5 +1,7 @@
 <script setup>
 import { Search, Users, X } from '@lucide/vue'
+import BotonBase from '../ui/BotonBase.vue'
+import CampoNative from '../ui/CampoNative.vue'
 import { iniciales } from '../../utils/permisos'
 
 /** Paso 1: busca a la persona a la que se van a revisar los permisos. */
@@ -26,15 +28,15 @@ defineEmits(['update:modelValue', 'select'])
 
     <div class="buscador">
       <Search class="buscador__icono" :size="18" aria-hidden="true" />
-      <input
-        :value="modelValue"
+      <CampoNative
+        :model-value="modelValue"
         data-test="user-search"
         type="search"
         placeholder="Ej: Juan, cliente@gmail.com, bodeguero..."
         aria-label="Buscar usuario"
-        @input="$emit('update:modelValue', $event.target.value)"
+        @update:model-value="$emit('update:modelValue', $event)"
       />
-      <button
+      <BotonBase
         v-if="modelValue"
         type="button"
         class="buscador__limpiar"
@@ -42,14 +44,14 @@ defineEmits(['update:modelValue', 'select'])
         @click="$emit('update:modelValue', '')"
       >
         <X :size="16" aria-hidden="true" />
-      </button>
+      </BotonBase>
     </div>
 
     <p v-if="cargando" class="estado">Cargando usuarios y catálogos...</p>
 
     <template v-else-if="coincidencias.length">
       <div class="resultados" data-test="assignment-user">
-        <button
+        <BotonBase
           v-for="usuario in resultados"
           :key="usuario.id"
           type="button"
@@ -65,7 +67,7 @@ defineEmits(['update:modelValue', 'select'])
             <small>{{ usuario.correo }}</small>
           </span>
           <span class="rol">{{ usuario.rol }}</span>
-        </button>
+        </BotonBase>
       </div>
       <p v-if="coincidencias.length > resultados.length" class="estado">
         Mostrando {{ resultados.length }} de {{ coincidencias.length }} coincidencias. Seguí

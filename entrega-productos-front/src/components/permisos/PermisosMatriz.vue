@@ -1,5 +1,6 @@
 <script setup>
 import { Check, KeyRound } from '@lucide/vue'
+import BotonBase from '../ui/BotonBase.vue'
 
 /** Matriz de módulos x acción. El check solo prepara; se aplica con Confirmar. */
 defineProps({
@@ -24,7 +25,7 @@ defineEmits(['toggle', 'toggle-todos', 'aplicar-rol', 'desmarcar-todos'])
       />
       <span>Marcar todos</span>
     </label>
-    <button
+    <BotonBase
       type="button"
       class="btn btn--suave"
       data-test="aplicar-rol"
@@ -32,8 +33,8 @@ defineEmits(['toggle', 'toggle-todos', 'aplicar-rol', 'desmarcar-todos'])
       @click="$emit('aplicar-rol')"
     >
       Por defecto del rol
-    </button>
-    <button
+    </BotonBase>
+    <BotonBase
       type="button"
       class="btn btn--suave"
       data-test="desmarcar-todos"
@@ -41,7 +42,7 @@ defineEmits(['toggle', 'toggle-todos', 'aplicar-rol', 'desmarcar-todos'])
       @click="$emit('desmarcar-todos')"
     >
       Desmarcar todos
-    </button>
+    </BotonBase>
   </div>
 
   <div class="modulos" data-test="matriz-permisos">

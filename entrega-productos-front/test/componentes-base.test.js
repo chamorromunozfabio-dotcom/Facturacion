@@ -77,6 +77,11 @@ describe('BotonBase y CampoNative — adaptadores web/móvil', () => {
       ['../src/views/EstadisticasView.vue', ['BotonBase', 'CampoNative']],
       ['../src/components/ui/FormModal.vue', ['BotonBase']],
       ['../src/components/ui/ConfirmDelete.vue', ['BotonBase']],
+      ['../src/components/permisos/PermisosBuscador.vue', ['BotonBase', 'CampoNative']],
+      ['../src/components/permisos/PermisosMatriz.vue', ['BotonBase']],
+      ['../src/components/permisos/PermisosCabecera.vue', ['BotonBase']],
+      ['../src/components/permisos/PermisosConfirmacion.vue', ['BotonBase']],
+      ['../src/layouts/LayoutBase.vue', ['IonMenu', 'IonHeader', 'IonContent']],
     ]
 
     for (const [ruta, simbolos] of contratos) {

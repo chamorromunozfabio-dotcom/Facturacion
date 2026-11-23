@@ -15,7 +15,7 @@ describe('Test 50 — Reglas responsive para distintos dispositivos', () => {
   })
 
   it('el menú se vuelve un drawer lateral en tablet y celular', () => {
-    const layout = leer('../src/layouts/MainLayout.vue')
+    const layout = leer('../src/layouts/LayoutBase.vue')
     const sidebar = leer('../src/components/layout/SidebarMenu.vue')
 
     expect(layout).toContain('@media (max-width: 1024px)')
