@@ -70,7 +70,7 @@ src/
 
 ## El ingreso
 
-`LoginView.vue` es solo el contenedor de la ruta `/login`. La lógica (credenciales, envío, errores, aviso de sesión vencida) está en `composables/useLogin.js`, las reglas puras en `utils/login.js` y el markup con su CSS en `components/auth/LoginForm.vue`.
+`LoginView.vue` es solo el contenedor de la ruta `/login`. La lógica (credenciales, envío, errores, aviso de sesión vencida) está en `composables/useLogin.js`, las reglas puras en `utils/login.js` y el markup con su CSS en `components/auth/LoginForm.vue`. El formulario usa `IonPage`/`IonContent`/`IonInput`/`IonButton` (Fase 2); `useLogin` y el `POST /login` con `{ correo, contrasena }` no cambiaron. En tests, `test/setup-ionic.js` sustituye esos componentes por inputs/botones nativos.
 
 ## El panel de estadísticas
 

@@ -1,3 +1,9 @@
+<script setup>
+import { IonApp } from '@ionic/vue'
+</script>
+
 <template>
-  <RouterView />
+  <IonApp>
+    <RouterView />
+  </IonApp>
 </template>

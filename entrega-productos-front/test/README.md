@@ -70,7 +70,7 @@ npm run test:watch
 | 55 | Componentes `ui`/`facturas` y re-exports de compatibilidad | ✅ PASÓ | [componentes-ui.test.js](componentes-ui.test.js) |
 | 56 | CRUD compartido: utilidades, composable y vistas delegadas | ✅ PASÓ | [crud-compartido.test.js](crud-compartido.test.js) |
 | 57 | `CrudPage`: plantilla, slots y eventos compartidos | ✅ PASÓ | [crud-page.test.js](crud-page.test.js) |
-| 58 | Login modular: reglas puras, composable y `LoginForm` | ✅ PASÓ | [login-modular.test.js](login-modular.test.js) |
+| 58 | Login modular: reglas puras, composable y `LoginForm` (ahora con Ionic) | ✅ PASÓ (actualizado) | [login-modular.test.js](login-modular.test.js) |
 | 48 | Avisos flotantes con cierre automático y cierre manual | ✅ PASÓ | [alerta-auto-cierre.test.js](alerta-auto-cierre.test.js) |
 | 49 | Aviso de sesión vencida al volver al login | ✅ PASÓ | [aviso-sesion-vencida.test.js](aviso-sesion-vencida.test.js) |
 | 50 | Reglas responsive para celular, tablet y escritorio | ✅ PASÓ | [responsive-layout.test.js](responsive-layout.test.js) |
@@ -85,6 +85,8 @@ npm run test:watch
 **61 archivos de test, 324 pruebas.** Ejecutar todo con `npm test`.
 
 > Última corrida: **todos los archivos en ✅ PASÓ**. Incluye el panel de estadísticas (Test 59, 9 pruebas), los textos por rol, el PDF nativo de Capacitor (Tests 60 y 61) y el refresh token con rotación (Tests 62 y 63).
+>
+> Los componentes Ionic se sustituyen por stubs nativos en `test/setup-ionic.js` (configurado en `vite.config.js`), así que los tests siguen usando `input[type=email]`, `setValue` y `aria-invalid` sin depender del shadow DOM.
 >
 > Contratos vigentes: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, `GET /me`, normalización de errores 422, paginación `{ data, total, page, limit }` y `/estadisticas/resumen`.
 >

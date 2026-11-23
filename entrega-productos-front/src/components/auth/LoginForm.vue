@@ -1,4 +1,5 @@
 <script setup>
+import { IonButton, IonContent, IonInput, IonPage } from '@ionic/vue'
 import { MOCK_ACCOUNTS } from '../../api/mocks'
 import { MENSAJE_SESION_VENCIDA } from '../../config/sessionNotice'
 import { useLogin } from '../../composables/useLogin'
@@ -21,87 +22,99 @@ const {
 </script>
 
 <template>
-  <div class="login-page">
-    <form class="login-card" @submit.prevent="submit">
-      <img :src="logoUrl" alt="Logo de Entrega de Productos" class="login-card__logo" />
-      <h1>Iniciar sesión</h1>
-      <p class="subtitle">Entrega de Productos</p>
+  <IonPage>
+    <IonContent>
+      <div class="login-page">
+        <form class="login-card" @submit.prevent="submit">
+          <img :src="logoUrl" alt="Logo de Entrega de Productos" class="login-card__logo" />
+          <h1>Iniciar sesión</h1>
+          <p class="subtitle">Entrega de Productos</p>
 
-      <div
-        v-if="avisoSesionVencida"
-        data-test="sesion-vencida"
-        class="aviso-sesion"
-        role="status"
-        aria-live="polite"
-      >
-        <span>{{ MENSAJE_SESION_VENCIDA }}</span>
-        <button
-          type="button"
-          class="aviso-sesion__cerrar"
-          aria-label="Cerrar aviso de sesión vencida"
-          @click="avisoSesionVencida = false"
-        >
-          ×
-        </button>
+          <div
+            v-if="avisoSesionVencida"
+            data-test="sesion-vencida"
+            class="aviso-sesion"
+            role="status"
+            aria-live="polite"
+          >
+            <span>{{ MENSAJE_SESION_VENCIDA }}</span>
+            <button
+              type="button"
+              class="aviso-sesion__cerrar"
+              aria-label="Cerrar aviso de sesión vencida"
+              @click="avisoSesionVencida = false"
+            >
+              ×
+            </button>
+          </div>
+
+          <label>
+            Correo electrónico <span class="required">*</span>
+            <IonInput
+              v-model="credentials.correo"
+              data-test="correo"
+              type="email"
+              autocomplete="email"
+              placeholder="nombre@correo.com"
+              :aria-invalid="mostrarError('correo')"
+              :aria-describedby="mostrarError('correo') ? 'error-correo' : undefined"
+              @ion-blur="touched.correo = true"
+            />
+            <span v-if="mostrarError('correo')" id="error-correo" class="field-error">
+              {{ errores.correo }}
+            </span>
+          </label>
+
+          <label>
+            Contraseña <span class="required">*</span>
+            <IonInput
+              v-model="credentials.contrasena"
+              data-test="clave"
+              type="password"
+              autocomplete="current-password"
+              placeholder="Mínimo 8 caracteres"
+              :aria-invalid="mostrarError('contrasena')"
+              :aria-describedby="mostrarError('contrasena') ? 'error-contrasena' : undefined"
+              @ion-blur="touched.contrasena = true"
+            />
+            <span v-if="mostrarError('contrasena')" id="error-contrasena" class="field-error">
+              {{ errores.contrasena }}
+            </span>
+          </label>
+
+          <div v-if="error" class="error" role="alert">{{ error }}</div>
+
+          <IonButton
+            type="submit"
+            data-test="ingresar"
+            :disabled="!puedeEnviar"
+            :title="avisoBoton || undefined"
+          >
+            {{ loading ? 'Ingresando...' : 'Ingresar' }}
+          </IonButton>
+
+          <p v-if="!puedeEnviar && !loading" class="hint hint--button">{{ avisoBoton }}</p>
+
+          <p v-if="isMockMode && !loading" class="hint">
+            Modo demo activo: elige un rol o escribe cualquier correo.
+          </p>
+
+          <div v-if="isMockMode && !loading" class="demo-accounts">
+            <IonButton
+              v-for="cuenta in MOCK_ACCOUNTS"
+              :key="cuenta.correo"
+              type="button"
+              data-test="cuenta"
+              class="demo-accounts__btn"
+              @click="usarCuenta(cuenta)"
+            >
+              {{ cuenta.pista }}
+            </IonButton>
+          </div>
+        </form>
       </div>
-
-      <label>
-        Correo electrónico <span class="required">*</span>
-        <input
-          v-model="credentials.correo"
-          type="email"
-          autocomplete="email"
-          placeholder="nombre@correo.com"
-          :aria-invalid="mostrarError('correo')"
-          :aria-describedby="mostrarError('correo') ? 'error-correo' : undefined"
-          @blur="touched.correo = true"
-        />
-        <span v-if="mostrarError('correo')" id="error-correo" class="field-error">
-          {{ errores.correo }}
-        </span>
-      </label>
-
-      <label>
-        Contraseña <span class="required">*</span>
-        <input
-          v-model="credentials.contrasena"
-          type="password"
-          autocomplete="current-password"
-          placeholder="Mínimo 8 caracteres"
-          :aria-invalid="mostrarError('contrasena')"
-          :aria-describedby="mostrarError('contrasena') ? 'error-contrasena' : undefined"
-          @blur="touched.contrasena = true"
-        />
-        <span v-if="mostrarError('contrasena')" id="error-contrasena" class="field-error">
-          {{ errores.contrasena }}
-        </span>
-      </label>
-
-      <div v-if="error" class="error" role="alert">{{ error }}</div>
-
-      <button type="submit" :disabled="!puedeEnviar" :title="avisoBoton || undefined">
-        {{ loading ? 'Ingresando...' : 'Ingresar' }}
-      </button>
-
-      <p v-if="!puedeEnviar && !loading" class="hint hint--button">{{ avisoBoton }}</p>
-
-      <p v-if="isMockMode && !loading" class="hint">
-        Modo demo activo: elige un rol o escribe cualquier correo.
-      </p>
-
-      <div v-if="isMockMode && !loading" class="demo-accounts">
-        <button
-          v-for="cuenta in MOCK_ACCOUNTS"
-          :key="cuenta.correo"
-          type="button"
-          class="demo-accounts__btn"
-          @click="usarCuenta(cuenta)"
-        >
-          {{ cuenta.pista }}
-        </button>
-      </div>
-    </form>
-  </div>
+    </IonContent>
+  </IonPage>
 </template>
 
 <style scoped>
@@ -154,20 +167,24 @@ label {
   font-weight: 600;
 }
 
-input {
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 10px 12px;
+/* Ionic pinta el input dentro de shadow DOM: se configuran variables CSS. */
+ion-input {
+  --background: #fff;
+  --color: #1f2937;
+  --placeholder-color: #9ca3af;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+  --border-color: #d1d5db;
+  --border-radius: 8px;
+  --highlight-color-focused: #2563eb;
+  min-height: 44px;
 }
 
-input:focus {
-  outline: 2px solid #93c5fd;
-  border-color: #2563eb;
-}
-
-input[aria-invalid='true'] {
-  border-color: #dc2626;
-  background: #fef2f2;
+ion-input[aria-invalid='true'] {
+  --border-color: #dc2626;
+  --background: #fef2f2;
 }
 
 .required {
@@ -184,19 +201,17 @@ input[aria-invalid='true'] {
   color: #b45309;
 }
 
-button {
-  background: #2563eb;
-  color: #fff;
-  border: 0;
-  border-radius: 8px;
-  padding: 11px;
-  font-weight: 600;
-  cursor: pointer;
+ion-button {
+  --background: #2563eb;
+  --color: #fff;
+  --border-radius: 8px;
+  --box-shadow: none;
+  text-transform: none;
 }
 
-button:disabled {
+ion-button:disabled,
+ion-button[disabled] {
   opacity: 0.6;
-  cursor: not-allowed;
 }
 
 .aviso-sesion {
@@ -218,6 +233,7 @@ button:disabled {
   font-size: 1.1rem;
   line-height: 1;
   padding: 0 2px;
+  cursor: pointer;
 }
 
 .error {
@@ -244,17 +260,15 @@ button:disabled {
 }
 
 .demo-accounts__btn {
-  background: #eff6ff;
-  color: #1d4ed8;
-  border: 1px solid #bfdbfe;
-  border-radius: 999px;
-  padding: 6px 12px;
+  --background: #eff6ff;
+  --color: #1d4ed8;
+  --border-color: #bfdbfe;
+  --border-width: 1px;
+  --border-style: solid;
+  --border-radius: 999px;
+  --box-shadow: none;
   font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.demo-accounts__btn:hover {
-  background: #dbeafe;
+  text-transform: none;
 }
 
 @media (max-width: 480px) {

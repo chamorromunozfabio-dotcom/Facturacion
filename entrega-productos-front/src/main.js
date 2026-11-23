@@ -1,5 +1,8 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import { IonicVue } from '@ionic/vue'
+import '@ionic/vue/css/core.css'
+import '@ionic/vue/css/normalize.css'
 
 import App from './App.vue'
 import router from './router'
@@ -10,6 +13,7 @@ const app = createApp(App)
 const pinia = createPinia()
 
 app.use(pinia)
+app.use(IonicVue)
 
 // Si hay token guardado, validamos la sesión con GET /me.
 // Si venció (60 min), el interceptor 401 limpia la sesión y manda al login.

@@ -68,10 +68,10 @@ Resultado verificado: `√ Running Gradle build in 329.61s` → `√ Deploying a
 
 ## 3. Fase 2 — Capa Ionic (look nativo)
 
-- [ ] Instalar `@ionic/vue@9.0.13` e `ionicons` **en el front** y registrar `IonicVue` en `main.js`.
-- [ ] `App.vue` → `IonApp`; `MainLayout.vue` → `IonMenu` + `IonHeader`/`IonContent`.
+- [x] Instalar `@ionic/vue@9.0.13` e `ionicons` **en el front** y registrar `IonicVue` en `main.js` (junto con `core.css` y `normalize.css`).
+- [ ] `App.vue` → `IonApp` ✅ (hecho); `MainLayout.vue` → `IonMenu` + `IonHeader`/`IonContent` (pendiente).
 - [ ] Migrar por módulos: **Login → Facturas → Estadísticas → catálogos**.
-  - Login: `IonPage`, `IonInput`, `IonButton`; `useLogin` sigue haciendo `POST /login`.
+  - [x] Login: `IonPage`, `IonContent`, `IonInput`, `IonButton`; `useLogin` sigue haciendo `POST /login` con `{ correo, contrasena }`. `@ion-blur` reemplaza a `@blur`; `test/setup-ionic.js` mantiene los tests con inputs nativos. Pendiente de validación en emulador.
   - Facturas: `IonList`/`IonCard`, firma en `<canvas>` y modales con `IonModal`.
   - Estadísticas: `StatCard`, `BarrasPorEstado` y `SerieTiempo` siguen siendo CSS puro.
 - [ ] No mezclar Lucide e `ionicons` en un mismo componente.

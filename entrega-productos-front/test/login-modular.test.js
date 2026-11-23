@@ -142,6 +142,7 @@ describe('Test 58 — Login modular: reglas puras, composable y formulario', () 
     expect(utils).toContain('export function mensajeValidacion')
 
     const form = leer('../src/components/auth/LoginForm.vue')
+    const ionic = `import { IonButton, IonContent, IonInput, IonPage } from '@ionic/vue'`
     for (const fragmento of [
       'data-test="sesion-vencida"',
       'Modo demo activo',
@@ -149,10 +150,19 @@ describe('Test 58 — Login modular: reglas puras, composable y formulario', () 
       '@submit.prevent="submit"',
       '@media (max-width: 480px)',
       'padding: 22px 18px',
+      ionic,
+      '<IonPage>',
+      '<IonInput',
+      '@ion-blur="touched.correo = true"',
+      '<IonButton',
+      'data-test="cuenta"',
     ]) {
       expect(form).toContain(fragmento)
     }
 
+    expect(leer('../src/main.js')).toContain('IonicVue')
+    expect(leer('../src/App.vue')).toContain('IonApp')
+    expect(leer('../test/setup-ionic.js')).toContain("vi.mock('@ionic/vue'")
     expect(leer('../src/ARQUITECTURA.md')).toContain('useLogin.js')
   })
 })

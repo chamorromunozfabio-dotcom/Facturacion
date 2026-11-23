@@ -157,6 +157,7 @@ Los textos bajo el título son por rol en Inicio, Facturas y Estadísticas. Se q
 - jsdom **no valida CSS real**: sigue pendiente la revisión visual en DevTools a **320 / 375 / 768 / 1024 px**.
 - No hay configuración de CI en el repo; las pruebas se ejecutan con `npm test` manual.
 - Para la versión móvil se decidió usar **Ionic Vue + Capacitor** (23-11-2026): reutiliza el código y los tests actuales. Flutter quedó descartado. Plan detallado en `ArchivosMD/PLAN_MOVIL.md`.
+- Fase 2 iniciada: `main.js` registra `IonicVue`, `App.vue` usa `IonApp` y el Login ya usa `IonPage`/`IonContent`/`IonInput`/`IonButton` sin tocar `useLogin`. `test/setup-ionic.js` provee stubs nativos para que `npm test` siga encontrando `input[type=email]` y `aria-invalid`.
 
 ---
 

@@ -42,6 +42,8 @@ export default defineConfig(({ mode }) => {
     test: {
       environment: 'jsdom',
       globals: true,
+      // Los componentes Ionic se sustituyen por stubs nativos en este archivo.
+      setupFiles: ['./test/setup-ionic.js'],
       include: ['test/**/*.test.js'],
       // Los tests unitarios siempre usan mocks, sin importar el .env local
       env: { VITE_USE_MOCKS: 'true' },
