@@ -1,6 +1,6 @@
 # info-proyecto — resumen para responder preguntas
 
-**Estado actual:** último commit en `main` · **66 archivos de test / 348 pruebas en verde** · `npm run build` correcto. **Fase 2 móvil cerrada y validada en navegador + emulador.**
+**Estado actual:** último commit en `main` · **67 archivos de test / 352 pruebas en verde** · `npm run build` correcto. **Fase 2 móvil cerrada y validada en navegador + emulador.**
 **Backend en vivo:** `http://192.168.20.49:8000` (/docs y /openapi.json). **Frontend dev:** `http://192.168.20.44:5173` (o `localhost:5173`).
 
 ---
@@ -45,7 +45,7 @@ entrega-productos-front/
 │  │  ├─ MainLayout.vue   coordina menú, logout y navegación
 │  │  └─ LayoutBase.vue   grid en web / IonMenu + IonHeader + IonContent en móvil
 │  └─ assets/main.css
-├─ test/                  66 archivos de prueba
+├─ test/                  67 archivos de prueba
 └─ .env.example
 ```
 
@@ -83,7 +83,7 @@ entrega-productos-front/
 | `src/config/apiModes.js` | Interruptor mocks / API real | `api/*.js` | Lee `.env` (`VITE_USE_MOCKS`, `VITE_FACTURAS_MOCKS`) | Activar demo o integración |
 | `src/config/sessionNotice.js` | Aviso de sesión vencida | Interceptor 401 y `LoginView` | `localStorage` + `ref` de Vue | Cambiar el mensaje al vencer |
 | `src/assets/main.css` | Estilos globales, animaciones y media queries | Todas las vistas | Se importa en `main.js` | Colores, responsive y transiciones |
-| `test/*.test.js` | 66 archivos / 348 pruebas | `npm test` (Vitest) | Importan módulos reales y simulan axios/plugins | Agregar tests antes de pedir “Pasa” |
+| `test/*.test.js` | 67 archivos / 352 pruebas | `npm test` (Vitest) | Importan módulos reales y simulan axios/plugins | Agregar tests antes de pedir “Pasa” |
 
 Fuera del front:
 - `Movil/` → capa nativa con Capacitor (**Fase 2 cerrada**: login, sesión, facturas, firma, PDF, avisos, menú nativo, estadísticas, catálogos y permisos, validado en emulador). `capacitor.config.json` es de **producción** (sin `server.url`); `capacitor.config.dev.json` conserva el modo Vite. `webDir` apunta al `dist` del front. Ver sección 8 y `ArchivosMD/PLAN_MOVIL.md`.
@@ -153,7 +153,7 @@ Los textos bajo el título son por rol en Inicio, Facturas y Estadísticas. Se q
 
 ## 6. ¿Usamos buenas prácticas?
 
-**Sí, en general:** capas bien separadas, código modular, lógica repetida extraída, cliente HTTP único, manejo centralizado de errores, permisos reales del backend con respaldo por rol, catálogo fijo de permisos (30, sin crear desde la UI), rutas con *lazy loading* y guardas, mocks aislados por entorno, 348 pruebas con `data-test` estables, animaciones CSS puras y documentación de arquitectura al día.
+**Sí, en general:** capas bien separadas, código modular, lógica repetida extraída, cliente HTTP único, manejo centralizado de errores, permisos reales del backend con respaldo por rol, catálogo fijo de permisos (30, sin crear desde la UI), rutas con *lazy loading* y guardas, mocks aislados por entorno, 352 pruebas con `data-test` estables, animaciones CSS puras y documentación de arquitectura al día.
 
 **Puntos a tener en cuenta / mejorar (no bloquean):**
 
@@ -173,7 +173,7 @@ Los textos bajo el título son por rol en Inicio, Facturas y Estadísticas. Se q
 npm install
 cp .env.example .env     # en Windows: copy .env.example .env
 npm run dev              # Vite con --host, expuesto en la red
-npm test                 # 66 archivos / 348 pruebas
+npm test                 # 67 archivos / 352 pruebas
 npm run build
 ```
 
@@ -182,7 +182,7 @@ npm run build
 **Cuentas reales:** admin `admin@entrega.com` / `Admin123*` · bodeguero `bodeguero@gmail.com` / `Bodega123*` · cliente `cliente@gmail.com` / `Cliente123*`.
 **Demo (`VITE_USE_MOCKS=true`):** `luis@entrega.com` y `juan@cliente.com`, con botones de acceso rápido en el login.
 
-**Números clave:** 30 permisos en el catálogo · 60 min de JWT · 7 días de refresh · 500 KB máx. de firma · 5 s de avisos · 300 ms de debounce · 62 días para graficar por día · 348 pruebas.
+**Números clave:** 30 permisos en el catálogo · 60 min de JWT · 7 días de refresh · 500 KB máx. de firma · 5 s de avisos · 300 ms de debounce · 62 días para graficar por día · 352 pruebas.
 
 ---
 
@@ -199,7 +199,7 @@ La **misma app web** empaquetada para Android y iOS. No hay código duplicado: `
 | Adaptadores por plataforma | `ModalBase.vue`, `BotonBase.vue`, `CampoNative.vue`, `LayoutBase.vue` → HTML en web, Ionic en móvil |
 | Plugins | `@capacitor/filesystem` (PDF), `@capacitor/share` (compartir/Imprimir), `@capacitor/preferences` (sesión) |
 | Estilos e iconos | Mismo CSS puro y `@lucide/vue` de la web; **no mezclar Lucide con ionicons** en un componente |
-| Pruebas | Los mismos 66 archivos / 348 pruebas; `test/setup-ionic.js` da stubs para jsdom |
+| Pruebas | Los mismos 67 archivos / 352 pruebas; `test/setup-ionic.js` da stubs para jsdom |
 
 ### 8.2 Organización de carpetas y cómo se conectan
 
@@ -283,8 +283,12 @@ cd Movil && npm run dev:android
 # 3) producción en emulador
 cd Movil && npm run sync:prod
 cd Movil && npm run run:prod
+
+# iOS: se prepara en Windows, se compila en Mac con Xcode 26+
+cd Movil && npm run sync:ios
+cd Movil && npm run run:ios      # o: npm run ios → abre Xcode
 ```
 
-**Datos rápidos:** paquete `com.entrega.productos` · emulador `emulator-5554` (AVD `Medium_Phone_API_37.0`) · Android Studio abre `Movil/android` · JDK 21 en `C:\Program Files\Eclipse Adoptium\jdk-21.0.13.10002-hotspot` · Gradle 9.5.1 (si se regenera `toolchainVersion=25`, volver a 21) · backend `http://192.168.20.49:8000` · **no ejecutar `npx cap add android`** · iOS requiere macOS/Xcode 26+ y Swift Package Manager.
+**Datos rápidos:** paquete `com.entrega.productos` · emulador `emulator-5554` (AVD `Medium_Phone_API_37.0`) · Android Studio abre `Movil/android` · JDK 21 en `C:\Program Files\Eclipse Adoptium\jdk-21.0.13.10002-hotspot` · Gradle 9.5.1 (si se regenera `toolchainVersion=25`, volver a 21) · backend `http://192.168.20.49:8000` · **no ejecutar `npx cap add android` ni `npx cap add ios`** · iOS requiere macOS/Xcode 26+, Swift Package Manager y cuenta Apple Developer; `Info.plist` mantiene `NSAllowsArbitraryLoads` mientras el backend sea HTTP.
 
 **Flujo de trabajo acordado:** el asistente ajusta código y tests → el usuario ejecuta `npm test` → dice “Pasa” → recién entonces commit y push. Los 6 archivos `ArchivosMD` prohibidos nunca se commitean.

@@ -10,7 +10,11 @@
     "sync:prod": "npm run build:web && cap sync",
     "run:prod": "npm run sync:prod && cap run android --target emulator-5554",
     "android": "npm run sync:prod && cap open android",
-    "dev:android": "cap run android --livereload --external --target emulator-5554"
+    "dev:android": "cap run android --livereload --external --target emulator-5554",
+    "sync:ios": "npm run build:web && cap sync ios",
+    "ios": "npm run sync:ios && cap open ios",
+    "run:ios": "npm run sync:ios && cap run ios",
+    "dev:ios": "cap run ios --livereload --external"
   },
   "dependencies": {
     "@capacitor/core": "^8.6.2",

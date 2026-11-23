@@ -1,4 +1,4 @@
-# Movil — Capacitor (Fase 1 cerrada / build de producción)
+# Movil — Capacitor (Fase 2 cerrada / builds de Android e iOS)
 
 Envoltorio nativo del frontend Vue. **Todo lo móvil vive acá**; el front sigue en `../entrega-productos-front` y no se duplica.
 
@@ -7,7 +7,7 @@ Envoltorio nativo del frontend Vue. **Todo lo móvil vive acá**; el front sigue
 - `capacitor.config.json`: configuración de **producción**: `appId`, `appName` y `webDir` apuntando a `../entrega-productos-front/dist`. **No tiene `server.url`**, así que el WebView carga los archivos incluidos en el APK. Sí tiene `server.androidScheme: "http"` y `cleartext: true`: Capacitor 8 sirve por `https://localhost` por defecto y eso bloqueaba el backend HTTP por Mixed Content.
 - `capacitor.config.dev.json`: copia de referencia con `server.url = http://192.168.20.44:5173` para el flujo viejo con Vite. Capacitor no la lee automáticamente.
 - `android/`, `ios/`: proyectos nativos generados por Capacitor. Se versionan; sus carpetas de build están en `.gitignore`.
-- `package.json`: dependencias y scripts (`sync:prod`, `run:prod`, `dev:android`).
+- `package.json`: dependencias y scripts (`sync:prod`, `run:prod`, `dev:android`, `sync:ios`, `run:ios`, `ios`).
 
 ## Build de producción (el que se usa ahora)
 
@@ -59,7 +59,18 @@ cd Movil
 npx cap run android --target emulator-5554   # el --target evita el prompt interactivo
 ```
 
-Para iOS hace falta macOS + Xcode: `npx cap run ios`. Capacitor 8 usa Swift Package Manager, no CocoaPods.
+## iOS (preparado en Windows, compilado en Mac)
+
+El proyecto `ios/` ya está generado y versionado; **no ejecutar `npx cap add ios`**. Desde Windows se puede compilar el front y sincronizar los assets. La compilación, el simulador y la firma requieren **macOS + Xcode 26+** y cuenta Apple Developer:
+
+```powershell
+cd Movil
+npm run sync:ios     # compila el front y copia el bundle + plugins al proyecto iOS
+npm run run:ios      # solo en la Mac: sincroniza y abre el simulador
+npm run ios          # solo en la Mac: sincroniza y abre Xcode
+```
+
+Capacitor 8 usa **Swift Package Manager**, no CocoaPods. `Info.plist` conserva `NSAllowsArbitraryLoads` porque el backend sigue siendo HTTP; cuando pase a HTTPS se puede quitar.
 
 ## Comandos
 
@@ -71,6 +82,9 @@ Para iOS hace falta macOS + Xcode: `npx cap run ios`. Capacitor 8 usa Swift Pack
 | `npm run dev:android` | Live-reload contra el Vite (desarrollo). |
 | `npm run android` | Sincroniza en producción y abre Android Studio. |
 | `npx cap run android --target <id>` | Compila e instala en otro dispositivo (`adb devices`). |
+| `npm run sync:ios` | Compila el front y sincroniza assets/plugins en `ios/` (funciona en Windows). |
+| `npm run run:ios` | Sincroniza y abre el simulador (solo Mac). |
+| `npm run ios` | Sincroniza y abre Xcode (solo Mac). |
 
 ## Solución de problemas
 
@@ -127,8 +141,8 @@ setx ANDROID_SDK_ROOT "$env:LOCALAPPDATA\Android\Sdk"
 ## Notas
 
 - Capacitor **8.6.2**. Plugins disponibles: `filesystem`, `share` y `preferences`.
-- Fase 1 validada en el AVD `Medium_Phone_API_37.0` (API 37 / Android 17).
+- Fase 1 y Fase 2 validadas en el AVD `Medium_Phone_API_37.0` (API 37 / Android 17).
 - En producción se quitó `server.url`; el WebView sirve `dist` desde `http://localhost` gracias a `androidScheme: "http"`. Capacitor 8 usa `https` por defecto y provocaba Mixed Content contra el backend HTTP.
 - El backend sumó `http://localhost` y `capacitor://localhost` al CORS; el CORS del front web no cambió.
 - Si cambia la IP del backend, actualizar `VITE_API_URL` en `entrega-productos-front/.env.production` y correr `npm run sync:prod`.
-- Para probar el refresh token sin esperar 60 min: **no adelantes la hora del emulador** (el `exp` del JWT lo valida el backend con su reloj, no el del dispositivo). Ingresá normalmente, abrí `chrome://inspect#devices`, entrá a la consola de la WebView y ejecutá `localStorage.setItem('token', 'invalido'); location.reload()`. `GET /me` dará 401, `POST /refresh` renovará y la app volverá a entrar sola. Para ver el aviso de sesión vencida, invalidá también `refresh_token` antes de recargar.
+- Para probar el refresh token sin esperar 60 min: **no adelantes la hora del emulador** (el `exp` del JWT lo valida el backend con su reloj, no el del dispositivo). En la **web** podés forzar `localStorage.setItem('token', 'invalido'); location.reload()` y la app renueva sola; si invalidás también `refresh_token`, aparece el aviso de sesión vencida. En el **APK** la sesión ya no está en `localStorage` sino en `@capacitor/preferences` (ver `src/config/sessionTokens.js`), así que el flujo se cubre con `test/refresh-token.test.js` y `test/session-preferences.test.js`; para empezar de cero en el emulador, limpiá los datos de la app.

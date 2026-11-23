@@ -1,7 +1,7 @@
 # Plan móvil: Ionic Vue + Capacitor
 
-**Decisión (23-11-2026):** iOS y Android con **Ionic Vue + Capacitor**. Flutter queda descartado: reescribiría la app en Dart y perderíamos los 324 tests.
-**Estado real:** la carpeta `Movil/` **ya existe y está versionada** desde el commit `a79c029` (envoltorio Capacitor, proyectos `android/` e `ios/`, plugins y `README.md`). La Fase 1 está preparada; no hay que crearla ni volver a agregar la plataforma Android.
+**Decisión (23-11-2026):** iOS y Android con **Ionic Vue + Capacitor**. Flutter queda descartado: reescribiría la app en Dart y perderíamos los tests actuales (352 hoy).
+**Estado real:** la carpeta `Movil/` **ya existe y está versionada** desde el commit `a79c029` (envoltorio Capacitor, proyectos `android/` e `ios/`, plugins y `README.md`). Fase 1 y Fase 2 cerradas y validadas; no hay que crearla ni volver a agregar plataformas (`cap add android`/`cap add ios` están prohibidos).
 
 ## 0. Estructura existente
 
@@ -9,18 +9,20 @@
 
 ```text
 Movil/
-├─ package.json              scripts: build:web, copy, sync, android, dev:android
+├─ package.json              scripts: build:web, copy, sync, sync:prod, run:prod, android,
+│                            dev:android, sync:ios, run:ios, ios, dev:ios
 ├─ capacitor.config.json     appId com.entrega.productos, webDir → ../entrega-productos-front/dist
 ├─ android/                  proyecto nativo versionado (NO borrar)
 ├─ ios/                      proyecto nativo versionado (NO borrar)
 └─ README.md                 puesta en marcha y solución de problemas
 
-entrega-productos-front/     front Vue: 61 archivos / 324 tests; cambios de Fase 1: PDF nativo y refresh token
+entrega-productos-front/     front Vue: 67 archivos / 352 tests; Fase 2: modales, adaptadores, layout,
+                             permisos y sesión en Preferences
 ```
 
 - `webDir` apunta al `dist` del front: **no hay código duplicado**.
 - Plugins ya instalados: `@capacitor/filesystem`, `@capacitor/preferences`, `@capacitor/share`.
-- `capacitor.config.json` tiene `server.url = http://192.168.20.44:5173` con `cleartext: true`: el WebView carga el Vite de desarrollo y el proxy `/api` resuelve el CORS **sin tocar el backend**. Es solo de desarrollo; se quita en producción.
+- `capacitor.config.json` **no tiene `server.url`**: en producción el WebView sirve el `dist` desde `http://localhost` (`androidScheme: "http"` + `cleartext: true`). El modo Vite quedó como referencia en `capacitor.config.dev.json`. El CORS del front web no se tocó.
 
 ## 1. Qué se instaló / qué falta preparar
 
@@ -67,7 +69,7 @@ Resultado verificado: `√ Running Gradle build in 329.61s` → `√ Deploying a
 - [x] Ajustes visuales web: los `IonButton` llevan `border: 0` en el host (sin doble marco) y la card de Facturas restaura `gap: 16px` entre filtro Estado y tabla.
 - [x] Scroll en navegador restaurado (causa raíz): `IonApp` inyecta `.ion-page` (`position:absolute` + `contain:size`) en el host y saca todo el contenido del flujo, así que **ninguna** pantalla scrolleaba. `App.vue` separa plataformas: en móvil usa `IonApp`, en navegador usa `<RouterView />` directo. `test/app-plataforma.test.js` lo verifica. El parche de `overflow` en `main.css` no sirvió y fue revertido.
 - [x] Avisos flotantes con cierre a los 5 s y cierre manual verificado.
-- [ ] iOS: en una Mac, `npx cap run ios`.
+- [x] iOS preparado en Windows: proyecto `ios/` versionado, scripts `sync:ios`/`run:ios`/`ios`, ATS configurado para el backend HTTP y bundle sincronizado. Falta compilar y firmar en una Mac con `npm run run:ios`.
 
 ## 3. Fase 2 — Capa Ionic (look nativo)
 

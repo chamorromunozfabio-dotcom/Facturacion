@@ -2,7 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Fase 1: cargar el Vite por HTTP en desarrollo. Quitar para producción. -->
+	<!-- Se mantiene en producción mientras el backend sea HTTP (192.168.20.49:8000):
+	     App Transport Security bloquearía esas peticiones. Migrar a HTTPS antes
+	     de publicar en la App Store. -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
