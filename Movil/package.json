@@ -1,0 +1,24 @@
+{
+  "name": "entrega-productos-movil",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Envoltorio Capacitor (iOS/Android) del frontend Vue de Entrega de Productos",
+  "scripts": {
+    "build:web": "npm --prefix ../entrega-productos-front run build",
+    "copy": "npm run build:web && cap copy",
+    "sync": "npm run build:web && cap sync",
+    "android": "npm run sync && cap open android",
+    "dev:android": "cap run android --livereload --external"
+  },
+  "dependencies": {
+    "@capacitor/core": "^8.6.2",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/preferences": "^8.0.1",
+    "@capacitor/share": "^8.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/cli": "^8.6.2",
+    "@capacitor/ios": "^8.6.2"
+  }
+}

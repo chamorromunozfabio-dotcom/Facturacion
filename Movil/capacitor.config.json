@@ -1,0 +1,9 @@
+{
+  "appId": "com.entrega.productos",
+  "appName": "Entrega de Productos",
+  "webDir": "../entrega-productos-front/dist",
+  "server": {
+    "url": "http://192.168.20.44:5173",
+    "cleartext": true
+  }
+}

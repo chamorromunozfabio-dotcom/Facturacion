@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Entrega de Productos</string>
+    <string name="title_activity_main">Entrega de Productos</string>
+    <string name="package_name">com.entrega.productos</string>
+    <string name="custom_url_scheme">com.entrega.productos</string>
+</resources>

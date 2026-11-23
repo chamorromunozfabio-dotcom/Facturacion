@@ -80,8 +80,9 @@ entrega-productos-front/
 | `test/*.test.js` | 57 archivos / 312 pruebas | `npm test` (Vitest) | Importan módulos reales y simulan axios | Agregar tests antes de pedir “Pasa” |
 
 Fuera del front:
-- `ArchivosMD/` → contratos, mensajes al backend, respuestas del backend y checklist de prueba manual.
+- `ArchivosMD/` → contratos, mensajes al backend, respuestas del backend, checklist de prueba manual y el plan móvil.
 - `indicaciones/` → instructivos iniciales de frontend/backend y este resumen.
+- `Movil/` → envoltorio Capacitor (`android/`, `ios/` y `capacitor.config.json`) que carga el front desde Vite en desarrollo.
 - El **código del backend no está en este repo**; solo sus contratos y la API en vivo.
 
 **Regla de oro del código:** la vista no tiene lógica de negocio → llama a un *composable*; las reglas puras van a `utils/`; las llamadas HTTP van a `api/`. Si algo se repite en 3 pantallas, se extrae ("regla de 3").
@@ -155,7 +156,7 @@ Los textos bajo el título son por rol en Inicio, Facturas y Estadísticas. Se q
 - Los instructivos iniciales y las bitácoras de `ArchivosMD/` se conservan como registro histórico, pero llevan una nota con el estado vigente. La fuente confiable es este archivo, `entrega-productos-front/README.md` y `src/ARQUITECTURA.md`.
 - jsdom **no valida CSS real**: sigue pendiente la revisión visual en DevTools a **320 / 375 / 768 / 1024 px**.
 - No hay configuración de CI en el repo; las pruebas se ejecutan con `npm test` manual.
-- Para la versión móvil (iOS/Android) hay que decidir framework: **Ionic Vue** reutiliza casi todo el código y los tests; **Flutter** implica reescribir la app en Dart.
+- Para la versión móvil se decidió usar **Ionic Vue + Capacitor** (23-11-2026): reutiliza el código y los tests actuales. Flutter quedó descartado. Plan detallado en `ArchivosMD/PLAN_MOVIL.md`.
 
 ---
 
