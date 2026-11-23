@@ -93,6 +93,7 @@ Módulo propio (no va dentro de Facturas ni del Inicio): ruta `/estadisticas`, m
 - `components/ui/ModalBase.vue` centraliza los seis diálogos (detalle, firma, rechazo, `FacturaForm`, `FormModal` y `ConfirmDelete`): `IonModal` en móvil, markup HTML en navegador. Todos conservan `useModalA11y`, el foco al abrir y sus `data-test`; `ConfirmDelete` mantiene `role="alertdialog"` y su evento `cancel`.
 - `components/ui/BotonBase.vue` y `components/ui/CampoNative.vue` son adaptadores de plataforma: `<button>`/`<input>` en navegador e `IonButton`/`IonInput` en Capacitor. Los usan `EstadisticasView`, `DataTable`, `FormModal`, `ConfirmDelete` y los componentes de Permisos, así que la web mantiene su markup y el WebView gana controles nativos sin `ionicons`.
 - `layouts/LayoutBase.vue` separa el cascarón: en navegador renderiza el grid original con los slots `sidebar`/`topbar`/contenido; en Capacitor arma `IonMenu` + `IonHeader`/`IonToolbar` + `IonContent` + `IonPage`. `MainLayout.vue` conserva la lógica de menú, logout y navegación y solo pasa esos slots.
+- `config/sessionTokens.js` es el único punto de persistencia de `token`, `refresh_token` y `user`: en navegador usa `localStorage` y en Capacitor usa `@capacitor/preferences`. Como Preferences es async, `hydrateSession()` corre en `main.js` antes de crear el store y llena una cache que mantiene la API síncrona que consumen axios y `stores/auth.js`. Las escrituras devuelven Promesa (el login, `/refresh` y `/me` la esperan); la web y los tests no cambian su contrato.
 
 ## Compatibilidad
 

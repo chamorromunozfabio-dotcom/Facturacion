@@ -54,18 +54,18 @@ async function renovarTokens() {
   }
 
   // El backend rota el refresh en cada llamada: hay que guardar siempre el último.
-  saveTokens({ accessToken, refreshToken: refreshNuevo })
+  await saveTokens({ accessToken, refreshToken: refreshNuevo })
   return accessToken
 }
 
-function cerrarSesion(error, config) {
+async function cerrarSesion(error, config) {
   // Un 401 del login son credenciales incorrectas, no una sesión vencida.
   const esLogin = esRuta(config?.url, '/login')
   if (!esLogin && getAccessToken()) {
     marcarSesionVencida()
   }
 
-  clearSession()
+  await clearSession()
 
   if (window.location.pathname !== '/login') {
     window.location.assign('/login')

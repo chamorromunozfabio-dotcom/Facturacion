@@ -27,7 +27,7 @@ async function navegar(to) {
 
 async function logout() {
   cerrarMenu()
-  auth.logout()
+  await auth.logout()
   await router.push({ name: 'login' })
 }
 </script>

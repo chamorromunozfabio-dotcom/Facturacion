@@ -86,7 +86,7 @@ Resultado verificado: `√ Running Gradle build in 329.61s` → `√ Deploying a
 - [ ] Firma: conservar data URL PNG, base64 válido y máx. 500 KB; persistir con `@capacitor/filesystem` si hace falta.
 - [x] PDF: `blob` de `FE-0001.pdf` → `@capacitor/filesystem` + `@capacitor/share` (validado en emulador vía compartir/Imprimir).
 - [x] Refresh token integrado en `axios.js` y el store: renovación única, reintento y guardado del refresh rotado (tests 62/63).
-- [ ] Token: migrar de `localStorage` a `@capacitor/preferences` usando `src/config/sessionTokens.js` como único punto de cambio, sin tocar el contrato del backend.
+- [x] Token: migrar de `localStorage` a `@capacitor/preferences` usando `src/config/sessionTokens.js` como único punto de cambio, sin tocar el contrato del backend. En web sigue `localStorage`; en móvil se hidrata antes de crear el store y la cache mantiene la API síncrona de axios. `test/session-preferences.test.js` cubre ambas ramas.
 - [ ] Permisos nativos solo los necesarios; el canvas con touch basta para firmar.
 
 ## 5. Backend y CORS (producción)
@@ -102,7 +102,7 @@ Resultado verificado: `√ Running Gradle build in 329.61s` → `√ Deploying a
 ## 6. Pruebas y entrega
 
 - [ ] Los tests de `utils/`, `api/`, `composables/` y `stores/` se reutilizan.
-- [ ] Agregar mocks de los plugins Capacitor para filesystem/share/preferences.
+- [x] Mock de `@capacitor/preferences` en `test/session-preferences.test.js` para probar la rama nativa sin WebView (filesystem/share se validan en emulador).
 - [ ] Flujo: `npm test` → “Pasa” → commit y push.
 - [ ] Validar en dispositivo: 320/375 px, menú, firma con el dedo, PDF y avisos de 5 s.
 

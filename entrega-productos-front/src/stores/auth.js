@@ -4,22 +4,15 @@ import api, { getErrorMessage } from '../api/axios'
 import { MOCK_ACCOUNTS, mockUser, wait } from '../api/mocks'
 import { resolveApiModes } from '../config/apiModes'
 import {
-  TOKEN_KEYS,
   clearSession,
   getAccessToken,
   getRefreshToken,
+  getUser,
   saveTokens,
+  saveUser,
 } from '../config/sessionTokens'
 
 const authMocks = resolveApiModes().authMocks
-
-function readStoredUser() {
-  try {
-    return JSON.parse(localStorage.getItem(TOKEN_KEYS.user)) || null
-  } catch {
-    return null
-  }
-}
 
 function pickToken(data) {
   return data?.access_token || data?.token || data?.data?.access_token || null
@@ -36,7 +29,7 @@ function pickUser(data) {
 export const useAuthStore = defineStore('auth', () => {
   const token = ref(getAccessToken())
   const refreshToken = ref(getRefreshToken())
-  const user = ref(readStoredUser())
+  const user = ref(getUser())
 
   const isAuthenticated = computed(() => Boolean(token.value))
 
@@ -59,8 +52,10 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = newToken
     refreshToken.value = newRefreshToken
     user.value = newUser
-    saveTokens({ accessToken: newToken, refreshToken: newRefreshToken })
-    localStorage.setItem(TOKEN_KEYS.user, JSON.stringify(newUser))
+    return Promise.all([
+      saveTokens({ accessToken: newToken, refreshToken: newRefreshToken }),
+      saveUser(newUser),
+    ])
   }
 
   async function login(credentials) {
@@ -72,7 +67,7 @@ export const useAuthStore = defineStore('auth', () => {
       )
       // Si no coincide con una cuenta de prueba, seguimos entrando como admin demo.
       const demoUser = cuenta?.user ?? mockUser
-      saveSession(`token-demo-${demoUser.rol}`, demoUser, `refresh-demo-${demoUser.rol}`)
+      await saveSession(`token-demo-${demoUser.rol}`, demoUser, `refresh-demo-${demoUser.rol}`)
       return demoUser
     }
 
@@ -80,7 +75,7 @@ export const useAuthStore = defineStore('auth', () => {
     const newToken = pickToken(data)
     if (!newToken) throw new Error('El backend no devolvió un token')
 
-    saveSession(
+    await saveSession(
       newToken,
       pickUser(data) || { nombre: credentials.correo, correo: credentials.correo, rol: '' },
       pickRefreshToken(data) || '',
@@ -99,23 +94,23 @@ export const useAuthStore = defineStore('auth', () => {
     if (authMocks) {
       await wait(150)
       // Respetamos el rol guardado para no volver a admin al recargar.
-      user.value = readStoredUser() || mockUser
-      localStorage.setItem(TOKEN_KEYS.user, JSON.stringify(user.value))
+      user.value = getUser() || mockUser
+      await saveUser(user.value)
       return user.value
     }
 
     const { data } = await api.get('/me')
     const me = pickUser(data) || data
     user.value = me
-    localStorage.setItem(TOKEN_KEYS.user, JSON.stringify(me))
+    await saveUser(me)
     return user.value
   }
 
-  function logout() {
+  async function logout() {
     token.value = ''
     refreshToken.value = ''
     user.value = null
-    clearSession()
+    await clearSession()
   }
 
   return {
