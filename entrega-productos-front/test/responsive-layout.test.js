@@ -53,6 +53,11 @@ describe('Test 50 — Reglas responsive para distintos dispositivos', () => {
   it('el filtro de estado no queda pegado a la tabla de facturas', () => {
     const css = leer('../src/views/FacturaView.vue')
 
-    expect(css).toMatch(/ion-card\.facturas-page__card\s*\{[^}]*gap:\s*16px/s)
+    expect(css).toMatch(/\.facturas-page__bloque\s*\{[^}]*gap:\s*16px/s)
+    expect(css).not.toContain('<IonCard')
+  })
+
+  it('la fuente de Ionic coincide con la del resto de los menús', () => {
+    expect(leer('../src/assets/main.css')).toContain('--ion-font-family: system-ui')
   })
 })

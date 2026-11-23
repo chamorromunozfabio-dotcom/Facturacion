@@ -79,14 +79,14 @@ describe('Test 54 — FacturaView modular: lógica, modales y mapa', () => {
       'FacturaDetailModal',
       'FacturaFirmaModal',
       'FacturaRechazoModal',
-      `import { IonButton, IonCard, IonList } from '@ionic/vue'`,
+      `import { IonButton, IonList } from '@ionic/vue'`,
       '<IonButton',
-      '<IonCard',
       '<IonList',
       'data-test="ver"',
     ]) {
       expect(vista).toContain(pieza)
     }
+    expect(vista).not.toContain('<IonCard')
     expect(vista).not.toContain('async function confirmarAceptar')
     expect(vista).not.toContain('aviso-alcance')
     expect(vista).toContain('alert-flotante')

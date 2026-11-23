@@ -1,5 +1,8 @@
 :root {
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Ionic usa esta variable dentro del shadow DOM de IonButton/IonInput.
+     La alineamos con la fuente del resto de los menús. */
+  --ion-font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color: #1f2937;
   background: #f3f4f6;
 }

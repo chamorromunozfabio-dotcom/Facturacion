@@ -89,7 +89,7 @@ Módulo propio (no va dentro de Facturas ni del Inicio): ruta `/estadisticas`, m
 - Pieza de pantalla: `<Modulo><Parte>.vue` → `FacturaFirmaModal.vue`.
 - Utilidad pura: `<modulo>.js` o `<modulo>Campos.js` → `facturas.js`, `facturaCampos.js`.
 - `data-test`: se mantiene igual aunque el markup se mueva de archivo.
-- En Fase 2, `FacturaView.vue` usa `IonCard`/`IonList`/`IonButton` para el cascarón y las acciones; los `data-test` y `useFacturas` no cambiaron. Los modales siguen con su markup actual y se migrarán a `IonModal` en el siguiente paso.
+- En Fase 2, `FacturaView.vue` usa `IonList`/`IonButton` solo en las acciones; el cascarón sigue siendo HTML normal para no alterar color, fuente ni espaciado del resto de los menús. Los `data-test` y `useFacturas` no cambiaron. Los modales siguen con su markup actual y se migrarán a `IonModal` en el siguiente paso.
 
 ## Compatibilidad
 

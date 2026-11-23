@@ -75,7 +75,7 @@ Resultado verificado: `√ Running Gradle build in 329.61s` → `√ Deploying a
 - [ ] `App.vue` → `IonApp` ✅ (hecho); `MainLayout.vue` → `IonMenu` + `IonHeader`/`IonContent` (pendiente).
 - [ ] Migrar por módulos: **Login → Facturas → Estadísticas → catálogos**.
   - [x] Login: `IonPage`, `IonContent`, `IonInput`, `IonButton`; `useLogin` sigue haciendo `POST /login` con `{ correo, contrasena }`. `@ion-blur` reemplaza a `@blur`; `test/setup-ionic.js` mantiene los tests con inputs nativos. **Validado en emulador** (23-11-2026).
-  - [x] Facturas (cascarcón): `IonCard` para encabezado/tabla e `IonList`/`IonButton` para las acciones; `useFacturas`, `data-test` y la alerta flotante (`z-index: 100`, `position: static` en ≤768px) intactos. Firma en `<canvas>` conservada. Los `IonButton` llevan `border: 0` en el host para evitar el doble marco en vista web. Pendiente: modales con `IonModal`.
+  - [x] Facturas: solo `IonList`/`IonButton` en las acciones. Se quitaron los `IonCard` porque cambiaban color/fuente y agregaban una card que la vista no tenía; `main.css` alinea `--ion-font-family` con el resto de los menús. `useFacturas`, `data-test` y la alerta flotante (`z-index: 100`, `position: static` en ≤768px) intactos. Firma en `<canvas>` conservada. Pendiente: modales con `IonModal`.
   - Estadísticas: `StatCard`, `BarrasPorEstado` y `SerieTiempo` siguen siendo CSS puro.
 - [ ] No mezclar Lucide e `ionicons` en un mismo componente.
 

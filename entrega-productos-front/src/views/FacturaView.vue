@@ -1,5 +1,5 @@
 <script setup>
-import { IonButton, IonCard, IonList } from '@ionic/vue'
+import { IonButton, IonList } from '@ionic/vue'
 import {
   Check,
   Eye,
@@ -87,15 +87,13 @@ const {
 
 <template>
   <section class="facturas-page">
-    <IonCard class="facturas-page__header-card">
-      <header class="facturas-page__header">
-        <div>
-          <h1>Facturas</h1>
-          <p>{{ descripcion }}</p>
-        </div>
-        <span class="badge">Documentos</span>
-      </header>
-    </IonCard>
+    <header class="facturas-page__header">
+      <div>
+        <h1>Facturas</h1>
+        <p>{{ descripcion }}</p>
+      </div>
+      <span class="badge">Documentos</span>
+    </header>
 
     <div class="alert-flotante" data-test="alert-flotante">
       <Transition name="alert">
@@ -108,7 +106,7 @@ const {
       </Transition>
     </div>
 
-    <IonCard class="facturas-page__card">
+    <div class="facturas-page__bloque">
       <FacturaFiltros v-model="estadoFilter" :options="estadoOptions" />
 
       <DataTable
@@ -188,7 +186,7 @@ const {
           </IonList>
         </template>
       </DataTable>
-    </IonCard>
+    </div>
 
     <FacturaForm
       :open="formOpen"
@@ -250,17 +248,8 @@ h1 { margin: 0; font-size: 1.5rem; }
 p { margin: 4px 0 0; color: #6b7280; font-size: 0.9rem; }
 .badge { background: #e0e7ff; color: #3730a3; border-radius: 999px; padding: 4px 10px; font-size: 0.8rem; font-weight: 600; }
 
-ion-card { margin: 0; }
-
-/* Restauramos el gap entre filtro Estado y tabla; la card es transparente. */
-ion-card.facturas-page__card {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  background: transparent;
-  box-shadow: none;
-}
-
+/* Sin IonCard: la vista conserva el aspecto del resto de los menús. */
+.facturas-page__bloque { display: flex; flex-direction: column; gap: 16px; }
 .acciones { display: flex; flex-wrap: wrap; gap: 4px; }
 
 /* La alerta flota por encima de los modales (z-index 50). */
