@@ -58,9 +58,19 @@ vi.mock('@ionic/vue', async () => {
     },
   })
 
+  const IonModal = defineComponent({
+    name: 'IonModal',
+    inheritAttrs: false,
+    props: { isOpen: { type: Boolean, default: false } },
+    setup(props, { attrs, slots }) {
+      return () => (props.isOpen ? h('div', { class: 'IonModal', ...attrs }, slots.default?.()) : null)
+    },
+  })
+
   return {
     IonicVue: { install() {} },
     IonApp: simple('div', 'IonApp'),
+    IonModal,
     IonPage: simple('div', 'IonPage'),
     IonContent: simple('div', 'IonContent'),
     IonCard: simple('div', 'IonCard'),

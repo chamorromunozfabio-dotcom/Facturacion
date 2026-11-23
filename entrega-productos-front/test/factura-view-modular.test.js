@@ -137,19 +137,24 @@ describe('Test 54 — FacturaView modular: lógica, modales y mapa', () => {
     const detalle = leer('../src/components/facturas/FacturaDetailModal.vue')
     const filtro = leer('../src/components/facturas/FacturaFiltros.vue')
 
-    for (const dato of ['firma-modal', 'firma-error', 'firma-confirm']) {
+    expect(firma).toContain('test-id="firma-modal"')
+    for (const dato of ['firma-error', 'firma-confirm']) {
       expect(firma).toContain(`data-test="${dato}"`)
     }
-    for (const dato of ['rechazo-modal', 'motivo', 'rechazo-error', 'rechazo-confirm']) {
+    expect(rechazo).toContain('test-id="rechazo-modal"')
+    for (const dato of ['motivo', 'rechazo-error', 'rechazo-confirm']) {
       expect(rechazo).toContain(`data-test="${dato}"`)
     }
-    for (const dato of ['detail-modal', 'detail-close']) {
-      expect(detalle).toContain(`data-test="${dato}"`)
-    }
+    expect(detalle).toContain('test-id="detail-modal"')
+    expect(detalle).toContain('data-test="detail-close"')
     expect(filtro).toContain('data-test="estado-filter"')
     expect(firma).toContain('useModalA11y')
     expect(rechazo).toContain('useModalA11y')
     expect(detalle).toContain('useModalA11y')
+
+    const base = leer('../src/components/ui/ModalBase.vue')
+    expect(base).toContain('IonModal')
+    expect(base).toContain('Capacitor.isNativePlatform()')
 
     const mapa = leer('../src/ARQUITECTURA.md')
     expect(mapa).toContain('views/')
