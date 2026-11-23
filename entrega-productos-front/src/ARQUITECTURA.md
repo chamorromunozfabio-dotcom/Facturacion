@@ -91,6 +91,7 @@ Módulo propio (no va dentro de Facturas ni del Inicio): ruta `/estadisticas`, m
 - `data-test`: se mantiene igual aunque el markup se mueva de archivo.
 - En Fase 2, `FacturaView.vue` usa `IonList`/`IonButton` solo en las acciones; el cascarón sigue siendo HTML normal para no alterar color, fuente ni espaciado del resto de los menús. Los `data-test` y `useFacturas` no cambiaron.
 - `components/ui/ModalBase.vue` centraliza los seis diálogos (detalle, firma, rechazo, `FacturaForm`, `FormModal` y `ConfirmDelete`): `IonModal` en móvil, markup HTML en navegador. Todos conservan `useModalA11y`, el foco al abrir y sus `data-test`; `ConfirmDelete` mantiene `role="alertdialog"` y su evento `cancel`.
+- `components/ui/BotonBase.vue` y `components/ui/CampoNative.vue` son adaptadores de plataforma: `<button>`/`<input>` en navegador e `IonButton`/`IonInput` en Capacitor. Los usan `EstadisticasView`, `DataTable`, `FormModal` y `ConfirmDelete`, así que la web mantiene su markup y el WebView gana controles nativos sin `ionicons`.
 
 ## Compatibilidad
 

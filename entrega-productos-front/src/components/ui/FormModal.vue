@@ -1,6 +1,7 @@
 <script setup>
 import { computed, reactive, watch } from 'vue'
 import ModalBase from './ModalBase.vue'
+import BotonBase from './BotonBase.vue'
 import { useModalA11y } from '../../composables/useModalA11y'
 
 /**
@@ -134,7 +135,7 @@ function handleSubmit() {
   >
     <header class="modal__header">
       <h2>{{ title }}</h2>
-      <button
+      <BotonBase
         data-test="close-x"
         type="button"
         class="modal__close"
@@ -142,7 +143,7 @@ function handleSubmit() {
         @click="emit('close')"
       >
         ×
-      </button>
+      </BotonBase>
     </header>
 
     <form class="modal__body" @submit.prevent="handleSubmit">
@@ -189,12 +190,12 @@ function handleSubmit() {
       </div>
 
       <footer class="modal__footer">
-        <button data-test="cancel" type="button" class="btn" @click="emit('close')">
+        <BotonBase data-test="cancel" type="button" class="btn" @click="emit('close')">
           Cancelar
-        </button>
-        <button data-test="submit" type="submit" class="btn btn--primary" :disabled="loading">
+        </BotonBase>
+        <BotonBase data-test="submit" type="submit" class="btn btn--primary" :disabled="loading">
           {{ loading ? 'Guardando...' : submitLabel }}
-        </button>
+        </BotonBase>
       </footer>
     </form>
   </ModalBase>

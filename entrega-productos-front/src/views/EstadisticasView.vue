@@ -1,5 +1,7 @@
 <script setup>
 import AlertMessage from '../components/ui/AlertMessage.vue'
+import BotonBase from '../components/ui/BotonBase.vue'
+import CampoNative from '../components/ui/CampoNative.vue'
 import StatCard from '../components/estadisticas/StatCard.vue'
 import BarrasPorEstado from '../components/estadisticas/BarrasPorEstado.vue'
 import SerieTiempo from '../components/estadisticas/SerieTiempo.vue'
@@ -28,15 +30,15 @@ const {
     <div class="filtros">
       <label>
         Desde
-        <input v-model="desde" data-test="desde" type="date" />
+        <CampoNative v-model="desde" data-test="desde" type="date" />
       </label>
       <label>
         Hasta
-        <input v-model="hasta" data-test="hasta" type="date" />
+        <CampoNative v-model="hasta" data-test="hasta" type="date" />
       </label>
-      <button type="button" data-test="recargar" :disabled="invalido || loading" @click="cargar">
+      <BotonBase type="button" data-test="recargar" :disabled="invalido || loading" @click="cargar">
         {{ loading ? 'Cargando...' : 'Actualizar' }}
-      </button>
+      </BotonBase>
     </div>
 
     <p v-if="invalido" class="aviso" data-test="rango-invalido">

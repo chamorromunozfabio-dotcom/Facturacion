@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import ModalBase from './ModalBase.vue'
+import BotonBase from './BotonBase.vue'
 import { useModalA11y } from '../../composables/useModalA11y'
 
 /**
@@ -37,10 +38,10 @@ useModalA11y(computed(() => props.open), () => emit('cancel'))
       <p v-if="itemLabel" data-test="item" class="confirm__item">{{ itemLabel }}</p>
 
       <footer class="confirm__footer">
-        <button data-test="cancel" type="button" class="btn" @click="emit('cancel')">
+        <BotonBase data-test="cancel" type="button" class="btn" @click="emit('cancel')">
           Cancelar
-        </button>
-        <button
+        </BotonBase>
+        <BotonBase
           data-test="confirm"
           type="button"
           class="btn btn--danger"
@@ -48,7 +49,7 @@ useModalA11y(computed(() => props.open), () => emit('cancel'))
           @click="emit('confirm')"
         >
           {{ loading ? 'Eliminando...' : 'Eliminar' }}
-        </button>
+        </BotonBase>
       </footer>
     </div>
   </ModalBase>

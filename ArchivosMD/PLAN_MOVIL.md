@@ -73,11 +73,12 @@ Resultado verificado: `√ Running Gradle build in 329.61s` → `√ Deploying a
 
 - [x] Instalar `@ionic/vue@9.0.13` e `ionicons` **en el front** y registrar `IonicVue` en `main.js` (junto con `core.css` y `normalize.css`).
 - [ ] `App.vue` → `IonApp` ✅ (hecho); `MainLayout.vue` → `IonMenu` + `IonHeader`/`IonContent` (pendiente).
-- [ ] Migrar por módulos: **Login → Facturas → Estadísticas → catálogos**.
+- [x] Migrar por módulos: **Login → Facturas → Estadísticas → catálogos** (la matriz de Permisos se ajusta aparte).
   - [x] Login: `IonPage`, `IonContent`, `IonInput`, `IonButton`; `useLogin` sigue haciendo `POST /login` con `{ correo, contrasena }`. `@ion-blur` reemplaza a `@blur`; `test/setup-ionic.js` mantiene los tests con inputs nativos. **Validado en emulador** (23-11-2026).
   - [x] Facturas: solo `IonList`/`IonButton` en las acciones. Se quitaron los `IonCard` porque cambiaban color/fuente y agregaban una card que la vista no tenía; `main.css` alinea `--ion-font-family` con el resto de los menús. `useFacturas`, `data-test` y la alerta flotante (`z-index: 100`, `position: static` en ≤768px) intactos. Firma en `<canvas>` conservada.
-  - [x] Los seis diálogos (detalle, firma, rechazo, `FacturaForm`, `ConfirmDelete` y `FormModal`) usan `ModalBase.vue`: `IonModal` en móvil y el markup HTML original en navegador (Ionic necesita `IonApp` para presentar overlays y eso rompía el scroll web). `useModalA11y`, el foco al abrir y todos los `data-test` intactos. `ConfirmDelete` conserva `role="alertdialog"` y su evento `cancel`. `test/modal-base.test.js` cubre ambas ramas y el contrato de los seis.}
-  - Estadísticas: `StatCard`, `BarrasPorEstado` y `SerieTiempo` siguen siendo CSS puro.
+  - [x] Los seis diálogos (detalle, firma, rechazo, `FacturaForm`, `ConfirmDelete` y `FormModal`) usan `ModalBase.vue`: `IonModal` en móvil y el markup HTML original en navegador (Ionic necesita `IonApp` para presentar overlays y eso rompía el scroll web). `useModalA11y`, el foco al abrir y todos los `data-test` intactos. `ConfirmDelete` conserva `role="alertdialog"` y su evento `cancel`. `test/modal-base.test.js` cubre ambas ramas y el contrato de los seis.
+  - [x] Estadísticas y catálogos: nuevos adaptadores `BotonBase.vue` y `CampoNative.vue` dejan el `<button>`/`<input>` original en navegador y usan `IonButton`/`IonInput` en el WebView. Aplicados a `EstadisticasView` (fechas y Actualizar) y a los compartidos `DataTable` (buscar, crear, editar, borrar, paginar), `FormModal` y `ConfirmDelete`. `StatCard`, `BarrasPorEstado` y `SerieTiempo` siguen siendo CSS puro; no se agregó `ionicons`. `test/componentes-base.test.js` cubre ambas ramas.
+  - [ ] Pendiente: envolver `MainLayout` con `IonMenu`/`IonHeader`/`IonContent` y revisar la matriz de Permisos; se deja para no tocar el scroll de la web.
 - [ ] No mezclar Lucide e `ionicons` en un mismo componente.
 
 ## 4. Funcionalidad nativa (plugins ya disponibles)

@@ -1,6 +1,8 @@
 <script setup>
 import { computed, useSlots } from 'vue'
 import { ChevronLeft, ChevronRight, Pencil, Plus, Search, Trash2 } from '@lucide/vue'
+import BotonBase from './BotonBase.vue'
+import CampoNative from './CampoNative.vue'
 
 /**
  * Tabla reutilizable para todos los CRUD.
@@ -38,10 +40,6 @@ const canNext = computed(() => props.page < totalPages.value)
 const firstRow = computed(() => (props.total === 0 ? 0 : (props.page - 1) * props.limit + 1))
 const lastRow = computed(() => Math.min(props.page * props.limit, props.total))
 
-function onSearch(event) {
-  emit('update:q', event.target.value)
-}
-
 function goTo(page) {
   if (page >= 1 && page <= totalPages.value) emit('update:page', page)
 }
@@ -53,16 +51,16 @@ function goTo(page) {
       <label v-if="searchable" class="data-table__search">
         <Search :size="16" aria-hidden="true" />
         <span>Buscar</span>
-        <input
+        <CampoNative
           data-test="search"
           type="search"
-          :value="q"
+          :model-value="q"
           placeholder="Escribe para buscar..."
-          @input="onSearch"
+          @update:model-value="emit('update:q', $event)"
         />
       </label>
 
-      <button
+      <BotonBase
         v-if="canCreate"
         data-test="create"
         type="button"
@@ -71,7 +69,7 @@ function goTo(page) {
       >
         <Plus :size="16" aria-hidden="true" />
         <span>{{ createLabel }}</span>
-      </button>
+      </BotonBase>
     </header>
 
     <p v-if="loading" class="data-table__loading">Cargando datos...</p>
@@ -93,7 +91,7 @@ function goTo(page) {
             </td>
             <td v-if="showActions" class="data-table__actions">
               <slot name="actions" :row="row">
-                <button
+                <BotonBase
                   v-if="canEdit"
                   data-test="edit"
                   type="button"
@@ -102,8 +100,8 @@ function goTo(page) {
                 >
                   <Pencil :size="14" aria-hidden="true" />
                   <span>Editar</span>
-                </button>
-                <button
+                </BotonBase>
+                <BotonBase
                   v-if="canDelete"
                   data-test="delete"
                   type="button"
@@ -112,7 +110,7 @@ function goTo(page) {
                 >
                   <Trash2 :size="14" aria-hidden="true" />
                   <span>Eliminar</span>
-                </button>
+                </BotonBase>
               </slot>
             </td>
           </tr>
@@ -130,7 +128,7 @@ function goTo(page) {
         {{ total === 0 ? 'Sin resultados' : `Mostrando ${firstRow}-${lastRow} de ${total}` }}
       </span>
       <div class="data-table__pager">
-        <button
+        <BotonBase
           data-test="prev"
           type="button"
           class="btn btn--small"
@@ -139,9 +137,9 @@ function goTo(page) {
         >
           <ChevronLeft :size="14" aria-hidden="true" />
           <span>Anterior</span>
-        </button>
+        </BotonBase>
         <span>Página {{ page }} de {{ totalPages }}</span>
-        <button
+        <BotonBase
           data-test="next"
           type="button"
           class="btn btn--small"
@@ -150,7 +148,7 @@ function goTo(page) {
         >
           <span>Siguiente</span>
           <ChevronRight :size="14" aria-hidden="true" />
-        </button>
+        </BotonBase>
       </div>
     </footer>
   </section>
