@@ -49,4 +49,10 @@ describe('Test 50 — Reglas responsive para distintos dispositivos', () => {
   it('el formulario de factura pasa a una columna en celulares', () => {
     expect(leer('../src/components/facturas/FacturaForm.vue')).toContain('@media (max-width: 700px)')
   })
+
+  it('el filtro de estado no queda pegado a la tabla de facturas', () => {
+    const css = leer('../src/views/FacturaView.vue')
+
+    expect(css).toMatch(/ion-card\.facturas-page__card\s*\{[^}]*gap:\s*16px/s)
+  })
 })

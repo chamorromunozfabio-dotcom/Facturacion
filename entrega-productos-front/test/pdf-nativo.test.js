@@ -60,4 +60,25 @@ describe('PDF nativo (Capacitor)', () => {
     })
     expect(uri).toBe('file:///cache/FE-0001.pdf')
   })
+
+  it('reutiliza la apertura en curso si se toca PDF dos veces', async () => {
+    let resolverShare
+    mocks.share.mockImplementation(() => new Promise((resolve) => { resolverShare = resolve }))
+
+    const blob = new Blob(['%PDF-1.4'], { type: 'application/pdf' })
+    const primera = abrirPdfNativo(blob, 'FE-0001.pdf')
+    const segunda = abrirPdfNativo(blob, 'FE-0001.pdf')
+
+    expect(segunda).toBe(primera)
+    await vi.waitFor(() => expect(mocks.share).toHaveBeenCalledTimes(1))
+    expect(mocks.writeFile).toHaveBeenCalledTimes(1)
+
+    resolverShare()
+    await Promise.all([primera, segunda])
+
+    // Una vez cerrado el visor, un clic nuevo sí debe abrir el PDF otra vez.
+    mocks.share.mockResolvedValue({})
+    await abrirPdfNativo(blob, 'FE-0001.pdf')
+    expect(mocks.share).toHaveBeenCalledTimes(2)
+  })
 })

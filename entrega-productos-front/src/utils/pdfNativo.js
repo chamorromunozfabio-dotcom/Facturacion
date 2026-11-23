@@ -25,11 +25,24 @@ export function blobABase64(blob) {
   })
 }
 
+// Un toque doble (o un click duplicado del IonButton) no debe abrir dos veces
+// el share sheet: el plugin Capacitor responde "Can't share while sharing is
+// in progress". Compartimos la misma operación en curso y la limpiamos al final.
+let aperturaEnCurso = null
+
 /** Guarda el PDF y abre el selector para verlo o compartirlo. */
-export async function abrirPdfNativo(blob, filename) {
-  const data = await blobABase64(blob)
-  await Filesystem.writeFile({ path: filename, data, directory: Directory.Cache })
-  const { uri } = await Filesystem.getUri({ path: filename, directory: Directory.Cache })
-  await Share.share({ files: [uri], title: filename, dialogTitle: 'Abrir PDF' })
-  return uri
+export function abrirPdfNativo(blob, filename) {
+  if (aperturaEnCurso) return aperturaEnCurso
+
+  aperturaEnCurso = (async () => {
+    const data = await blobABase64(blob)
+    await Filesystem.writeFile({ path: filename, data, directory: Directory.Cache })
+    const { uri } = await Filesystem.getUri({ path: filename, directory: Directory.Cache })
+    await Share.share({ files: [uri], title: filename, dialogTitle: 'Abrir PDF' })
+    return uri
+  })().finally(() => {
+    aperturaEnCurso = null
+  })
+
+  return aperturaEnCurso
 }

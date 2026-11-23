@@ -251,6 +251,16 @@ p { margin: 4px 0 0; color: #6b7280; font-size: 0.9rem; }
 .badge { background: #e0e7ff; color: #3730a3; border-radius: 999px; padding: 4px 10px; font-size: 0.8rem; font-weight: 600; }
 
 ion-card { margin: 0; }
+
+/* Restauramos el gap entre filtro Estado y tabla; la card es transparente. */
+ion-card.facturas-page__card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: transparent;
+  box-shadow: none;
+}
+
 .acciones { display: flex; flex-wrap: wrap; gap: 4px; }
 
 /* La alerta flota por encima de los modales (z-index 50). */
@@ -263,8 +273,9 @@ ion-card { margin: 0; }
 .btn--danger { color: #b91c1c; border-color: #fca5a5; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* Ionic pinta el botón en shadow DOM: los colores van por variables. */
+/* `border: 0` evita el doble marco: Ionic pinta el suyo en shadow DOM. */
 ion-button.btn {
+  border: 0;
   --background: #fff;
   --color: #374151;
   --border-color: #d1d5db;

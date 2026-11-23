@@ -63,6 +63,9 @@ Resultado verificado: `√ Running Gradle build in 329.61s` → `√ Deploying a
 - [x] Recargar → `GET /me` mantiene la sesión.
 - [x] Facturas: listado y firma con el dedo verificados en el emulador.
 - [x] PDF nativo validado: se guarda en cache y se abre con `Share`. Sin visor instalado, compartir a **Imprimir** muestra la factura correctamente.
+- [x] `pdfNativo.js` reutiliza la apertura en curso: un doble toque en **PDF** ya no dispara dos `Share.share` (`Can't share while sharing is in progress`).
+- [x] Ajustes visuales web: los `IonButton` llevan `border: 0` en el host (sin doble marco) y la card de Facturas restaura `gap: 16px` entre filtro Estado y tabla.
+- [x] Scroll en navegador restaurado (causa raíz): `IonApp` inyecta `.ion-page` (`position:absolute` + `contain:size`) en el host y saca todo el contenido del flujo, así que **ninguna** pantalla scrolleaba. `App.vue` separa plataformas: en móvil usa `IonApp`, en navegador usa `<RouterView />` directo. `test/app-plataforma.test.js` lo verifica. El parche de `overflow` en `main.css` no sirvió y fue revertido.
 - [x] Avisos flotantes con cierre a los 5 s y cierre manual verificado.
 - [ ] iOS: en una Mac, `npx cap run ios`.
 
@@ -72,7 +75,7 @@ Resultado verificado: `√ Running Gradle build in 329.61s` → `√ Deploying a
 - [ ] `App.vue` → `IonApp` ✅ (hecho); `MainLayout.vue` → `IonMenu` + `IonHeader`/`IonContent` (pendiente).
 - [ ] Migrar por módulos: **Login → Facturas → Estadísticas → catálogos**.
   - [x] Login: `IonPage`, `IonContent`, `IonInput`, `IonButton`; `useLogin` sigue haciendo `POST /login` con `{ correo, contrasena }`. `@ion-blur` reemplaza a `@blur`; `test/setup-ionic.js` mantiene los tests con inputs nativos. **Validado en emulador** (23-11-2026).
-  - [x] Facturas (cascarcón): `IonCard` para encabezado/tabla e `IonList`/`IonButton` para las acciones; `useFacturas`, `data-test` y la alerta flotante (`z-index: 100`, `position: static` en ≤768px) intactos. Firma en `<canvas>` conservada. Pendiente: modales con `IonModal`.
+  - [x] Facturas (cascarcón): `IonCard` para encabezado/tabla e `IonList`/`IonButton` para las acciones; `useFacturas`, `data-test` y la alerta flotante (`z-index: 100`, `position: static` en ≤768px) intactos. Firma en `<canvas>` conservada. Los `IonButton` llevan `border: 0` en el host para evitar el doble marco en vista web. Pendiente: modales con `IonModal`.
   - Estadísticas: `StatCard`, `BarrasPorEstado` y `SerieTiempo` siguen siendo CSS puro.
 - [ ] No mezclar Lucide e `ionicons` en un mismo componente.
 
