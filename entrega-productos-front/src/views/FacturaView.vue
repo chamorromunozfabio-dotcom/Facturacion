@@ -1,4 +1,5 @@
 <script setup>
+import { IonButton, IonCard, IonList } from '@ionic/vue'
 import {
   Check,
   Eye,
@@ -86,13 +87,15 @@ const {
 
 <template>
   <section class="facturas-page">
-    <header class="facturas-page__header">
-      <div>
-        <h1>Facturas</h1>
-        <p>{{ descripcion }}</p>
-      </div>
-      <span class="badge">Documentos</span>
-    </header>
+    <IonCard class="facturas-page__header-card">
+      <header class="facturas-page__header">
+        <div>
+          <h1>Facturas</h1>
+          <p>{{ descripcion }}</p>
+        </div>
+        <span class="badge">Documentos</span>
+      </header>
+    </IonCard>
 
     <div class="alert-flotante" data-test="alert-flotante">
       <Transition name="alert">
@@ -105,105 +108,87 @@ const {
       </Transition>
     </div>
 
-    <FacturaFiltros v-model="estadoFilter" :options="estadoOptions" />
+    <IonCard class="facturas-page__card">
+      <FacturaFiltros v-model="estadoFilter" :options="estadoOptions" />
 
-    <DataTable
-      :columns="columns"
-      :rows="filasVisibles"
-      :total="total"
-      :page="page"
-      :limit="limit"
-      :q="q"
-      :loading="loading"
-      create-label="Nueva factura"
-      :can-create="canCreate"
-      :can-edit="false"
-      :can-delete="false"
-      @update:q="q = $event"
-      @update:page="page = $event"
-      @create="openCreate"
-    >
-      <template #cell-estado="{ value }">
-        <StatusBadge :estado="value" />
-      </template>
+      <DataTable
+        :columns="columns"
+        :rows="filasVisibles"
+        :total="total"
+        :page="page"
+        :limit="limit"
+        :q="q"
+        :loading="loading"
+        create-label="Nueva factura"
+        :can-create="canCreate"
+        :can-edit="false"
+        :can-delete="false"
+        @update:q="q = $event"
+        @update:page="page = $event"
+        @create="openCreate"
+      >
+        <template #cell-estado="{ value }">
+          <StatusBadge :estado="value" />
+        </template>
 
-      <template #actions="{ row }">
-        <button data-test="ver" type="button" class="btn btn--small" @click="openDetail(row)">
-          <Eye :size="14" aria-hidden="true" />
-          <span>Ver</span>
-        </button>
-        <button
-          v-if="canEdit && row.estado === 'emitida'"
-          data-test="edit"
-          type="button"
-          class="btn btn--small"
-          @click="openEdit(row)"
-        >
-          <Pencil :size="14" aria-hidden="true" />
-          <span>Editar</span>
-        </button>
-        <button
-          v-if="canDelete && row.estado === 'emitida'"
-          data-test="delete"
-          type="button"
-          class="btn btn--small btn--danger"
-          @click="askDelete(row)"
-        >
-          <Trash2 :size="14" aria-hidden="true" />
-          <span>Eliminar</span>
-        </button>
-        <button
-          v-if="canEntregar && row.estado === 'emitida'"
-          data-test="entregar"
-          type="button"
-          class="btn btn--small"
-          @click="entregar(row)"
-        >
-          <Truck :size="14" aria-hidden="true" />
-          <span>Entregar</span>
-        </button>
-        <button
-          v-if="canAceptar && row.estado === 'entregada'"
-          data-test="aceptar"
-          type="button"
-          class="btn btn--small btn--primary"
-          @click="openAceptar(row)"
-        >
-          <Check :size="14" aria-hidden="true" />
-          <span>Aceptar</span>
-        </button>
-        <button
-          v-if="canRechazar && row.estado === 'entregada'"
-          data-test="rechazar"
-          type="button"
-          class="btn btn--small btn--danger"
-          @click="openRechazar(row)"
-        >
-          <X :size="14" aria-hidden="true" />
-          <span>Rechazar</span>
-        </button>
-        <button
-          v-if="canRecibir && row.estado === 'firmada'"
-          data-test="recibir"
-          type="button"
-          class="btn btn--small"
-          @click="recibir(row)"
-        >
-          <PackageCheck :size="14" aria-hidden="true" />
-          <span>Recibir</span>
-        </button>
-        <button
-          v-if="canPdf"
-          data-test="pdf"
-          type="button"
-          class="btn btn--small"
-          @click="descargar(row)"
-        >
-          <FileDown :size="14" aria-hidden="true" />
-          <span>PDF</span>
-        </button>
-      </template>
-    </DataTable>
+        <template #actions="{ row }">
+          <IonList lines="none" class="acciones">
+            <IonButton data-test="ver" type="button" class="btn btn--small" @click="openDetail(row)">
+              <Eye :size="14" aria-hidden="true" /><span>Ver</span>
+            </IonButton>
+            <IonButton
+              v-if="canEdit && row.estado === 'emitida'"
+              data-test="edit"
+              type="button"
+              class="btn btn--small"
+              @click="openEdit(row)"
+            ><Pencil :size="14" aria-hidden="true" /><span>Editar</span></IonButton>
+            <IonButton
+              v-if="canDelete && row.estado === 'emitida'"
+              data-test="delete"
+              type="button"
+              class="btn btn--small btn--danger"
+              @click="askDelete(row)"
+            ><Trash2 :size="14" aria-hidden="true" /><span>Eliminar</span></IonButton>
+            <IonButton
+              v-if="canEntregar && row.estado === 'emitida'"
+              data-test="entregar"
+              type="button"
+              class="btn btn--small"
+              @click="entregar(row)"
+            ><Truck :size="14" aria-hidden="true" /><span>Entregar</span></IonButton>
+            <IonButton
+              v-if="canAceptar && row.estado === 'entregada'"
+              data-test="aceptar"
+              type="button"
+              class="btn btn--small btn--primary"
+              @click="openAceptar(row)"
+            ><Check :size="14" aria-hidden="true" /><span>Aceptar</span></IonButton>
+            <IonButton
+              v-if="canRechazar && row.estado === 'entregada'"
+              data-test="rechazar"
+              type="button"
+              class="btn btn--small btn--danger"
+              @click="openRechazar(row)"
+            ><X :size="14" aria-hidden="true" /><span>Rechazar</span></IonButton>
+            <IonButton
+              v-if="canRecibir && row.estado === 'firmada'"
+              data-test="recibir"
+              type="button"
+              class="btn btn--small"
+              @click="recibir(row)"
+            ><PackageCheck :size="14" aria-hidden="true" /><span>Recibir</span></IonButton>
+            <IonButton
+              v-if="canPdf"
+              data-test="pdf"
+              type="button"
+              class="btn btn--small"
+              @click="descargar(row)"
+            ><FileDown :size="14" aria-hidden="true" /><span>PDF</span></IonButton>
+          </IonList>
+        </template>
+      </DataTable>
+    </IonCard>
 
     <FacturaForm
       :open="formOpen"
@@ -265,6 +250,9 @@ h1 { margin: 0; font-size: 1.5rem; }
 p { margin: 4px 0 0; color: #6b7280; font-size: 0.9rem; }
 .badge { background: #e0e7ff; color: #3730a3; border-radius: 999px; padding: 4px 10px; font-size: 0.8rem; font-weight: 600; }
 
+ion-card { margin: 0; }
+.acciones { display: flex; flex-wrap: wrap; gap: 4px; }
+
 /* La alerta flota por encima de los modales (z-index 50). */
 .alert-flotante { position: fixed; top: 16px; right: 16px; left: 16px; z-index: 100; max-width: 480px; margin-inline: auto; pointer-events: none; }
 .alert-flotante :deep(.alert) { pointer-events: auto; margin-bottom: 0; box-shadow: 0 10px 30px rgb(0 0 0 / 15%); }
@@ -274,6 +262,29 @@ p { margin: 4px 0 0; color: #6b7280; font-size: 0.9rem; }
 .btn--primary { background: #4f46e5; border-color: #4f46e5; color: #fff; }
 .btn--danger { color: #b91c1c; border-color: #fca5a5; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Ionic pinta el botón en shadow DOM: los colores van por variables. */
+ion-button.btn {
+  --background: #fff;
+  --color: #374151;
+  --border-color: #d1d5db;
+  --border-width: 1px;
+  --border-style: solid;
+  --border-radius: 8px;
+  --box-shadow: none;
+  text-transform: none;
+}
+
+ion-button.btn--primary {
+  --background: #4f46e5;
+  --color: #fff;
+  --border-color: #4f46e5;
+}
+
+ion-button.btn--danger {
+  --color: #b91c1c;
+  --border-color: #fca5a5;
+}
 
 .alert-enter-active,
 .alert-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }

@@ -79,6 +79,11 @@ describe('Test 54 — FacturaView modular: lógica, modales y mapa', () => {
       'FacturaDetailModal',
       'FacturaFirmaModal',
       'FacturaRechazoModal',
+      `import { IonButton, IonCard, IonList } from '@ionic/vue'`,
+      '<IonButton',
+      '<IonCard',
+      '<IonList',
+      'data-test="ver"',
     ]) {
       expect(vista).toContain(pieza)
     }
