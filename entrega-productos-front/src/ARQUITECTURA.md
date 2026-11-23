@@ -90,7 +90,7 @@ Módulo propio (no va dentro de Facturas ni del Inicio): ruta `/estadisticas`, m
 - Utilidad pura: `<modulo>.js` o `<modulo>Campos.js` → `facturas.js`, `facturaCampos.js`.
 - `data-test`: se mantiene igual aunque el markup se mueva de archivo.
 - En Fase 2, `FacturaView.vue` usa `IonList`/`IonButton` solo en las acciones; el cascarón sigue siendo HTML normal para no alterar color, fuente ni espaciado del resto de los menús. Los `data-test` y `useFacturas` no cambiaron.
-- `components/ui/ModalBase.vue` centraliza los diálogos: `IonModal` en móvil, markup HTML en navegador. Los modales de detalle, firma y rechazo delegan en él y conservan `useModalA11y` y sus `data-test`.
+- `components/ui/ModalBase.vue` centraliza los seis diálogos (detalle, firma, rechazo, `FacturaForm`, `FormModal` y `ConfirmDelete`): `IonModal` en móvil, markup HTML en navegador. Todos conservan `useModalA11y`, el foco al abrir y sus `data-test`; `ConfirmDelete` mantiene `role="alertdialog"` y su evento `cancel`.
 
 ## Compatibilidad
 

@@ -1,5 +1,5 @@
 <script setup>
-import { nextTick, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { Capacitor } from '@capacitor/core'
 import { IonModal } from '@ionic/vue'
 
@@ -12,7 +12,9 @@ const props = defineProps({
   open: { type: Boolean, default: false },
   testId: { type: String, required: true },
   label: { type: String, required: true },
+  role: { type: String, default: 'dialog' },
   small: { type: Boolean, default: false },
+  maxWidth: { type: String, default: undefined },
 })
 const emit = defineEmits(['close'])
 const esMovil = Capacitor.isNativePlatform()
@@ -28,6 +30,10 @@ watch(
   },
   { immediate: true },
 )
+
+const estiloPanel = computed(() =>
+  props.maxWidth ? { maxWidth: props.maxWidth } : undefined,
+)
 </script>
 
 <template>
@@ -39,10 +45,11 @@ watch(
     <div
       ref="miPanel"
       :data-test="testId"
+      :style="estiloPanel"
       tabindex="-1"
       class="modal__panel"
       :class="{ 'modal__panel--small': small }"
-      role="dialog"
+      :role="role"
       aria-modal="true"
       :aria-label="label"
     >
@@ -54,12 +61,13 @@ watch(
     <div v-if="open" class="modal">
       <div class="modal__backdrop" @click="emit('close')"></div>
       <div
-        :ref="panelRef"
+        ref="miPanel"
         :data-test="testId"
+        :style="estiloPanel"
         tabindex="-1"
         class="modal__panel"
         :class="{ 'modal__panel--small': small }"
-        role="dialog"
+        :role="role"
         aria-modal="true"
         :aria-label="label"
       >

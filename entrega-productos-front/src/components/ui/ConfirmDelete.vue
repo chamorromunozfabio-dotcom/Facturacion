@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import ModalBase from './ModalBase.vue'
 import { useModalA11y } from '../../composables/useModalA11y'
 
 /**
@@ -15,15 +16,19 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['confirm', 'cancel'])
-const { panelRef } = useModalA11y(computed(() => props.open), () => emit('cancel'))
+useModalA11y(computed(() => props.open), () => emit('cancel'))
 </script>
 
 <template>
-  <Transition name="modal">
-    <div v-if="open" data-test="confirm-delete" class="confirm">
-    <div class="confirm__backdrop" @click="emit('cancel')"></div>
-
-    <div ref="panelRef" tabindex="-1" class="confirm__panel" role="alertdialog" aria-modal="true" :aria-label="title">
+  <ModalBase
+    :open="open"
+    test-id="confirm-delete"
+    :label="title"
+    role="alertdialog"
+    max-width="400px"
+    @close="emit('cancel')"
+  >
+    <div class="confirm__contenido">
       <div class="confirm__icon">!</div>
 
       <h2>{{ title }}</h2>
@@ -46,37 +51,11 @@ const { panelRef } = useModalA11y(computed(() => props.open), () => emit('cancel
         </button>
       </footer>
     </div>
-  </div>
-  </Transition>
+  </ModalBase>
 </template>
 
 <style scoped>
-.confirm {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  z-index: 60;
-}
-
-.confirm__backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgb(17 24 39 / 50%);
-}
-
-.confirm__panel {
-  position: relative;
-  width: 100%;
-  max-width: 400px;
-  background: #fff;
-  border-radius: 12px;
-  padding: 24px;
-  text-align: center;
-  box-shadow: 0 10px 30px rgb(0 0 0 / 20%);
-}
+.confirm__contenido { padding: 24px; text-align: center; }
 
 .confirm__icon {
   width: 44px;

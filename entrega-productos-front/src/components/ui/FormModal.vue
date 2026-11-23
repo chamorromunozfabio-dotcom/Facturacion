@@ -1,5 +1,6 @@
 <script setup>
 import { computed, reactive, watch } from 'vue'
+import ModalBase from './ModalBase.vue'
 import { useModalA11y } from '../../composables/useModalA11y'
 
 /**
@@ -20,7 +21,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'submit', 'close'])
 
-const { panelRef } = useModalA11y(computed(() => props.open), () => emit('close'))
+useModalA11y(computed(() => props.open), () => emit('close'))
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -124,85 +125,82 @@ function handleSubmit() {
 </script>
 
 <template>
-  <Transition name="modal">
-    <div v-if="open" data-test="modal" class="modal">
-      <div class="modal__backdrop" @click="emit('close')"></div>
+  <ModalBase
+    :open="open"
+    test-id="modal"
+    :label="title"
+    max-width="600px"
+    @close="emit('close')"
+  >
+    <header class="modal__header">
+      <h2>{{ title }}</h2>
+      <button
+        data-test="close-x"
+        type="button"
+        class="modal__close"
+        aria-label="Cerrar ventana"
+        @click="emit('close')"
+      >
+        ×
+      </button>
+    </header>
 
-      <div ref="panelRef" tabindex="-1" class="modal__panel" role="dialog" aria-modal="true" :aria-label="title">
-        <header class="modal__header">
-          <h2>{{ title }}</h2>
-          <button
-            data-test="close-x"
-            type="button"
-            class="modal__close"
-            aria-label="Cerrar ventana"
-            @click="emit('close')"
-          >
-            ×
-          </button>
-        </header>
+    <form class="modal__body" @submit.prevent="handleSubmit">
+      <div v-for="field in fields" :key="field.key" class="modal__field">
+        <label :for="`field-${field.key}`">
+          {{ field.label }}
+          <span v-if="field.required">*</span>
+        </label>
 
-        <form class="modal__body" @submit.prevent="handleSubmit">
-          <div v-for="field in fields" :key="field.key" class="modal__field">
-            <label :for="`field-${field.key}`">
-              {{ field.label }}
-              <span v-if="field.required">*</span>
-            </label>
+        <textarea
+          v-if="field.type === 'textarea'"
+          :id="`field-${field.key}`"
+          :data-test="`field-${field.key}`"
+          :value="form[field.key] ?? ''"
+          :placeholder="field.placeholder || ''"
+          @input="setValue(field.key, $event.target.value)"
+        />
 
-            <textarea
-              v-if="field.type === 'textarea'"
-              :id="`field-${field.key}`"
-              :data-test="`field-${field.key}`"
-              :value="form[field.key] ?? ''"
-              :placeholder="field.placeholder || ''"
-              @input="setValue(field.key, $event.target.value)"
-            />
+        <select
+          v-else-if="field.type === 'select'"
+          :id="`field-${field.key}`"
+          :data-test="`field-${field.key}`"
+          :value="form[field.key] ?? ''"
+          @change="setValue(field.key, $event.target.value)"
+        >
+          <option v-for="option in field.options" :key="option.value" :value="option.value">
+            {{ option.label }}
+          </option>
+        </select>
 
-            <select
-              v-else-if="field.type === 'select'"
-              :id="`field-${field.key}`"
-              :data-test="`field-${field.key}`"
-              :value="form[field.key] ?? ''"
-              @change="setValue(field.key, $event.target.value)"
-            >
-              <option v-for="option in field.options" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
-            </select>
+        <input
+          v-else
+          :id="`field-${field.key}`"
+          :data-test="`field-${field.key}`"
+          :type="field.type || 'text'"
+          :value="form[field.key] ?? ''"
+          :placeholder="field.placeholder || ''"
+          @input="setValue(field.key, $event.target.value)"
+        />
 
-            <input
-              v-else
-              :id="`field-${field.key}`"
-              :data-test="`field-${field.key}`"
-              :type="field.type || 'text'"
-              :value="form[field.key] ?? ''"
-              :placeholder="field.placeholder || ''"
-              @input="setValue(field.key, $event.target.value)"
-            />
-
-            <small v-if="errores[field.key]" :data-test="`error-${field.key}`" class="campo-error">
-              {{ errores[field.key] }}
-            </small>
-          </div>
-
-          <footer class="modal__footer">
-            <button data-test="cancel" type="button" class="btn" @click="emit('close')">
-              Cancelar
-            </button>
-            <button data-test="submit" type="submit" class="btn btn--primary" :disabled="loading">
-              {{ loading ? 'Guardando...' : submitLabel }}
-            </button>
-          </footer>
-        </form>
+        <small v-if="errores[field.key]" :data-test="`error-${field.key}`" class="campo-error">
+          {{ errores[field.key] }}
+        </small>
       </div>
-    </div>
-  </Transition>
+
+      <footer class="modal__footer">
+        <button data-test="cancel" type="button" class="btn" @click="emit('close')">
+          Cancelar
+        </button>
+        <button data-test="submit" type="submit" class="btn btn--primary" :disabled="loading">
+          {{ loading ? 'Guardando...' : submitLabel }}
+        </button>
+      </footer>
+    </form>
+  </ModalBase>
 </template>
 
 <style scoped>
-.modal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 50; }
-.modal__backdrop { position: absolute; inset: 0; background: rgb(17 24 39 / 50%); }
-.modal__panel { position: relative; width: 100%; max-width: 600px; max-height: 92vh; overflow-y: auto; background: #fff; border-radius: 12px; box-shadow: 0 10px 30px rgb(0 0 0 / 20%); }
 .modal__header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #e5e7eb; }
 h2 { margin: 0; font-size: 1.1rem; }
 .modal__close { border: 0; background: transparent; font-size: 1.6rem; cursor: pointer; color: #6b7280; }
