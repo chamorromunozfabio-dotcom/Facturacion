@@ -72,6 +72,8 @@ VITE_FACTURAS_MOCKS=false
 
 Los tests fuerzan mocks en `vite.config.js`, así que siguen siendo estables aunque tu `.env` apunte a la API real. Si cambiás `.env`, reiniciá `npm run dev` (Vite no recarga variables en caliente).
 
+**Build móvil de producción:** `.env.production` sobrescribe `VITE_API_URL` con `http://192.168.20.49:8000` (sin `/api`, porque el WebView no tiene el proxy de Vite). Se aplica al correr `npm run build` o `npm run sync:prod` desde `Movil/`.
+
 ## Estructura
 
 ```

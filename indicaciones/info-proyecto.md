@@ -80,7 +80,7 @@ entrega-productos-front/
 | `test/*.test.js` | 61 archivos / 324 pruebas | `npm test` (Vitest) | Importan módulos reales y simulan axios | Agregar tests antes de pedir “Pasa” |
 
 Fuera del front:
-- `Movil/` → capa nativa con Capacitor (**Fase 1 cerrada y validada en emulador**: login, sesión, facturas, firma, PDF y avisos). `webDir` apunta al `dist` del front, así que no hay código duplicado. Ver `ArchivosMD/PLAN_MOVIL.md`.
+- `Movil/` → capa nativa con Capacitor (**Fase 1 cerrada y validada en emulador**: login, sesión, facturas, firma, PDF y avisos). `capacitor.config.json` ya es de **producción** (sin `server.url`); `capacitor.config.dev.json` conserva el modo Vite. `webDir` apunta al `dist` del front, así que no hay código duplicado. Ver `ArchivosMD/PLAN_MOVIL.md`.
 - `ArchivosMD/` → contratos, mensajes al backend, respuestas del backend, checklist de prueba manual y el plan móvil.
 - `indicaciones/` → instructivos iniciales de frontend/backend y este resumen.
 - El **código del backend no está en este repo**; solo sus contratos y la API en vivo.
@@ -106,7 +106,7 @@ El frontend **no decide permisos reales**: oculta menú y botones con `tienePerm
 
 ## 4. Cómo se habla con el backend
 
-- `VITE_API_URL=/api` es la `baseURL` de Axios. Vite reenvía `/api` a `VITE_BACKEND_URL` y **quita el header `Origin`**, así no hay preflight CORS aunque se abra desde otra IP. El CORS del front web no se tocó; el backend sumó `http://localhost` y `capacitor://localhost` para los WebView nativos.
+- En desarrollo `VITE_API_URL=/api` es la `baseURL` de Axios y Vite reenvía `/api` a `VITE_BACKEND_URL` quitando el header `Origin`. En el build móvil de producción, `.env.production` cambia la `baseURL` a `http://192.168.20.49:8000` porque dentro del WebView no hay proxy. Capacitor 8 se configura con `server.androidScheme: "http"` para que el origen sea `http://localhost` (si fuera `https://localhost`, el WebView bloquearía el backend HTTP por Mixed Content). El CORS del front web no se tocó; el backend sumó `http://localhost` y `capacitor://localhost` para los WebView nativos.
 - Listados: `?q=&page=1&limit=10`; respuesta `{ data, total, page, limit }`. Búsqueda con **debounce de 300 ms** y reset a página 1. `DataTable` emite `update:page` y `update:q`.
 - Errores: `getErrorMessage()` convierte `detail` (string, lista de 422 o `message`) a texto; `getFieldErrors()` devuelve errores por campo; `isDuplicateError()` detecta nombres repetidos (400/409).
 - Acciones de factura: `/facturas/{id}/entregar`, `/aceptar` (con firma), `/rechazar` (con motivo), `/recibir` y `/pdf` (blob con nombre del header `Content-Disposition`).
@@ -170,7 +170,7 @@ npm test                 # 61 archivos / 324 pruebas
 npm run build
 ```
 
-`.env` para integración real: `VITE_API_URL=/api`, `VITE_BACKEND_URL=http://192.168.20.49:8000`, `VITE_USE_MOCKS=false`, `VITE_FACTURAS_MOCKS=false`. Hay que reiniciar Vite al cambiarlo.
+`.env` para integración real (desarrollo): `VITE_API_URL=/api`, `VITE_BACKEND_URL=http://192.168.20.49:8000`, `VITE_USE_MOCKS=false`, `VITE_FACTURAS_MOCKS=false`. Hay que reiniciar Vite al cambiarlo. Para el APK se usa `.env.production` con `VITE_API_URL=http://192.168.20.49:8000` y `npm run sync:prod` desde `Movil/`.
 
 **Cuentas reales:** admin `admin@entrega.com` / `Admin123*` · bodeguero `bodeguero@gmail.com` / `Bodega123*` · cliente `cliente@gmail.com` / `Cliente123*`.
 **Demo (`VITE_USE_MOCKS=true`):** `luis@entrega.com` y `juan@cliente.com`, con botones de acceso rápido en el login.

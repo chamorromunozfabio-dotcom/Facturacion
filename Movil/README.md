@@ -1,23 +1,56 @@
-# Movil — Capacitor (Fase 1)
+# Movil — Capacitor (Fase 1 cerrada / build de producción)
 
-Envoltorio nativo del frontend Vue. **Todo lo móvil vive acá**; el front sigue en `../entrega-productos-front` y no se tocó.
+Envoltorio nativo del frontend Vue. **Todo lo móvil vive acá**; el front sigue en `../entrega-productos-front` y no se duplica.
 
 ## Estructura
 
-- `capacitor.config.json`: `appId`, `appName`, `webDir` apuntando a `../entrega-productos-front/dist` y `server.url` al Vite de desarrollo.
+- `capacitor.config.json`: configuración de **producción**: `appId`, `appName` y `webDir` apuntando a `../entrega-productos-front/dist`. **No tiene `server.url`**, así que el WebView carga los archivos incluidos en el APK. Sí tiene `server.androidScheme: "http"` y `cleartext: true`: Capacitor 8 sirve por `https://localhost` por defecto y eso bloqueaba el backend HTTP por Mixed Content.
+- `capacitor.config.dev.json`: copia de referencia con `server.url = http://192.168.20.44:5173` para el flujo viejo con Vite. Capacitor no la lee automáticamente.
 - `android/`, `ios/`: proyectos nativos generados por Capacitor. Se versionan; sus carpetas de build están en `.gitignore`.
-- `package.json`: dependencias y scripts.
+- `package.json`: dependencias y scripts (`sync:prod`, `run:prod`, `dev:android`).
 
-## Puesta en marcha con Android Studio (forma preferida)
+## Build de producción (el que se usa ahora)
 
-1. Dejar el Vite levantado en una terminal: `cd ../entrega-productos-front` → `npm run dev -- --host 0.0.0.0`.
-2. Abrir Android Studio → **File > Open…** y elegir la carpeta **`Movil/android`** (la que tiene `gradlew`, `settings.gradle` y `build.gradle`). **No** abrir `Movil/` ni la raíz del repo.
-3. Si pregunta, aceptar **Use Gradle wrapper** (ya está fijado en 9.5.1).
-4. Verificar **File > Settings > Build, Execution, Deployment > Build Tools > Gradle > Gradle JDK = 21 (Temurin)**. El proyecto ya trae `org.gradle.java.home` apuntando a JDK 21 en `android/gradle.properties`, pero la configuración del IDE tiene prioridad.
-5. Elegir el AVD `Medium_Phone_API_37.0` en la barra de dispositivos y apretar **Run ▶** (o Shift+F10). Android Studio compila e instala el APK.
-6. El WebView carga `http://192.168.20.44:5173`, así que usa el proxy `/api` del Vite: **no se tocó el CORS del backend**.
+La app ya no depende del Vite: `entrega-productos-front/.env.production` apunta `VITE_API_URL` directo a `http://192.168.20.49:8000`. El backend habilitó CORS para `http://localhost` (Android) y `capacitor://localhost` (iOS), así que no hace falta proxy.
 
-**Si cambiaste código del front**, antes de apretar Run ejecutar `cd Movil && npm run sync` para copiar el `dist` al proyecto nativo. Android Studio **no** hace ese paso.
+### Desde terminal (recomendado)
+
+```powershell
+cd Movil
+npm run run:prod
+```
+
+Ese comando compila el front en modo producción, sincroniza los assets y despliega en `emulator-5554`. Si el dispositivo cambia, primero `adb devices` y después:
+
+```powershell
+npx cap run android --target <id>
+```
+
+### Desde Android Studio
+
+1. `cd Movil && npm run sync:prod` (compila y copia el `dist`; Android Studio **no** hace este paso).
+2. Abrir Android Studio → **File > Open…** → carpeta **`Movil/android`** (la que tiene `gradlew`, `settings.gradle` y `build.gradle`). **No** abrir `Movil/` ni la raíz.
+3. Si pregunta, aceptar **Use Gradle wrapper** (fijado en 9.5.1).
+4. Verificar **Gradle JDK = 21 (Temurin)**. El proyecto ya trae `org.gradle.java.home` en `android/gradle.properties`, pero el IDE tiene prioridad; si regenera `toolchainVersion=25`, volver a 21.
+5. Elegir el AVD `Medium_Phone_API_37.0` y apretar **Run ▶**.
+
+## Desarrollo con Vite (live-reload)
+
+Para seguir el flujo anterior sin editar la config de producción:
+
+```powershell
+cd ../entrega-productos-front
+npm run dev -- --host 0.0.0.0
+```
+
+En otra terminal:
+
+```powershell
+cd Movil
+npm run dev:android
+```
+
+`--livereload --external` sobrescribe `server.url` solo para esa corrida. Si querés el modo anterior dentro de Android Studio, copiá `capacitor.config.dev.json` sobre `capacitor.config.json`, corré `npm run sync`, hacé Run y después restaurá la config de producción.
 
 ### Alternativa por terminal
 
@@ -32,13 +65,18 @@ Para iOS hace falta macOS + Xcode: `npx cap run ios`. Capacitor 8 usa Swift Pack
 
 | Comando | Qué hace |
 |---|---|
-| `npm run build:web` | Compila el front (`vite build`). |
-| `npm run copy` | Compila y copia los archivos al nativo. |
-| `npm run sync` | Compila y actualiza los plugins nativos. |
-| `npm run android` | Sincroniza y abre Android Studio. |
-| `npx cap run android --target <id>` | Compila e instala en un dispositivo concreto (`adb devices` para ver el id). |
+| `npm run build:web` | Compila el front con `.env.production` (`vite build`, modo producción por defecto). |
+| `npm run sync:prod` | Compila y sincroniza los assets nativos para producción. |
+| `npm run run:prod` | `sync:prod` + instala en `emulator-5554`. |
+| `npm run dev:android` | Live-reload contra el Vite (desarrollo). |
+| `npm run android` | Sincroniza en producción y abre Android Studio. |
+| `npx cap run android --target <id>` | Compila e instala en otro dispositivo (`adb devices`). |
 
 ## Solución de problemas
+
+### `Network Error` en el login de la app instalada
+
+Si en logcat aparece `Mixed Content: The page at 'https://localhost/...' ... requested an insecure XMLHttpRequest endpoint 'http://192.168.20.49:8000/login'`, Capacitor está sirviendo el bundle por HTTPS. La configuración de producción ya incluye `server.androidScheme: "http"`; alcanza con correr `npm run sync:prod` y reinstalar. El backend acepta CORS para `http://localhost`; con `https://localhost` también fallaría por origen no permitido.
 
 ### `JAVA_HOME is not set` / Gradle no arranca
 
@@ -88,8 +126,9 @@ setx ANDROID_SDK_ROOT "$env:LOCALAPPDATA\Android\Sdk"
 
 ## Notas
 
-- Capacitor **8.6.2**. Plugins instalados para fases posteriores: `filesystem`, `share` y `preferences`.
-- La compilación de Fase 1 se verificó con el AVD `Medium_Phone_API_37.0` (API 37 / Android 17).
-- `server.url`, `android:usesCleartextTraffic` y `NSAllowsArbitraryLoads` son **solo de desarrollo**; se quitan para producción.
-- Si cambia la IP de la PC, actualizar `server.url` en `capacitor.config.json` y volver a `npx cap copy`.
-- En producción habrá que definir `VITE_API_URL` directo al backend y pedir el CORS nativo (ver `ArchivosMD/PLAN_MOVIL.md`).
+- Capacitor **8.6.2**. Plugins disponibles: `filesystem`, `share` y `preferences`.
+- Fase 1 validada en el AVD `Medium_Phone_API_37.0` (API 37 / Android 17).
+- En producción se quitó `server.url`; el WebView sirve `dist` desde `http://localhost` gracias a `androidScheme: "http"`. Capacitor 8 usa `https` por defecto y provocaba Mixed Content contra el backend HTTP.
+- El backend sumó `http://localhost` y `capacitor://localhost` al CORS; el CORS del front web no cambió.
+- Si cambia la IP del backend, actualizar `VITE_API_URL` en `entrega-productos-front/.env.production` y correr `npm run sync:prod`.
+- Para probar el refresh token sin esperar 60 min: adelantar la hora del emulador más de una hora, reabrir la app y verificar que `GET /me` renueva la sesión; después restaurar la hora.

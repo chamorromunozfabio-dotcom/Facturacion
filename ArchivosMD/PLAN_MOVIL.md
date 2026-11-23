@@ -86,13 +86,13 @@ Resultado verificado: `√ Running Gradle build in 329.61s` → `√ Deploying a
 
 ## 5. Backend y CORS (producción)
 
-- En Fase 1 el WebView carga Vite: el proxy `/api` evita el CORS, igual que en la web.
-- En producción no hay proxy: `VITE_API_URL=/api` no sirve dentro del WebView. Opciones:
-  1. Apuntar `VITE_API_URL` a `http://192.168.20.49:8000` y pedir al backend los orígenes nativos (`capacitor://localhost` en iOS, `http://localhost` en Android).
-  2. Publicar un reverse proxy `/api` y dejar la URL relativa.
+- En Fase 1 el WebView cargaba Vite: el proxy `/api` evitaba el CORS, igual que en la web. Ese modo sigue disponible con `npm run dev:android` (live-reload) y con `capacitor.config.dev.json` como referencia.
+- En producción no hay proxy: se eligió apuntar `VITE_API_URL` directo al backend en `entrega-productos-front/.env.production`. La alternativa de reverse proxy `/api` queda descartada por ahora.
 - [x] Pedido escrito en `ArchivosMD/MENSAJE_PARA_BACKEND.md` (23-11-2026): CORS nativo + **refresh token**. No se modifica el CORS usado por el front web.
 - [x] Respuesta del backend recibida en `ArchivosMD/cambios-backend-movil.md` (23-11-2026): CORS nativo sumado y `POST /refresh` con rotación de 7 días.
-- [ ] Quitar `server.url` de `Movil/capacitor.config.json`, apuntar `VITE_API_URL` al backend y probar el build de producción en el emulador.
+- [x] `server.url` quitado de `Movil/capacitor.config.json`; `.env.production` apunta a `http://192.168.20.49:8000`; scripts `sync:prod` y `run:prod` agregados.
+- [x] Corregido el `Network Error` del primer build: Capacitor 8 servía por `https://localhost` y el WebView bloqueaba el backend HTTP por Mixed Content. Se agregó `server.androidScheme: "http"` + `cleartext: true` y se verificó el CORS real del backend para `Origin: http://localhost` (200 en preflight).
+- [ ] Validar en el emulador el build corregido: login, facturas, PDF y renovación de sesión (adelantando la hora del dispositivo).
 
 ## 6. Pruebas y entrega
 

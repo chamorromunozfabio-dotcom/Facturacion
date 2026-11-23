@@ -7,8 +7,10 @@
     "build:web": "npm --prefix ../entrega-productos-front run build",
     "copy": "npm run build:web && cap copy",
     "sync": "npm run build:web && cap sync",
-    "android": "npm run sync && cap open android",
-    "dev:android": "cap run android --livereload --external"
+    "sync:prod": "npm run build:web && cap sync",
+    "run:prod": "npm run sync:prod && cap run android --target emulator-5554",
+    "android": "npm run sync:prod && cap open android",
+    "dev:android": "cap run android --livereload --external --target emulator-5554"
   },
   "dependencies": {
     "@capacitor/core": "^8.6.2",
