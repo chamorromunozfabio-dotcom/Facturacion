@@ -1,62 +1,103 @@
 # Plan móvil: Ionic Vue + Capacitor
 
 **Decisión (23-11-2026):** iOS y Android con **Ionic Vue + Capacitor**. Flutter queda descartado: reescribiría la app en Dart y perderíamos los 312 tests.
+**Estado real:** la carpeta `Movil/` **ya existe y está versionada** desde el commit `a79c029` (envoltorio Capacitor, proyectos `android/` e `ios/`, plugins y `README.md`). La Fase 1 está preparada; no hay que crearla ni volver a agregar la plataforma Android.
 
-## 0. Principios
+## 0. Estructura existente
 
-- Un solo código base: el front actual de Vue/Pinia/Axios. **No hacer un fork**.
-- Toda la capa nativa se aísla en la carpeta **`Movil/`**; el front web queda intacto.
-- Aprovechar `api/`, `composables/`, `utils/`, `config/` y `stores/` tal cual.
-- Los tests siguen siendo la puerta: `npm test` → “Pasa” → commit/push.
-- Usar Ionic open source + Capacitor. **No usar Appflow ni Identity Vault** (productos comerciales en retirada). CI propio.
+**Principios vigentes:** un solo código base (sin fork del front); Ionic open source + Capacitor; **no usar Appflow ni Identity Vault** (productos comerciales en retirada), CI propio; los tests siguen siendo la puerta (`npm test` → “Pasa” → commit/push).
 
-## 1. Arranque (sin cambiar la UI todavía)
+```text
+Movil/
+├─ package.json              scripts: build:web, copy, sync, android, dev:android
+├─ capacitor.config.json     appId com.entrega.productos, webDir → ../entrega-productos-front/dist
+├─ android/                  proyecto nativo versionado (NO borrar)
+├─ ios/                      proyecto nativo versionado (NO borrar)
+└─ README.md                 puesta en marcha y solución de problemas
 
-- [x] Crear `Movil/` con su `package.json`, `.gitignore` y `capacitor.config.json` (`webDir: ../entrega-productos-front/dist`).
-- [x] Instalar Capacitor **8.6.x** y los plugins `filesystem`, `share` y `preferences` dentro de `Movil/`.
-- [x] Generar `Movil/android/` e `Movil/ios/` con `npx cap add android` y `npx cap add ios` (Capacitor 8 usa Swift Package Manager, no CocoaPods).
-- [x] En desarrollo, apuntar el WebView al Vite que ya usamos (`server.url = http://192.168.20.44:5173`). Así el proxy `/api` sigue funcionando y **no tocamos CORS**. Se agregó `usesCleartextTraffic` (Android) y `NSAllowsArbitraryLoads` (iOS) solo para desarrollo.
-- [x] `npm run sync` verificado: compila el front y copia los assets en `android/` e `ios/`.
-- [ ] Verificar en emulador/dispositivo: login con cuentas reales, `GET /me` al recargar, listado de facturas, firma y descarga de PDF.
-- [ ] Compilar iOS requiere macOS + Xcode; los archivos ya están generados en `Movil/ios/`.
-- [ ] Android: instalar SDK (Android Studio) y configurar `ANDROID_HOME`/`ANDROID_SDK_ROOT`. Detalle y solución al error `ERR_SDK_NOT_FOUND` en `Movil/README.md`.
+entrega-productos-front/     front Vue: 57 archivos / 312 tests, sin cambios
+```
 
-## 2. Capa Ionic (look nativo)
+- `webDir` apunta al `dist` del front: **no hay código duplicado**.
+- Plugins ya instalados: `@capacitor/filesystem`, `@capacitor/preferences`, `@capacitor/share`.
+- `capacitor.config.json` tiene `server.url = http://192.168.20.44:5173` con `cleartext: true`: el WebView carga el Vite de desarrollo y el proxy `/api` resuelve el CORS **sin tocar el backend**. Es solo de desarrollo; se quita en producción.
 
-- [ ] Instalar `@ionic/vue` + `ionicons` **en `entrega-productos-front`** (la UI Ionic vive en el código Vue, no en `Movil/`) y registrar `IonicVue` en `src/main.js`.
-- [ ] `App.vue` → `IonApp`; `MainLayout.vue` → `IonMenu` + `IonHeader`/`IonContent` (el drawer ya existe en CSS; se cambia por `IonMenu`).
-- [ ] Migrar por módulos, en este orden: **Login → Facturas → Estadísticas → catálogos**.
-  - Login: `IonPage`, `IonInput`, `IonButton`. `LoginForm` sigue emitiendo `submit` y `useLogin` sigue haciendo `POST /login`.
-  - Facturas: `IonList`/`IonCard`, `StatusBadge`, firma en `<canvas>` dentro de `IonContent` y modales con `IonModal`.
-  - Estadísticas: `StatCard`, `BarrasPorEstado` y `SerieTiempo` siguen siendo CSS puro, sin librería de gráficos.
-- [ ] No mezclar Lucide e `ionicons` dentro de un mismo componente.
+## 1. Qué se instaló / qué falta preparar
 
-## 3. Funcionalidad nativa
+Ya ejecutado y verificado en la PC: `npm install` (0 vulnerabilidades); **JDK 21 Temurin** instalado y `JAVA_HOME` / `ANDROID_HOME` / `ANDROID_SDK_ROOT` configurados; **SDK Platform 36 + Build-Tools 36** instalados; AVD `Medium_Phone_API_37.0` arrancado.
 
-- [ ] Firma: conservar la validación actual (data URL PNG, base64 válido, máx. 500 KB); persistir con `@capacitor/filesystem` si hace falta.
-- [ ] PDF: el `blob` de `FE-0001.pdf` → `@capacitor/filesystem` + `@capacitor/share` para abrir/compartir.
-- [ ] Token: salir de `localStorage` → `@capacitor/preferences` o keystore nativo. Ajustar `src/api/axios.js` y `stores/auth.js` **sin cambiar el contrato del backend**.
-- [ ] Permisos nativos solo los necesarios; no hace falta cámara si el canvas con touch basta.
+| Destino | Requisitos |
+|---|---|
+| **Android (esta PC)** | Node 22.18+; **JDK 21** (el JDK 25/27 de Android Studio no sirve); **Android Studio Otter 2025.2.1+** con SDK Platform **36** y Build-Tools; emulador o celular con depuración USB (`adb devices`) |
+| **iOS** | macOS + **Xcode 26+** y command line tools (iOS 15+). Capacitor 8 usa **Swift Package Manager**, no CocoaPods. Cuenta Apple Developer para dispositivo/TestFlight/App Store. iOS no se compila en Windows. |
 
-## 4. Backend y CORS (punto clave)
+Incidencias resueltas (detalle en `Movil/README.md`):
 
-- En **desarrollo** el WebView carga Vite y el proxy `/api` resuelve CORS como hoy.
-- En el **build de producción** no existe ese proxy: `VITE_API_URL=/api` no sirve dentro del WebView. Dos opciones:
-  1. Apuntar `VITE_API_URL` directo a `http://192.168.20.49:8000` y pedir al backend que permita los orígenes nativos (`capacitor://localhost` en iOS, `http://localhost` en Android).
+- `JAVA_HOME is not set` → instalar Temurin 21 y **reabrir PowerShell**.
+- AGP 8.13 + Gradle 9.7.1 → error `InternalProblems` (API eliminada en Gradle 9.6). Wrapper fijado en **Gradle 9.5.1** con `networkTimeout=120000`. No subir a 9.6+ sin migrar a AGP 9.x.
+- Android Studio generó `gradle/gradle-daemon-jvm.properties` con `toolchainVersion=25`; se ajustó a **21** porque ese criteria gana sobre `org.gradle.java.home`. Verificado `assembleDebug` con launcher JBR 25 → **BUILD SUCCESSFUL**.
+- Falta de Platform 36 → `android.exe sdk install platforms/android-36`.
+- `npx cap run android` sin `--target` muestra un prompt interactivo; usar `--target <id>`.
+
+## 2. Fase 1 — WebView funcional (compilado e instalado ✅)
+
+**No ejecutar `npx cap add android`**: la plataforma ya existe y por eso sale `[error] android platform already exists`. Ese comando es solo para crear el proyecto por primera vez.
+
+Procedimiento preferido (Android Studio):
+
+1. Terminal: `cd ..\entrega-productos-front` → `npm run dev -- --host 0.0.0.0`.
+2. Android Studio → **File > Open…** → carpeta **`Movil/android`** (aceptar *Use Gradle wrapper*).
+3. Confirmar **Gradle JDK = 21 Temurin** en *Settings > Build Tools > Gradle* (el proyecto ya fija `org.gradle.java.home` en `gradle.properties`).
+4. Elegir el AVD `Medium_Phone_API_37.0` y apretar **Run ▶**.
+5. Si cambió el front, antes correr `cd Movil && npm run sync` para actualizar los assets.
+
+Alternativa por terminal (desde `Movil`, con PowerShell reabierto):
+
+```powershell
+npx cap run android --target emulator-5554
+```
+
+Resultado verificado: `√ Running Gradle build in 329.61s` → `√ Deploying app-debug.apk to emulator-5554`. `adb` confirma `com.entrega.productos/.MainActivity` en primer plano y el logcat muestra `[vite] connected`.
+
+- [ ] Verificar login real (`admin@entrega.com` / `Admin123*`).
+- [ ] Recargar → `GET /me` mantiene la sesión.
+- [ ] Facturas: listado, firma con el dedo y descarga de `FE-0001.pdf`.
+- [ ] Avisos flotantes con cierre a los 5 s.
+- [ ] iOS: en una Mac, `npx cap run ios`.
+
+## 3. Fase 2 — Capa Ionic (look nativo)
+
+- [ ] Instalar `@ionic/vue@9.0.13` e `ionicons` **en el front** y registrar `IonicVue` en `main.js`.
+- [ ] `App.vue` → `IonApp`; `MainLayout.vue` → `IonMenu` + `IonHeader`/`IonContent`.
+- [ ] Migrar por módulos: **Login → Facturas → Estadísticas → catálogos**.
+  - Login: `IonPage`, `IonInput`, `IonButton`; `useLogin` sigue haciendo `POST /login`.
+  - Facturas: `IonList`/`IonCard`, firma en `<canvas>` y modales con `IonModal`.
+  - Estadísticas: `StatCard`, `BarrasPorEstado` y `SerieTiempo` siguen siendo CSS puro.
+- [ ] No mezclar Lucide e `ionicons` en un mismo componente.
+
+## 4. Funcionalidad nativa (plugins ya disponibles)
+
+- [ ] Firma: conservar data URL PNG, base64 válido y máx. 500 KB; persistir con `@capacitor/filesystem` si hace falta.
+- [ ] PDF: `blob` de `FE-0001.pdf` → `@capacitor/filesystem` + `@capacitor/share`.
+- [ ] Token: migrar de `localStorage` a `@capacitor/preferences`, sin cambiar el contrato del backend.
+- [ ] Permisos nativos solo los necesarios; el canvas con touch basta para firmar.
+
+## 5. Backend y CORS (producción)
+
+- En Fase 1 el WebView carga Vite: el proxy `/api` evita el CORS, igual que en la web.
+- En producción no hay proxy: `VITE_API_URL=/api` no sirve dentro del WebView. Opciones:
+  1. Apuntar `VITE_API_URL` a `http://192.168.20.49:8000` y pedir al backend los orígenes nativos (`capacitor://localhost` en iOS, `http://localhost` en Android).
   2. Publicar un reverse proxy `/api` y dejar la URL relativa.
-- [ ] Escribir el pedido en `ArchivosMD/MENSAJE_PARA_BACKEND.md` (regla del equipo): CORS nativo y **refresh token** para no depender del JWT de 60 min.
-- No modificar el CORS del front web: la regla anterior de “no tocar CORS” era solo por el proxy de Vite.
+- [ ] Escribir el pedido en `ArchivosMD/MENSAJE_PARA_BACKEND.md`: CORS nativo y **refresh token** (el JWT vence a los 60 min). No se modifica el CORS usado por el front web.
 
-## 5. Pruebas y entrega
+## 6. Pruebas y entrega
 
 - [ ] Los tests de `utils/`, `api/`, `composables/` y `stores/` se reutilizan.
-- [ ] Agregar mocks de plugins Capacitor para los tests que interactúen con filesystem/share/preferences.
-- [ ] Seguir el flujo: `npm test` → “Pasa” → commit y push.
-- [ ] Validación visual en dispositivo: 320/375 px, menú/firma con el dedo, PDF y avisos flotantes de 5 s.
+- [ ] Agregar mocks de los plugins Capacitor para filesystem/share/preferences.
+- [ ] Flujo: `npm test` → “Pasa” → commit y push.
+- [ ] Validar en dispositivo: 320/375 px, menú, firma con el dedo, PDF y avisos de 5 s.
 
-## 6. Antes de empezar a codificar
+## 7. Pendientes
 
-- [ ] Confirmar app id (`com.entrega.productos`) y nombre visible.
-- [ ] Definir si la primera entrega es solo WebView funcional (Fase 1) o ya con UI Ionic (Fase 2).
-- [ ] Generar iconos y splash con `@capacitor/assets`.
-- [ ] Cuentas de desarrollador para publicar (Apple Developer / Google Play).
+- [ ] Iconos y splash (Capacitor 8 trae assets por defecto; se pueden generar con `@capacitor/assets`).
+- [ ] Cuentas de desarrollador (Apple Developer / Google Play).

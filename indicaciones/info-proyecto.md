@@ -80,9 +80,9 @@ entrega-productos-front/
 | `test/*.test.js` | 57 archivos / 312 pruebas | `npm test` (Vitest) | Importan módulos reales y simulan axios | Agregar tests antes de pedir “Pasa” |
 
 Fuera del front:
+- `Movil/` → capa nativa con Capacitor (Fase 1 ya preparada en el commit `a79c029`). `webDir` apunta al `dist` del front, así que no hay código duplicado. Ver `ArchivosMD/PLAN_MOVIL.md`.
 - `ArchivosMD/` → contratos, mensajes al backend, respuestas del backend, checklist de prueba manual y el plan móvil.
 - `indicaciones/` → instructivos iniciales de frontend/backend y este resumen.
-- `Movil/` → envoltorio Capacitor (`android/`, `ios/` y `capacitor.config.json`) que carga el front desde Vite en desarrollo.
 - El **código del backend no está en este repo**; solo sus contratos y la API en vivo.
 
 **Regla de oro del código:** la vista no tiene lógica de negocio → llama a un *composable*; las reglas puras van a `utils/`; las llamadas HTTP van a `api/`. Si algo se repite en 3 pantallas, se extrae ("regla de 3").
