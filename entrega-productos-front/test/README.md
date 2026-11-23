@@ -75,12 +75,14 @@ npm run test:watch
 | 49 | Aviso de sesión vencida al volver al login | ✅ PASÓ | [aviso-sesion-vencida.test.js](aviso-sesion-vencida.test.js) |
 | 50 | Reglas responsive para celular, tablet y escritorio | ✅ PASÓ | [responsive-layout.test.js](responsive-layout.test.js) |
 | 59 | Estadísticas por usuario: reglas, permiso, API, series del backend y panel | ✅ PASÓ | [estadisticas.test.js](estadisticas.test.js) |
+| 60 | PDF nativo: blob a base64, guardado en cache y visor del sistema | ✅ PASÓ | [pdf-nativo.test.js](pdf-nativo.test.js) |
+| 61 | `descargarPdf` usa el visor nativo y no `<a download>` | ✅ PASÓ | [facturas-pdf-nativo.test.js](facturas-pdf-nativo.test.js) |
 
 ---
 
-**57 archivos de test, 312 pruebas.** Ejecutar todo con `npm test`.
+**59 archivos de test, 316 pruebas.** Ejecutar todo con `npm test`.
 
-> Última corrida: **todos los archivos en ✅ PASÓ**. Incluye el panel de estadísticas (Test 59, 9 pruebas) y los textos por rol de Inicio, Facturas y Estadísticas.
+> Última corrida: **todos los archivos en ✅ PASÓ**. Incluye el panel de estadísticas (Test 59, 9 pruebas), los textos por rol de Inicio, Facturas y Estadísticas y el PDF nativo de Capacitor (Tests 60 y 61).
 >
 > Contratos vigentes: login por `correo`/`contrasena`, roles `admin`/`bodeguero`/`cliente`, `GET /me`, normalización de errores 422, paginación `{ data, total, page, limit }` y `/estadisticas/resumen`.
 >

@@ -198,7 +198,7 @@ El selector de clientes de Facturas ya no usa `/usuarios`: viene de `GET /factur
 - [x] Vistas base y mocks para trabajar sin backend
 - [x] Login adaptado a `correo` + `contrasena`
 - [x] Módulo y ruta `/roles` agregados
-- [x] 24 archivos de tests unitarios (128 aserciones) en `test/` — cifra de ese día; hoy son **57 archivos / 312 pruebas**
+- [x] 24 archivos de tests unitarios (128 aserciones) en `test/` — cifra de ese día; hoy son **59 archivos / 316 pruebas**
 - [x] `GET /me` para recuperar la sesión al recargar
 - [x] Normalización de errores 422 (`detail` lista → texto)
 - [x] Frontend accesible desde la red (`npm run dev` con `--host`)
@@ -214,7 +214,7 @@ El selector de clientes de Facturas ya no usa `/usuarios`: viene de `GET /factur
 - [x] Usuarios con campos condicionales de cliente y filtro `?rol=`
 - [x] `SignaturePad` con firma PNG y límite de 500 KB
 - [x] Facturas: listado, detalle, formulario de líneas, estados, firma, rechazo y PDF
-- [x] Tests en verde (hoy **57 archivos / 312 pruebas**) y `npm run build` correcto
+- [x] Tests en verde (hoy **59 archivos / 316 pruebas**) y `npm run build` correcto
 
 ## Pendiente del backend / líder
 

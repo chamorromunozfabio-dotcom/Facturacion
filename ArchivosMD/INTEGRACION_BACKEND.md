@@ -42,7 +42,7 @@ El backend aceptó el pedido y publicó:
 
 - `/usuarios`, `/usuarios/{id}`, `/me` y el `user` de `/login` traen `permisos: [{id, nombre}]`. El store los guarda en `auth.permisos` y **el menú, los botones y las guardas de ruta leen esa lista real**; la matriz por rol de `permissions.js` queda solo como respaldo.
 - Permisos efectivos = **solo los del usuario**; el rol es plantilla al crear y cambiarlo después no modifica usuarios existentes. `PUT /roles/{id}/permisos` sigue disponible como plantilla. El catálogo es fijo: 30 permisos, incluido `estadisticas_view`; no se crean ni nombran desde la UI.
-- En vivo se sembraron los permisos y se asignaron a los usuarios. Las pruebas no cambiaron datos reales: simulan axios. Estado actual: **57 archivos / 312 pruebas** en verde.
+- En vivo se sembraron los permisos y se asignaron a los usuarios. Las pruebas no cambiaron datos reales: simulan axios. Estado actual: **59 archivos / 316 pruebas** en verde.
 
 ## Permisos finales
 

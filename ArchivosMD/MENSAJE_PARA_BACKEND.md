@@ -205,7 +205,7 @@ Gracias, quedó claro y ya adaptamos el front:
 - **Solo activos**: el catálogo de facturas ahora pide `GET /tipos?estado=true`.
 - **Verificación en vivo**: creé un tipo temporal en la bodega del bodeguero de prueba → `201` con `bodega_id`/`bodega_nombre`; lo vio el admin filtrando y el propio bodeguero; una bodega ajena devolvió `total: 0`; lo borré (`204`). No quedaron datos.
 
-Todo en verde: **57 archivos / 312 pruebas** y build correcto (en ese momento eran 44 / 234). Si el catálogo de facturas debe mostrar también tipos inactivos en algún caso, avisen y lo ajustamos.
+Todo en verde: **59 archivos / 316 pruebas** y build correcto (en ese momento eran 44 / 234). Si el catálogo de facturas debe mostrar también tipos inactivos en algún caso, avisen y lo ajustamos.
 
 ---
 

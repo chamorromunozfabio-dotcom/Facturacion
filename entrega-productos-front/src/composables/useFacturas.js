@@ -12,6 +12,7 @@ import {
   estadosPara,
   mensajeCreacion,
 } from '../utils/facturas'
+import { esPlataformaNativa } from '../utils/pdfNativo'
 
 /**
  * Estado y acciones de la pantalla de facturas. La vista solo dibuja y conecta
@@ -232,7 +233,7 @@ export function useFacturas() {
   async function descargar(row) {
     try {
       const filename = await facturasApi.descargarPdf(row.id, row.numero)
-      success(`Descargando ${filename}.`)
+      success(esPlataformaNativa() ? `Abriendo ${filename}.` : `Descargando ${filename}.`)
     } catch (error) {
       failure(error, 'No se pudo descargar el PDF.')
     }

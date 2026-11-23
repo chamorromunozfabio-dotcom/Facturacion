@@ -98,7 +98,7 @@ Código nuevo: importá siempre desde `components/ui/` o `components/<modulo>/`.
 
 ## Estado y decisiones
 
-- Cobertura actual: **57 archivos de test / 312 pruebas** en verde con `npm test` (incluye el panel de estadísticas, la serie temporal y los textos por rol).
+- Cobertura actual: **59 archivos de test / 316 pruebas** en verde con `npm test` (incluye el panel de estadísticas, la serie temporal y los textos por rol).
 - Regla adoptada para código nuevo: **regla de 3**. Si algo se repite en 3 pantallas, se extrae a `ui/` o `composables/`; si aparece en una sola, se queda en `components/<modulo>/`. Un archivo = una razón de cambiar.
 
 Se evaluaron y **se decidieron no hacer** estas dos mejoras:

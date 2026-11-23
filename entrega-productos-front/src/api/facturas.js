@@ -2,6 +2,7 @@ import api from './axios'
 import { createCrudResource } from './crud'
 import { mockFacturaAction, mockList, wait } from './mocks'
 import { resolveApiModes } from '../config/apiModes'
+import { abrirPdfNativo, esPlataformaNativa } from '../utils/pdfNativo'
 
 const USE_MOCKS = resolveApiModes().facturasMocks
 const FIRMA_PREFIX = 'data:image/png;base64,'
@@ -101,7 +102,11 @@ export const facturasApi = {
       response.headers['content-disposition'],
       `${numero}.pdf`,
     )
-    triggerDownload(response.data, filename)
+    if (esPlataformaNativa()) {
+      await abrirPdfNativo(response.data, filename)
+    } else {
+      triggerDownload(response.data, filename)
+    }
     return filename
   },
 }

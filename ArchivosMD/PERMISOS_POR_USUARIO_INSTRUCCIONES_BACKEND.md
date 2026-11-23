@@ -6,7 +6,7 @@
 
 > **Respuesta recibida el 19-11-2026:** ver `RESPUESTA_PERMISOS_POR_USUARIO.md`. El backend confirmó los 9 puntos del checklist y el front ya quedó alineado (menú, botones y rutas con permisos reales). Este documento se conserva como contrato de referencia.
 >
-> **Actualización 20-11-2026:** el catálogo quedó en **30 permisos** (los 29 de este documento más `estadisticas_view`, ya publicado). La cifra de tests de la fecha es histórica; hoy son 57 archivos / 312 pruebas.
+> **Actualización 20-11-2026:** el catálogo quedó en **30 permisos** (los 29 de este documento más `estadisticas_view`, ya publicado). La cifra de tests de la fecha es histórica; hoy son 59 archivos / 316 pruebas.
 >
 > Para el estado vigente complete, prevalece `indicaciones/info-proyecto.md`. Dentro de este cambio, este documento sigue siendo la referencia.
 

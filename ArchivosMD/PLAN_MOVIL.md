@@ -1,6 +1,6 @@
 # Plan móvil: Ionic Vue + Capacitor
 
-**Decisión (23-11-2026):** iOS y Android con **Ionic Vue + Capacitor**. Flutter queda descartado: reescribiría la app en Dart y perderíamos los 312 tests.
+**Decisión (23-11-2026):** iOS y Android con **Ionic Vue + Capacitor**. Flutter queda descartado: reescribiría la app en Dart y perderíamos los 316 tests.
 **Estado real:** la carpeta `Movil/` **ya existe y está versionada** desde el commit `a79c029` (envoltorio Capacitor, proyectos `android/` e `ios/`, plugins y `README.md`). La Fase 1 está preparada; no hay que crearla ni volver a agregar la plataforma Android.
 
 ## 0. Estructura existente
@@ -15,7 +15,7 @@ Movil/
 ├─ ios/                      proyecto nativo versionado (NO borrar)
 └─ README.md                 puesta en marcha y solución de problemas
 
-entrega-productos-front/     front Vue: 57 archivos / 312 tests, sin cambios
+entrega-productos-front/     front Vue: 59 archivos / 316 tests; único cambio de Fase 1: PDF nativo
 ```
 
 - `webDir` apunta al `dist` del front: **no hay código duplicado**.
@@ -59,9 +59,10 @@ npx cap run android --target emulator-5554
 
 Resultado verificado: `√ Running Gradle build in 329.61s` → `√ Deploying app-debug.apk to emulator-5554`. `adb` confirma `com.entrega.productos/.MainActivity` en primer plano y el logcat muestra `[vite] connected`.
 
-- [ ] Verificar login real (`admin@entrega.com` / `Admin123*`).
-- [ ] Recargar → `GET /me` mantiene la sesión.
-- [ ] Facturas: listado, firma con el dedo y descarga de `FE-0001.pdf`.
+- [x] Verificar login real (`admin@entrega.com` / `Admin123*`).
+- [x] Recargar → `GET /me` mantiene la sesión.
+- [x] Facturas: listado y firma con el dedo verificados en el emulador.
+- [ ] PDF nativo: implementado con `filesystem` + `share`; validar en dispositivo que abre el visor.
 - [ ] Avisos flotantes con cierre a los 5 s.
 - [ ] iOS: en una Mac, `npx cap run ios`.
 
@@ -78,7 +79,7 @@ Resultado verificado: `√ Running Gradle build in 329.61s` → `√ Deploying a
 ## 4. Funcionalidad nativa (plugins ya disponibles)
 
 - [ ] Firma: conservar data URL PNG, base64 válido y máx. 500 KB; persistir con `@capacitor/filesystem` si hace falta.
-- [ ] PDF: `blob` de `FE-0001.pdf` → `@capacitor/filesystem` + `@capacitor/share`.
+- [x] PDF: `blob` de `FE-0001.pdf` → `@capacitor/filesystem` + `@capacitor/share` (implementado; falta probar el visor en dispositivo).
 - [ ] Token: migrar de `localStorage` a `@capacitor/preferences`, sin cambiar el contrato del backend.
 - [ ] Permisos nativos solo los necesarios; el canvas con touch basta para firmar.
 

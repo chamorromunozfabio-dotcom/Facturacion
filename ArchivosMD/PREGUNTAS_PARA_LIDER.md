@@ -35,5 +35,5 @@
 - El catálogo fijo de permisos está en `src/config/permissions.js` (30, incluido `estadisticas_view`); no se crean permisos desde la UI.
 - El menú se arma desde `src/config/navigation.js` con `visibleMenuFor(rol, permisos)`.
 - El menú, los botones y las rutas leen `auth.permisos`; la matriz por rol es solo respaldo. El backend revalida y bloquea con `403`.
-- Los tests están en verde: `npm test` → **57 archivos, 312 pruebas** (fuerzan mocks en `vite.config.js`).
+- Los tests están en verde: `npm test` → **59 archivos, 316 pruebas** (fuerzan mocks en `vite.config.js`).
 - `npm run build` compila correctamente.

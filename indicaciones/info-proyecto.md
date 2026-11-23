@@ -1,6 +1,6 @@
 # info-proyecto — resumen para responder preguntas
 
-**Estado actual:** commit `1981030` en `main` · **57 archivos de test / 312 pruebas en verde** · `npm run build` correcto.
+**Estado actual:** último commit en `main` · **59 archivos de test / 316 pruebas en verde** · `npm run build` correcto.
 **Backend en vivo:** `http://192.168.20.49:8000` (/docs y /openapi.json). **Frontend dev:** `http://192.168.20.44:5173` (o `localhost:5173`).
 
 ---
@@ -40,7 +40,7 @@ entrega-productos-front/
 │  ├─ router/index.js     rutas + guardas por permiso
 │  ├─ layouts/MainLayout.vue
 │  └─ assets/main.css
-├─ test/                  57 archivos de prueba
+├─ test/                  59 archivos de prueba
 └─ .env.example
 ```
 
@@ -77,7 +77,7 @@ entrega-productos-front/
 | `src/config/apiModes.js` | Interruptor mocks / API real | `api/*.js` | Lee `.env` (`VITE_USE_MOCKS`, `VITE_FACTURAS_MOCKS`) | Activar demo o integración |
 | `src/config/sessionNotice.js` | Aviso de sesión vencida | Interceptor 401 y `LoginView` | `localStorage` + `ref` de Vue | Cambiar el mensaje al vencer |
 | `src/assets/main.css` | Estilos globales, animaciones y media queries | Todas las vistas | Se importa en `main.js` | Colores, responsive y transiciones |
-| `test/*.test.js` | 57 archivos / 312 pruebas | `npm test` (Vitest) | Importan módulos reales y simulan axios | Agregar tests antes de pedir “Pasa” |
+| `test/*.test.js` | 59 archivos / 316 pruebas | `npm test` (Vitest) | Importan módulos reales y simulan axios | Agregar tests antes de pedir “Pasa” |
 
 Fuera del front:
 - `Movil/` → capa nativa con Capacitor (Fase 1 ya preparada en el commit `a79c029`). `webDir` apunta al `dist` del front, así que no hay código duplicado. Ver `ArchivosMD/PLAN_MOVIL.md`.
@@ -147,7 +147,7 @@ Los textos bajo el título son por rol en Inicio, Facturas y Estadísticas. Se q
 
 ## 6. ¿Usamos buenas prácticas?
 
-**Sí, en general:** capas bien separadas, código modular, lógica repetida extraída, cliente HTTP único, manejo centralizado de errores, permisos reales del backend con respaldo por rol, catálogo fijo de permisos (30, sin crear desde la UI), rutas con *lazy loading* y guardas, mocks aislados por entorno, 312 pruebas con `data-test` estables, animaciones CSS puras y documentación de arquitectura al día.
+**Sí, en general:** capas bien separadas, código modular, lógica repetida extraída, cliente HTTP único, manejo centralizado de errores, permisos reales del backend con respaldo por rol, catálogo fijo de permisos (30, sin crear desde la UI), rutas con *lazy loading* y guardas, mocks aislados por entorno, 316 pruebas con `data-test` estables, animaciones CSS puras y documentación de arquitectura al día.
 
 **Puntos a tener en cuenta / mejorar (no bloquean):**
 
@@ -166,7 +166,7 @@ Los textos bajo el título son por rol en Inicio, Facturas y Estadísticas. Se q
 npm install
 cp .env.example .env     # en Windows: copy .env.example .env
 npm run dev              # Vite con --host, expuesto en la red
-npm test                 # 57 archivos / 312 pruebas
+npm test                 # 59 archivos / 316 pruebas
 npm run build
 ```
 
@@ -175,6 +175,6 @@ npm run build
 **Cuentas reales:** admin `admin@entrega.com` / `Admin123*` · bodeguero `bodeguero@gmail.com` / `Bodega123*` · cliente `cliente@gmail.com` / `Cliente123*`.
 **Demo (`VITE_USE_MOCKS=true`):** `luis@entrega.com` y `juan@cliente.com`, con botones de acceso rápido en el login.
 
-**Números clave:** 30 permisos en el catálogo · 60 min de JWT · 500 KB máx. de firma · 5 s de avisos · 300 ms de debounce · 62 días para graficar por día · 312 pruebas.
+**Números clave:** 30 permisos en el catálogo · 60 min de JWT · 500 KB máx. de firma · 5 s de avisos · 300 ms de debounce · 62 días para graficar por día · 316 pruebas.
 
 **Flujo de trabajo acordado:** el asistente ajusta código y tests → el usuario ejecuta `npm test` → dice “Pasa” → recién entonces commit y push. Los 6 archivos `ArchivosMD` prohibidos nunca se commitean.
