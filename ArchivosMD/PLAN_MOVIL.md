@@ -71,7 +71,7 @@ Resultado verificado: `√ Running Gradle build in 329.61s` → `√ Deploying a
 - [x] Instalar `@ionic/vue@9.0.13` e `ionicons` **en el front** y registrar `IonicVue` en `main.js` (junto con `core.css` y `normalize.css`).
 - [ ] `App.vue` → `IonApp` ✅ (hecho); `MainLayout.vue` → `IonMenu` + `IonHeader`/`IonContent` (pendiente).
 - [ ] Migrar por módulos: **Login → Facturas → Estadísticas → catálogos**.
-  - [x] Login: `IonPage`, `IonContent`, `IonInput`, `IonButton`; `useLogin` sigue haciendo `POST /login` con `{ correo, contrasena }`. `@ion-blur` reemplaza a `@blur`; `test/setup-ionic.js` mantiene los tests con inputs nativos. Pendiente de validación en emulador.
+  - [x] Login: `IonPage`, `IonContent`, `IonInput`, `IonButton`; `useLogin` sigue haciendo `POST /login` con `{ correo, contrasena }`. `@ion-blur` reemplaza a `@blur`; `test/setup-ionic.js` mantiene los tests con inputs nativos. **Validado en emulador** (23-11-2026).
   - Facturas: `IonList`/`IonCard`, firma en `<canvas>` y modales con `IonModal`.
   - Estadísticas: `StatCard`, `BarrasPorEstado` y `SerieTiempo` siguen siendo CSS puro.
 - [ ] No mezclar Lucide e `ionicons` en un mismo componente.
@@ -92,7 +92,7 @@ Resultado verificado: `√ Running Gradle build in 329.61s` → `√ Deploying a
 - [x] Respuesta del backend recibida en `ArchivosMD/cambios-backend-movil.md` (23-11-2026): CORS nativo sumado y `POST /refresh` con rotación de 7 días.
 - [x] `server.url` quitado de `Movil/capacitor.config.json`; `.env.production` apunta a `http://192.168.20.49:8000`; scripts `sync:prod` y `run:prod` agregados.
 - [x] Corregido el `Network Error` del primer build: Capacitor 8 servía por `https://localhost` y el WebView bloqueaba el backend HTTP por Mixed Content. Se agregó `server.androidScheme: "http"` + `cleartext: true` y se verificó el CORS real del backend para `Origin: http://localhost` (200 en preflight).
-- [ ] Validar en el emulador el build corregido: login, facturas, PDF y renovación de sesión (adelantando la hora del dispositivo).
+- [x] Validar en el emulador el build corregido (23-11-2026): login, facturas, PDF y renovación de sesión. El refresh se probó forzando un 401 desde la consola de la WebView (`localStorage.setItem('token','invalido')`): renovó y entró solo; al invalidar también `refresh_token` apareció el aviso de sesión vencida. Adelantar la hora no sirve porque el `exp` lo valida el backend.
 
 ## 6. Pruebas y entrega
 
