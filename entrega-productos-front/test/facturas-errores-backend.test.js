@@ -10,22 +10,22 @@ const api = vi.hoisted(() => ({
   remove: vi.fn(),
 }))
 
-vi.mock('../src/api/facturas', async () => {
-  const actual = await vi.importActual('../src/api/facturas')
+vi.mock('../src/modules/facturas/api/facturas', async () => {
+  const actual = await vi.importActual('../src/modules/facturas/api/facturas')
   return { ...actual, default: api }
 })
-vi.mock('../src/api/usuarios', () => ({ default: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
-vi.mock('../src/api/bodegas', () => ({
+vi.mock('../src/modules/catalogos/api/usuarios', () => ({ default: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
+vi.mock('../src/modules/catalogos/api/bodegas', () => ({
   default: { list: vi.fn().mockResolvedValue({ data: [{ id: 1, nombre: 'Bodega Central' }] }) },
 }))
-vi.mock('../src/api/tipos', () => ({
+vi.mock('../src/modules/catalogos/api/tipos', () => ({
   default: { list: vi.fn().mockResolvedValue({ data: [{ id: 5, nombre: 'Alimentos' }] }) },
 }))
 
-import { getFieldErrors } from '../src/api/axios'
-import FacturaForm from '../src/components/FacturaForm.vue'
-import FacturaView from '../src/views/FacturaView.vue'
-import { useAuthStore } from '../src/stores/auth'
+import { getFieldErrors } from '../src/shared/api/axios'
+import FacturaForm from '../src/modules/facturas/components/FacturaForm.vue'
+import FacturaView from '../src/modules/facturas/views/FacturaView.vue'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 const error422 = {
   response: {

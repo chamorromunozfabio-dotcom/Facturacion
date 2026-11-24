@@ -10,11 +10,11 @@ const api = vi.hoisted(() => ({
 }))
 const bodegasApi = vi.hoisted(() => ({ list: vi.fn() }))
 
-vi.mock('../src/api/tipos', () => ({ default: api }))
-vi.mock('../src/api/bodegas', () => ({ default: bodegasApi }))
+vi.mock('../src/modules/catalogos/api/tipos', () => ({ default: api }))
+vi.mock('../src/modules/catalogos/api/bodegas', () => ({ default: bodegasApi }))
 
-import TiposView from '../src/views/TiposView.vue'
-import { useAuthStore } from '../src/stores/auth'
+import TiposView from '../src/modules/catalogos/views/TiposView.vue'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 describe('Test 13 — TiposView (CRUD por bodega con componentes)', () => {
   beforeEach(() => {

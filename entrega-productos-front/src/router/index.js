@@ -1,75 +1,37 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-import { tienePermiso } from '../config/permissions'
-import MainLayout from '../layouts/MainLayout.vue'
+import { useAuthStore } from '../modules/auth/store/auth'
+import { tienePermiso } from '../shared/config/permissions'
+import MainLayout from '../modules/layout/layouts/MainLayout.vue'
+
+import authRoutes from '../modules/auth/routes'
+import catalogosRoutes from '../modules/catalogos/routes'
+import estadisticasRoutes from '../modules/estadisticas/routes'
+import facturasRoutes from '../modules/facturas/routes'
+import inicioRoutes from '../modules/inicio/routes'
+import permisosRoutes from '../modules/permisos/routes'
+
+const porNombre = (rutas, nombre) => rutas.find((r) => r.name === nombre)
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    {
-      path: '/login',
-      name: 'login',
-      component: () => import('../views/LoginView.vue'),
-      meta: { public: true },
-    },
+    ...authRoutes,
     {
       path: '/',
       component: MainLayout,
       children: [
-        { path: '', name: 'inicio', component: () => import('../views/DashboardView.vue') },
-        // Roles y permisos definitivos en src/config/permissions.js
-        {
-          path: 'tipos',
-          name: 'tipos',
-          component: () => import('../views/TiposView.vue'),
-          meta: { permission: 'tipos:view' },
-        },
-        {
-          path: 'bodegas',
-          name: 'bodegas',
-          component: () => import('../views/BodegasView.vue'),
-          meta: { permission: 'bodegas:view' },
-        },
-        {
-          path: 'usuarios',
-          name: 'usuarios',
-          component: () => import('../views/UsuariosView.vue'),
-          meta: { permission: 'usuarios:view' },
-        },
-        {
-          path: 'permisos',
-          name: 'permisos',
-          component: () => import('../views/PermisosView.vue'),
-          meta: { permission: 'permisos:view' },
-        },
-        {
-          path: 'roles',
-          name: 'roles',
-          component: () => import('../views/RolesView.vue'),
-          meta: { permission: 'roles:view' },
-        },
+        porNombre(inicioRoutes, 'inicio'),
+        porNombre(catalogosRoutes, 'tipos'),
+        porNombre(catalogosRoutes, 'bodegas'),
+        porNombre(catalogosRoutes, 'usuarios'),
+        porNombre(permisosRoutes, 'permisos'),
+        porNombre(catalogosRoutes, 'roles'),
         // "Órdenes" se eliminó: la orden es la factura. Redirigimos las rutas viejas.
-        { path: 'ordenes', redirect: { name: 'facturas' } },
-        { path: 'factura', redirect: { name: 'facturas' } },
-        {
-          path: 'facturas',
-          name: 'facturas',
-          component: () => import('../views/FacturaView.vue'),
-          meta: { permission: 'facturas:view' },
-        },
-        {
-          path: 'estadisticas',
-          name: 'estadisticas',
-          component: () => import('../views/EstadisticasView.vue'),
-          meta: { permission: 'estadisticas:view' },
-        },
+        ...facturasRoutes,
+        ...estadisticasRoutes,
       ],
     },
-    {
-      path: '/:pathMatch(.*)*',
-      name: 'not-found',
-      component: () => import('../views/NotFoundView.vue'),
-    },
+    porNombre(inicioRoutes, 'not-found'),
   ],
 })
 

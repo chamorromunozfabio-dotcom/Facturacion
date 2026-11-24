@@ -20,7 +20,7 @@ import {
   hydrateSession,
   saveTokens,
   saveUser,
-} from '../src/config/sessionTokens'
+} from '../src/modules/auth/config/sessionTokens'
 
 const leer = (ruta) => readFileSync(new URL(ruta, import.meta.url), 'utf8')
 
@@ -105,8 +105,8 @@ describe('sessionTokens — localStorage en web, Preferences en móvil', () => {
   })
 
   it('el store, axios y el arranque pasan por el punto único sin localStorage directo', () => {
-    const store = leer('../src/stores/auth.js')
-    const axios = leer('../src/api/axios.js')
+    const store = leer('../src/modules/auth/store/auth.js')
+    const axios = leer('../src/shared/api/axios.js')
     const main = leer('../src/main.js')
 
     expect(store).toContain('getUser()')

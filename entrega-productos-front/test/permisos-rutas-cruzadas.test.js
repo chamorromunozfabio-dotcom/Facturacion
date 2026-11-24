@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { visibleMenuFor } from '../src/config/navigation'
+import { visibleMenuFor } from '../src/shared/config/navigation'
 import router from '../src/router'
-import { useAuthStore } from '../src/stores/auth'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 describe('Test 43 — El acceso a rutas sigue al permiso, no al rol fijo', () => {
   beforeEach(async () => {

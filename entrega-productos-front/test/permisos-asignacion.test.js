@@ -25,20 +25,20 @@ const usuarios = vi.hoisted(() => ({
   removePermiso: vi.fn(),
 }))
 
-vi.mock('../src/api/permisos', () => ({ default: permisos }))
-vi.mock('../src/api/roles', () => ({ default: roles }))
-vi.mock('../src/api/usuarios', () => ({ default: usuarios }))
+vi.mock('../src/modules/permisos/api/permisos', () => ({ default: permisos }))
+vi.mock('../src/modules/catalogos/api/roles', () => ({ default: roles }))
+vi.mock('../src/modules/catalogos/api/usuarios', () => ({ default: usuarios }))
 // Forzamos modo real para comprobar las URL de los endpoints de permisos.
-vi.mock('../src/config/apiModes', () => ({
+vi.mock('../src/shared/config/apiModes', () => ({
   resolveApiModes: () => ({ authMocks: false, catalogsMocks: false, facturasMocks: false }),
 }))
 
-import api from '../src/api/axios'
-import { visibleMenuFor } from '../src/config/navigation'
+import api from '../src/shared/api/axios'
+import { visibleMenuFor } from '../src/shared/config/navigation'
 import router from '../src/router'
-import { CATALOGO_PERMISOS } from '../src/config/permissions'
-import PermisosView from '../src/views/PermisosView.vue'
-import { useAuthStore } from '../src/stores/auth'
+import { CATALOGO_PERMISOS } from '../src/shared/config/permissions'
+import PermisosView from '../src/modules/permisos/views/PermisosView.vue'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 /** El backend publica el catálogo fijo con estos ids. */
 const catalogoBackend = () =>
@@ -200,8 +200,8 @@ describe('Test 36 — Permisos por usuario (contrato publicado por el backend)',
   })
 
   it('el cliente de la API usa los endpoints reales de permisos por usuario', async () => {
-    const realUsuariosApi = await vi.importActual('../src/api/usuarios')
-    const realRolesApi = await vi.importActual('../src/api/roles')
+    const realUsuariosApi = await vi.importActual('../src/modules/catalogos/api/usuarios')
+    const realRolesApi = await vi.importActual('../src/modules/catalogos/api/roles')
     const get = vi.spyOn(api, 'get').mockResolvedValue({ data: { data: [{ id: 2, nombre: 'editar_factura' }] } })
     const put = vi.spyOn(api, 'put').mockResolvedValue({ data: { id: 1, permisos: [] } })
     const post = vi.spyOn(api, 'post').mockResolvedValue({ data: { id: 1, permisos: [] } })

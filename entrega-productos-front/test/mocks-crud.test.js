@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { mockList, mockGet, mockCreate, mockUpdate, mockRemove } from '../src/api/mocks'
-import { createCrudResource } from '../src/api/crud'
+import { mockList, mockGet, mockCreate, mockUpdate, mockRemove } from '../src/shared/api/mocks'
+import { createCrudResource } from '../src/modules/catalogos/api/crud'
 
 describe('Test 5 — CRUD con mocks', () => {
   it('devuelve la forma acordada: data, total, page y limit', async () => {

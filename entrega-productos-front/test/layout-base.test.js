@@ -8,7 +8,7 @@ vi.mock('@capacitor/core', () => ({
 }))
 
 import { menuController } from '@ionic/vue'
-import LayoutBase from '../src/layouts/LayoutBase.vue'
+import LayoutBase from '../src/modules/layout/layouts/LayoutBase.vue'
 
 const montar = (abierto = false) =>
   mount(LayoutBase, {

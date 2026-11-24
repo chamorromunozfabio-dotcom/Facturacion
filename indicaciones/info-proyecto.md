@@ -52,10 +52,10 @@ entrega-productos-front/
 ### Flujo de una pantalla: de la URL al backend
 
 1. **`main.js`** hidrata la sesión (`hydrateSession()`) y arma Vue + Pinia; si hay token, `auth.fetchMe()` valida con `GET /me`.
-2. **`router/index.js`** elige la vista según la URL y pregunta a `auth.permisos` (con `tienePermiso()` de `config/permissions.js`) si puede entrar.
-3. La **vista** (`views/`) pinta y delega: usa componentes de `components/` y llama a un **composable** (`composables/`).
-4. El **composable** guarda el estado en refs, maneja carga/errores y llama a `utils/` (reglas puras) y `api/` (datos).
-5. **`api/`** decide entre mocks o real según `config/apiModes.js`; **`api/axios.js`** agrega el `Bearer` leído de `sessionTokens.js` y envía la petición con `baseURL=/api`.
+2. **`router/index.js`** elige la vista según la URL y pregunta a `auth.permisos` (con `tienePermiso()` de `shared/config/permissions.js`) si puede entrar.
+3. La **vista** (`modules/<modulo>/views/`) pinta y delega: usa componentes de su módulo y llama a un **composable** (`modules/<modulo>/composables/`).
+4. El **composable** guarda el estado en refs, maneja carga/errores y llama a `modules/<modulo>/utils/` (reglas puras) y `modules/<modulo>/api/` (datos).
+5. **`modules/<modulo>/api/`** decide entre mocks o real según `shared/config/apiModes.js`; **`shared/api/axios.js`** agrega el `Bearer` leído de `sessionTokens.js` y envía la petición con `baseURL=/api`.
 6. Vite reenvía `/api` al backend; el JSON vuelve al composable, la vista se repinta y `AlertMessage` muestra el resultado.
 
 ### Mapa rápido: qué hay, quién lo llama y qué podés tocar
@@ -64,25 +64,25 @@ entrega-productos-front/
 |---|---|---|---|---|
 | `src/main.js` | Arranque, hidratación de sesión y refresco con `/me` | El navegador / WebView al cargar | `hydrateSession()` → `auth.fetchMe()` | Configuración global de arranque |
 | `src/router/index.js` | Rutas y guardas por permiso | Vue Router | Lee `auth.permisos` + `tienePermiso()` | Agregar ruta, cambiar guarda o redirect |
-| `src/stores/auth.js` | Token, usuario, rol y permisos | Router, vistas, Axios, `main.js` | Pinia + `config/sessionTokens.js` | Login/logout y sesión (nunca localStorage directo) |
-| `src/config/sessionTokens.js` | `token`, `refresh_token` y `user` | Store y `api/axios.js` | `localStorage` en web, Preferences + cache en móvil | Único punto para cambiar persistencia |
-| `src/views/*.vue` | Pantallas con ruta (Inicio, Facturas, Estadísticas…) | Router | Props/events con componentes; llaman a composables | Textos, columnas, maquetación y slots |
-| `src/components/ui/` | Genéricos: `CrudPage`, `DataTable`, `FormModal`, `ModalBase`, `BotonBase`, `CampoNative`, `AlertMessage` | Cualquier vista | Props hacia abajo, eventos (`update:page`, `update:q`) arriba | Mejorar reutilizables (afecta varias pantallas) |
-| `src/components/facturas/` | Formulario, detalle, filtros, firma y rechazo | `FacturaView.vue` | Recibe datos del composable; emite acciones | Ajustar firma, estados o detalle |
-| `src/components/permisos/` | Matriz, buscador y confirmación | `PermisosView.vue` | Usa `usePermisos` | Cambiar la matriz visual (catálogo es fijo) |
-| `src/components/estadisticas/` | `StatCard`, `BarrasPorEstado`, `SerieTiempo` | `EstadisticasView.vue` | Recibe series del backend y pinta con CSS | Modificar gráficos sin librerías |
-| `src/components/auth/LoginForm.vue` | Campos y validación visual del login | `LoginView.vue` | Emite `submit`; `useLogin` hace `POST /login` | Mensajes, botones demo y validación |
-| `src/components/layout/` + `layouts/` | Sidebar, topbar, `LayoutBase` | Router (ruta padre) | `menuItems` de `config/navigation.js` | Menú, drawer hamburguesa, shell Ionic y responsive |
-| `src/composables/*.js` | Estado, carga y efectos (`useCrud`, `useFacturas`, `useEstadisticas`…) | Vistas | Llaman a `api/` y `utils/` | Lógica de pantalla sin ensuciar la vista |
-| `src/utils/*.js` | Funciones puras (fechas, validación, formateo, errores) | Composables y tests | Entrada → salida, sin Vue ni HTTP | Reglas reutilizables y sus tests |
-| `src/api/axios.js` | Cliente HTTP único e interceptores | Todos los `api/*.js` | Agrega `Bearer`; 401/403 centralizados | Token, errores y aviso de sesión vencida |
-| `src/api/crud.js` + `api/<recurso>.js` | Llamadas REST por módulo | Composables | `list/get/create/update/remove` → `{ data, total, page, limit }` | Cambiar endpoints o parámetros |
-| `src/api/mocks.js` | Datos falsos para demo y tests | `api/` con `VITE_USE_MOCKS=true` | Misma forma que la API real | Probar sin backend |
-| `src/config/permissions.js` | Catálogo fijo de 30 permisos y matriz por rol | Router, menú y vistas | `tienePermiso()` sobre `auth.permisos` | Solo ajustar reglas de respaldo |
-| `src/config/navigation.js` | Items del menú e iconos Lucide | `MainLayout.vue` | Filtra con `tienePermiso()` | Agregar/quitar opción del menú |
-| `src/config/apiModes.js` | Interruptor mocks / API real | `api/*.js` | Lee `.env` (`VITE_USE_MOCKS`, `VITE_FACTURAS_MOCKS`) | Activar demo o integración |
-| `src/config/sessionNotice.js` | Aviso de sesión vencida | Interceptor 401 y `LoginView` | `localStorage` + `ref` de Vue | Cambiar el mensaje al vencer |
-| `src/assets/main.css` | Estilos globales, animaciones y media queries | Todas las vistas | Se importa en `main.js` | Colores, responsive y transiciones |
+| `src/stores/auth.js` → `src/modules/auth/store/auth.js` | Token, usuario, rol y permisos | Router, vistas, Axios, `main.js` | Pinia + `modules/auth/config/sessionTokens.js` | Login/logout y sesión (nunca localStorage directo) |
+| `src/modules/auth/config/sessionTokens.js` | `token`, `refresh_token` y `user` | Store y `shared/api/axios.js` | `localStorage` en web, Preferences + cache en móvil | Único punto para cambiar persistencia |
+| `src/modules/*/views/*.vue` | Pantallas con ruta (Inicio, Facturas, Estadísticas…) | Router (ensambla `modules/*/routes`) | Props/events con componentes; llaman a composables | Textos, columnas, maquetación y slots |
+| `src/shared/ui/` | Genéricos: `CrudPage`, `DataTable`, `FormModal`, `ModalBase`, `BotonBase`, `CampoNative`, `AlertMessage` | Cualquier vista | Props hacia abajo, eventos (`update:page`, `update:q`) arriba | Mejorar reutilizables (afecta varias pantallas) |
+| `src/modules/facturas/components/` | Formulario, detalle, filtros, firma y rechazo | `FacturaView.vue` | Recibe datos del composable; emite acciones | Ajustar firma, estados o detalle |
+| `src/modules/permisos/components/` | Matriz, buscador y confirmación | `PermisosView.vue` | Usa `usePermisos` | Cambiar la matriz visual (catálogo es fijo) |
+| `src/modules/estadisticas/components/` | `StatCard`, `BarrasPorEstado`, `SerieTiempo` | `EstadisticasView.vue` | Recibe series del backend y pinta con CSS | Modificar gráficos sin librerías |
+| `src/modules/auth/components/LoginForm.vue` | Campos y validación visual del login | `LoginView.vue` | Emite `submit`; `useLogin` hace `POST /login` | Mensajes, botones demo y validación |
+| `src/modules/layout/` | Sidebar, topbar, `MainLayout`, `LayoutBase` | Router (ruta padre) | `menuItems` de `shared/config/navigation.js` | Menú, drawer hamburguesa, shell Ionic y responsive |
+| `src/modules/*/composables/` | Estado, carga y efectos (`useCrud`, `useFacturas`, `useEstadisticas`…) | Vistas | Llaman a `api/` y `utils/` del módulo | Lógica de pantalla sin ensuciar la vista |
+| `src/modules/*/utils/` | Funciones puras (fechas, validación, formateo, errores) | Composables y tests | Entrada → salida, sin Vue ni HTTP | Reglas reutilizables y sus tests |
+| `src/shared/api/axios.js` | Cliente HTTP único e interceptores | Todos los `modules/*/api/` | Agrega `Bearer`; 401/403 centralizados | Token, errores y aviso de sesión vencida |
+| `src/modules/catalogos/api/crud.js` + `modules/*/api/<recurso>.js` | Llamadas REST por módulo | Composables | `list/get/create/update/remove` → `{ data, total, page, limit }` | Cambiar endpoints o parámetros |
+| `src/shared/api/mocks.js` | Datos falsos para demo y tests | `modules/*/api/` con `VITE_USE_MOCKS=true` | Misma forma que la API real | Probar sin backend |
+| `src/shared/config/permissions.js` | Catálogo fijo de 30 permisos y matriz por rol | Router, menú y vistas | `tienePermiso()` sobre `auth.permisos` | Solo ajustar reglas de respaldo |
+| `src/shared/config/navigation.js` | Items del menú e iconos Lucide | `MainLayout.vue` | Filtra con `tienePermiso()` | Agregar/quitar opción del menú |
+| `src/shared/config/apiModes.js` | Interruptor mocks / API real | `modules/*/api/` | Lee `.env` (`VITE_USE_MOCKS`, `VITE_FACTURAS_MOCKS`) | Activar demo o integración |
+| `src/modules/auth/config/sessionNotice.js` | Aviso de sesión vencida | Interceptor 401 y `LoginView` | `localStorage` + `ref` de Vue | Cambiar el mensaje al vencer |
+| `src/shared/assets/main.css` | Estilos globales, animaciones y media queries | Todas las vistas | Se importa en `main.js` | Colores, responsive y transiciones |
 | `test/*.test.js` | 67 archivos / 352 pruebas | `npm test` (Vitest) | Importan módulos reales y simulan axios/plugins | Agregar tests antes de pedir “Pasa” |
 
 Fuera del front:
@@ -91,7 +91,7 @@ Fuera del front:
 - `indicaciones/` → instructivos iniciales de frontend/backend y este resumen.
 - El **código del backend no está en este repo**; solo sus contratos y la API en vivo.
 
-**Regla de oro del código:** la vista no tiene lógica de negocio → llama a un *composable*; las reglas puras van a `utils/`; las llamadas HTTP van a `api/`. Si algo se repite en 3 pantallas, se extrae ("regla de 3").
+**Regla de oro del código:** la vista no tiene lógica de negocio → llama a un *composable*; las reglas puras van a `modules/<modulo>/utils/`; las llamadas HTTP van a `modules/<modulo>/api/`. Si algo se repite en 3 pantallas, se extrae a `shared/` ("regla de 3").
 
 ---
 
@@ -211,11 +211,11 @@ Movil/
 ├─ android/                     proyecto Gradle (abrir Android Studio en esta carpeta)
 └─ ios/                         se genera en Mac; no se compila en Windows
 
-front (sin cambios de ubicación):
+front (reorganizado por módulos):
 ├─ src/App.vue                  IonApp solo cuando Capacitor.isNativePlatform()
 ├─ src/main.js                  hydrateSession() antes de crear el store
-├─ src/layouts/LayoutBase.vue   grid en web / IonMenu + IonHeader + IonContent en móvil
-└─ src/components/ui/           ModalBase, BotonBase, CampoNative
+├─ src/modules/layout/layouts/LayoutBase.vue   grid en web / IonMenu + IonHeader + IonContent en móvil
+└─ src/shared/ui/               ModalBase, BotonBase, CampoNative
 ```
 
 **Flujo de una pantalla en el móvil:**
@@ -236,11 +236,11 @@ front (sin cambios de ubicación):
 | `Movil/capacitor.config.dev.json` | Live-reload contra Vite | `npm run dev:android` | Carga `http://IP:5173` | Desarrollo con recarga automática |
 | `front/.env.production` | `VITE_API_URL` con la IP del backend | Build de producción | Lo lee Vite al compilar | Cambiar la IP del servidor |
 | `src/App.vue` | `IonApp` condicional | Arranque | `Capacitor.isNativePlatform()` | No quitar el `v-if`: sin él se rompe el scroll web |
-| `src/layouts/LayoutBase.vue` | Menú lateral y cabecera nativa | `MainLayout.vue` | Eventos `toggle`/`cerrar`/`navigate`/`logout` + `menuController` | Ajustar el drawer y la toolbar |
-| `src/components/ui/ModalBase.vue` | Seis diálogos | Detalle, firma, rechazo, `FacturaForm`, `FormModal`, `ConfirmDelete` | `IonModal` en móvil, HTML + `<Transition>` en web | Contrato de foco, `role` y `data-test` |
-| `src/components/ui/BotonBase.vue` / `CampoNative.vue` | Botón y campo por plataforma | Estadísticas, `DataTable`, Permisos, formularios | `IonButton`/`IonInput` en móvil | Mantener los atributos que llegan por `$attrs` |
-| `src/config/sessionTokens.js` | Persistencia de sesión | Store y Axios | Preferences + cache en móvil, `localStorage` en web | Único punto para cambiar el guardado |
-| `src/api/axios.js` | Interceptores y renovación | Todos los `api/*.js` | `POST /refresh` con refresh rotativo | Ajustar reintento y aviso de sesión vencida |
+| `src/modules/layout/layouts/LayoutBase.vue` | Menú lateral y cabecera nativa | `MainLayout.vue` | Eventos `toggle`/`cerrar`/`navigate`/`logout` + `menuController` | Ajustar el drawer y la toolbar |
+| `src/shared/ui/ModalBase.vue` | Seis diálogos | Detalle, firma, rechazo, `FacturaForm`, `FormModal`, `ConfirmDelete` | `IonModal` en móvil, HTML + `<Transition>` en web | Contrato de foco, `role` y `data-test` |
+| `src/shared/ui/BotonBase.vue` / `CampoNative.vue` | Botón y campo por plataforma | Estadísticas, `DataTable`, Permisos, formularios | `IonButton`/`IonInput` en móvil | Mantener los atributos que llegan por `$attrs` |
+| `src/modules/auth/config/sessionTokens.js` | Persistencia de sesión | Store y Axios | Preferences + cache en móvil, `localStorage` en web | Único punto para cambiar el guardado |
+| `src/shared/api/axios.js` | Interceptores y renovación | Todos los `modules/*/api/` | `POST /refresh` con refresh rotativo | Ajustar reintento y aviso de sesión vencida |
 | `test/setup-ionic.js` | Stubs de Ionic para jsdom | Todos los tests | Simula `IonInput`, `IonModal`, `IonMenu`, `menuController`… | Mantener `input[type=email]` y `aria-invalid` |
 
 ### 8.3 Login, token y sesión

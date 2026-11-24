@@ -3,16 +3,16 @@ import { createPinia, setActivePinia } from 'pinia'
 
 const apiMock = vi.hoisted(() => ({ post: vi.fn(), get: vi.fn() }))
 
-vi.mock('../src/api/axios', () => ({
+vi.mock('../src/shared/api/axios', () => ({
   default: apiMock,
   getErrorMessage: vi.fn((error) => error?.message || 'Error'),
 }))
 
-vi.mock('../src/config/apiModes', () => ({
+vi.mock('../src/shared/config/apiModes', () => ({
   resolveApiModes: () => ({ authMocks: false, catalogsMocks: false, facturasMocks: false }),
 }))
 
-import { useAuthStore } from '../src/stores/auth'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 const CREDENCIALES = { correo: 'admin@entrega.com', contrasena: 'Admin123*' }
 

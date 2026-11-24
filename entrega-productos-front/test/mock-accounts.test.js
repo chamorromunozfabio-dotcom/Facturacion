@@ -9,9 +9,9 @@ vi.mock('vue-router', () => ({
   useRouter: () => ({ push }),
 }))
 
-import LoginView from '../src/views/LoginView.vue'
-import { useAuthStore } from '../src/stores/auth'
-import { MOCK_ACCOUNTS } from '../src/api/mocks'
+import LoginView from '../src/modules/auth/views/LoginView.vue'
+import { useAuthStore } from '../src/modules/auth/store/auth'
+import { MOCK_ACCOUNTS } from '../src/shared/api/mocks'
 
 describe('Test 30 — Cuentas demo por rol', () => {
   beforeEach(() => {

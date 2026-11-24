@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
-import PagePlaceholder from '../src/components/PagePlaceholder.vue'
+import PagePlaceholder from '../src/shared/ui/PagePlaceholder.vue'
 
 describe('Test 6 — componente PagePlaceholder', () => {
   it('muestra el título y el badge del día', () => {

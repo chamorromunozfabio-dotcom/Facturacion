@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
-import ConfirmDelete from '../src/components/ConfirmDelete.vue'
+import ConfirmDelete from '../src/shared/ui/ConfirmDelete.vue'
 
 function mountConfirm(props = {}) {
   return mount(ConfirmDelete, {

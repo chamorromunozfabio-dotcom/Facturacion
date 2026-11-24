@@ -17,29 +17,29 @@ const api = vi.hoisted(() => ({
   descargarPdf: vi.fn(),
 }))
 
-vi.mock('../src/api/facturas', async () => {
-  const actual = await vi.importActual('../src/api/facturas')
+vi.mock('../src/modules/facturas/api/facturas', async () => {
+  const actual = await vi.importActual('../src/modules/facturas/api/facturas')
   return { ...actual, default: api }
 })
-vi.mock('../src/api/bodegas', () => ({ default: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
-vi.mock('../src/api/tipos', () => ({ default: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
-vi.mock('../src/api/axios', () => ({
+vi.mock('../src/modules/catalogos/api/bodegas', () => ({ default: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
+vi.mock('../src/modules/catalogos/api/tipos', () => ({ default: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
+vi.mock('../src/shared/api/axios', () => ({
   default: {},
   getErrorMessage: vi.fn((error) => error?.message || 'Error'),
   getFieldErrors: vi.fn(() => ({})),
   isDuplicateError: vi.fn(() => false),
 }))
 
-import FacturaView from '../src/views/FacturaView.vue'
-import SignaturePad from '../src/components/SignaturePad.vue'
-import { useAuthStore } from '../src/stores/auth'
+import FacturaView from '../src/modules/facturas/views/FacturaView.vue'
+import SignaturePad from '../src/shared/ui/SignaturePad.vue'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 import {
   COLUMNAS,
   aFormModel,
   creadorDe,
   estadosPara,
   mensajeCreacion,
-} from '../src/utils/facturas'
+} from '../src/modules/facturas/utils/facturas'
 
 const leer = (ruta) => readFileSync(new URL(ruta, import.meta.url), 'utf8')
 const FIRMA = 'data:image/png;base64,YWJj'
@@ -71,7 +71,7 @@ describe('Test 54 — FacturaView modular: lógica, modales y mapa', () => {
   })
 
   it('la vista delega y conserva la alerta flotante y su responsive', () => {
-    const vista = leer('../src/views/FacturaView.vue')
+    const vista = leer('../src/modules/facturas/views/FacturaView.vue')
 
     expect(vista).toContain('useFacturas')
     for (const pieza of [
@@ -96,7 +96,7 @@ describe('Test 54 — FacturaView modular: lógica, modales y mapa', () => {
   })
 
   it('el composable concentra carga, acciones y formularios', () => {
-    const codigo = leer('../src/composables/useFacturas.js')
+    const codigo = leer('../src/modules/facturas/composables/useFacturas.js')
 
     for (const nombre of [
       'async function load',
@@ -115,7 +115,7 @@ describe('Test 54 — FacturaView modular: lógica, modales y mapa', () => {
     expect(COLUMNAS.map((columna) => columna.key)).toContain('numero')
     expect(estadosPara(true)).not.toContain('emitida')
     expect(estadosPara(false)).toContain('emitida')
-    expect(leer('../src/utils/facturas.js')).not.toContain('textoAlcancePara')
+    expect(leer('../src/modules/facturas/utils/facturas.js')).not.toContain('textoAlcancePara')
     expect(creadorDe({ creado_por_id: '7' })).toBe(7)
     expect(creadorDe({})).toBeNull()
     expect(mensajeCreacion({ numero: 'FE-0009' })).toContain('FE-0009')
@@ -132,10 +132,10 @@ describe('Test 54 — FacturaView modular: lógica, modales y mapa', () => {
   })
 
   it('los modales y el filtro tienen contrato propio y el mapa está documentado', () => {
-    const firma = leer('../src/components/facturas/FacturaFirmaModal.vue')
-    const rechazo = leer('../src/components/facturas/FacturaRechazoModal.vue')
-    const detalle = leer('../src/components/facturas/FacturaDetailModal.vue')
-    const filtro = leer('../src/components/facturas/FacturaFiltros.vue')
+    const firma = leer('../src/modules/facturas/components/FacturaFirmaModal.vue')
+    const rechazo = leer('../src/modules/facturas/components/FacturaRechazoModal.vue')
+    const detalle = leer('../src/modules/facturas/components/FacturaDetailModal.vue')
+    const filtro = leer('../src/modules/facturas/components/FacturaFiltros.vue')
 
     expect(firma).toContain('test-id="firma-modal"')
     for (const dato of ['firma-error', 'firma-confirm']) {
@@ -152,13 +152,13 @@ describe('Test 54 — FacturaView modular: lógica, modales y mapa', () => {
     expect(rechazo).toContain('useModalA11y')
     expect(detalle).toContain('useModalA11y')
 
-    const base = leer('../src/components/ui/ModalBase.vue')
+    const base = leer('../src/shared/ui/ModalBase.vue')
     expect(base).toContain('IonModal')
     expect(base).toContain('Capacitor.isNativePlatform()')
 
     const mapa = leer('../src/ARQUITECTURA.md')
-    expect(mapa).toContain('views/')
-    expect(mapa).toContain('components/<modulo>/')
+    expect(mapa).toContain('modules/facturas/views/')
+    expect(mapa).toContain('shared/ui/')
     expect(mapa).toContain('composables/')
   })
 

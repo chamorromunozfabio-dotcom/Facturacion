@@ -8,8 +8,8 @@ vi.mock('@capacitor/core', () => ({
   Capacitor: { isNativePlatform: esMovil },
 }))
 
-import BotonBase from '../src/components/ui/BotonBase.vue'
-import CampoNative from '../src/components/ui/CampoNative.vue'
+import BotonBase from '../src/shared/ui/BotonBase.vue'
+import CampoNative from '../src/shared/ui/CampoNative.vue'
 
 const leer = (ruta) => readFileSync(new URL(ruta, import.meta.url), 'utf8')
 
@@ -73,15 +73,15 @@ describe('BotonBase y CampoNative — adaptadores web/móvil', () => {
 
   it('Estadísticas y catálogos usan los adaptadores sin ionicons', () => {
     const contratos = [
-      ['../src/components/ui/DataTable.vue', ['BotonBase', 'CampoNative']],
-      ['../src/views/EstadisticasView.vue', ['BotonBase', 'CampoNative']],
-      ['../src/components/ui/FormModal.vue', ['BotonBase']],
-      ['../src/components/ui/ConfirmDelete.vue', ['BotonBase']],
-      ['../src/components/permisos/PermisosBuscador.vue', ['BotonBase', 'CampoNative']],
-      ['../src/components/permisos/PermisosMatriz.vue', ['BotonBase']],
-      ['../src/components/permisos/PermisosCabecera.vue', ['BotonBase']],
-      ['../src/components/permisos/PermisosConfirmacion.vue', ['BotonBase']],
-      ['../src/layouts/LayoutBase.vue', ['IonMenu', 'IonHeader', 'IonContent']],
+      ['../src/shared/ui/DataTable.vue', ['BotonBase', 'CampoNative']],
+      ['../src/modules/estadisticas/views/EstadisticasView.vue', ['BotonBase', 'CampoNative']],
+      ['../src/shared/ui/FormModal.vue', ['BotonBase']],
+      ['../src/shared/ui/ConfirmDelete.vue', ['BotonBase']],
+      ['../src/modules/permisos/components/PermisosBuscador.vue', ['BotonBase', 'CampoNative']],
+      ['../src/modules/permisos/components/PermisosMatriz.vue', ['BotonBase']],
+      ['../src/modules/permisos/components/PermisosCabecera.vue', ['BotonBase']],
+      ['../src/modules/permisos/components/PermisosConfirmacion.vue', ['BotonBase']],
+      ['../src/modules/layout/layouts/LayoutBase.vue', ['IonMenu', 'IonHeader', 'IonContent']],
     ]
 
     for (const [ruta, simbolos] of contratos) {

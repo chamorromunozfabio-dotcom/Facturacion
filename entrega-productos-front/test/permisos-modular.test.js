@@ -2,16 +2,16 @@ import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { readFileSync } from 'node:fs'
 
-import PermisosBuscador from '../src/components/permisos/PermisosBuscador.vue'
-import PermisosCabecera from '../src/components/permisos/PermisosCabecera.vue'
-import PermisosMatriz from '../src/components/permisos/PermisosMatriz.vue'
-import PermisosConfirmacion from '../src/components/permisos/PermisosConfirmacion.vue'
+import PermisosBuscador from '../src/modules/permisos/components/PermisosBuscador.vue'
+import PermisosCabecera from '../src/modules/permisos/components/PermisosCabecera.vue'
+import PermisosMatriz from '../src/modules/permisos/components/PermisosMatriz.vue'
+import PermisosConfirmacion from '../src/modules/permisos/components/PermisosConfirmacion.vue'
 
 const leer = (ruta) => readFileSync(new URL(ruta, import.meta.url), 'utf8')
 
 describe('Test 51 — Permisos modular: piezas pequeñas y contrato estable', () => {
   it('la vista delega en piezas y ya no contiene la lógica completa', () => {
-    const vista = leer('../src/views/PermisosView.vue')
+    const vista = leer('../src/modules/permisos/views/PermisosView.vue')
 
     expect(vista).toContain('usePermisos')
     expect(vista).toContain('PermisosBuscador')
@@ -21,7 +21,7 @@ describe('Test 51 — Permisos modular: piezas pequeñas y contrato estable', ()
   })
 
   it('el composable concentra la carga, los cambios y la confirmación', () => {
-    const codigo = leer('../src/composables/usePermisos.js')
+    const codigo = leer('../src/modules/permisos/composables/usePermisos.js')
 
     for (const nombre of [
       'cargarPagina',

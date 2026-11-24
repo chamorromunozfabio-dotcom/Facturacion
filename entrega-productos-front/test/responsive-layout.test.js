@@ -15,8 +15,8 @@ describe('Test 50 — Reglas responsive para distintos dispositivos', () => {
   })
 
   it('el menú se vuelve un drawer lateral en tablet y celular', () => {
-    const layout = leer('../src/layouts/LayoutBase.vue')
-    const sidebar = leer('../src/components/layout/SidebarMenu.vue')
+    const layout = leer('../src/modules/layout/layouts/LayoutBase.vue')
+    const sidebar = leer('../src/modules/layout/components/SidebarMenu.vue')
 
     expect(layout).toContain('@media (max-width: 1024px)')
     expect(layout).toContain('grid-template-columns: 1fr')
@@ -27,37 +27,37 @@ describe('Test 50 — Reglas responsive para distintos dispositivos', () => {
   })
 
   it('el buscador de tablas cabe en celulares chicos', () => {
-    const css = leer('../src/components/ui/DataTable.vue')
+    const css = leer('../src/shared/ui/DataTable.vue')
 
     expect(css).toContain('@media (max-width: 480px)')
     expect(css).toMatch(/\.data-table__search input\s*\{[^}]*min-width:\s*0/s)
   })
 
   it('el login reduce su tarjeta en celulares chicos', () => {
-    const css = leer('../src/components/auth/LoginForm.vue')
+    const css = leer('../src/modules/auth/components/LoginForm.vue')
 
     expect(css).toContain('@media (max-width: 480px)')
     expect(css).toMatch(/\.login-card\s*\{[^}]*padding:\s*22px 18px/s)
   })
 
   it('la alerta de facturas deja de flotar en tablet', () => {
-    const css = leer('../src/views/FacturaView.vue')
+    const css = leer('../src/modules/facturas/views/FacturaView.vue')
 
     expect(css).toMatch(/@media \(max-width: 768px\)[\s\S]*\.alert-flotante[\s\S]*position:\s*static/)
   })
 
   it('el formulario de factura pasa a una columna en celulares', () => {
-    expect(leer('../src/components/facturas/FacturaForm.vue')).toContain('@media (max-width: 700px)')
+    expect(leer('../src/modules/facturas/components/FacturaForm.vue')).toContain('@media (max-width: 700px)')
   })
 
   it('el filtro de estado no queda pegado a la tabla de facturas', () => {
-    const css = leer('../src/views/FacturaView.vue')
+    const css = leer('../src/modules/facturas/views/FacturaView.vue')
 
     expect(css).toMatch(/\.facturas-page__bloque\s*\{[^}]*gap:\s*16px/s)
     expect(css).not.toContain('<IonCard')
   })
 
   it('la fuente de Ionic coincide con la del resto de los menús', () => {
-    expect(leer('../src/assets/main.css')).toContain('--ion-font-family: system-ui')
+    expect(leer('../src/shared/assets/main.css')).toContain('--ion-font-family: system-ui')
   })
 })

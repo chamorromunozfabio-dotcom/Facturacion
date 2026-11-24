@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
-import FormModal from '../src/components/FormModal.vue'
-import { isDuplicateError } from '../src/api/axios'
+import FormModal from '../src/shared/ui/FormModal.vue'
+import { isDuplicateError } from '../src/shared/api/axios'
 
 const fields = [{ key: 'nombre', label: 'Nombre', required: true, maxLength: 5 }]
 

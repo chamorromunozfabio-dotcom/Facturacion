@@ -8,7 +8,7 @@ vi.mock('@capacitor/core', () => ({
   Capacitor: { isNativePlatform: esMovil },
 }))
 
-import ModalBase from '../src/components/ui/ModalBase.vue'
+import ModalBase from '../src/shared/ui/ModalBase.vue'
 
 const leer = (ruta) => readFileSync(new URL(ruta, import.meta.url), 'utf8')
 const montados = []
@@ -77,12 +77,12 @@ describe('ModalBase — diálogos web y móvil', () => {
 
   it('los seis diálogos delegan en ModalBase y conservan su contrato', () => {
     const contratos = [
-      ['../src/components/facturas/FacturaDetailModal.vue', 'detail-modal'],
-      ['../src/components/facturas/FacturaFirmaModal.vue', 'firma-modal'],
-      ['../src/components/facturas/FacturaRechazoModal.vue', 'rechazo-modal'],
-      ['../src/components/facturas/FacturaForm.vue', 'factura-form'],
-      ['../src/components/ui/FormModal.vue', 'modal'],
-      ['../src/components/ui/ConfirmDelete.vue', 'confirm-delete'],
+      ['../src/modules/facturas/components/FacturaDetailModal.vue', 'detail-modal'],
+      ['../src/modules/facturas/components/FacturaFirmaModal.vue', 'firma-modal'],
+      ['../src/modules/facturas/components/FacturaRechazoModal.vue', 'rechazo-modal'],
+      ['../src/modules/facturas/components/FacturaForm.vue', 'factura-form'],
+      ['../src/shared/ui/FormModal.vue', 'modal'],
+      ['../src/shared/ui/ConfirmDelete.vue', 'confirm-delete'],
     ]
 
     for (const [ruta, testId] of contratos) {
@@ -93,7 +93,7 @@ describe('ModalBase — diálogos web y móvil', () => {
       expect(codigo).not.toContain('<Transition')
     }
 
-    expect(leer('../src/components/ui/ConfirmDelete.vue')).toContain('role="alertdialog"')
-    expect(leer('../src/components/ui/ConfirmDelete.vue')).toContain("@close=\"emit('cancel')\"")
+    expect(leer('../src/shared/ui/ConfirmDelete.vue')).toContain('role="alertdialog"')
+    expect(leer('../src/shared/ui/ConfirmDelete.vue')).toContain("@close=\"emit('cancel')\"")
   })
 })

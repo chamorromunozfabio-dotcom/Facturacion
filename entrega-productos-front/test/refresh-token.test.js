@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import api from '../src/api/axios'
+import api from '../src/shared/api/axios'
 
 const adapterOriginal = api.defaults.adapter
 

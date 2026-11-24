@@ -13,19 +13,19 @@ vi.mock('vue-router', () => ({
   useRouter: () => ({ push: mocks.push }),
 }))
 
-vi.mock('../src/stores/auth', () => ({
+vi.mock('../src/modules/auth/store/auth', () => ({
   useAuthStore: () => ({ login: mocks.login }),
   getErrorMessage: (error) => error?.message || 'Error',
 }))
 
-import { useLogin } from '../src/composables/useLogin'
+import { useLogin } from '../src/modules/auth/composables/useLogin'
 import {
   avisoBoton,
   mensajeValidacion,
   puedeEnviar,
   validarContrasena,
   validarCredenciales,
-} from '../src/utils/login'
+} from '../src/modules/auth/utils/login'
 
 const leer = (ruta) => readFileSync(new URL(ruta, import.meta.url), 'utf8')
 
@@ -127,21 +127,21 @@ describe('Test 58 — Login modular: reglas puras, composable y formulario', () 
   })
 
   it('la vista delega y el formulario conserva markup, textos y CSS', () => {
-    const vista = leer('../src/views/LoginView.vue')
+    const vista = leer('../src/modules/auth/views/LoginView.vue')
     expect(vista).toContain('LoginForm')
     expect(vista).not.toContain('useLogin')
     expect(vista).not.toContain('<style')
 
-    const composable = leer('../src/composables/useLogin.js')
+    const composable = leer('../src/modules/auth/composables/useLogin.js')
     expect(composable).toContain('useLogin')
     expect(composable).toContain('validarCredenciales')
     expect(composable).not.toContain('<template>')
 
-    const utils = leer('../src/utils/login.js')
+    const utils = leer('../src/modules/auth/utils/login.js')
     expect(utils).toContain('export function validarCredenciales')
     expect(utils).toContain('export function mensajeValidacion')
 
-    const form = leer('../src/components/auth/LoginForm.vue')
+    const form = leer('../src/modules/auth/components/LoginForm.vue')
     const ionic = `import { IonButton, IonContent, IonInput, IonPage } from '@ionic/vue'`
     for (const fragmento of [
       'data-test="sesion-vencida"',

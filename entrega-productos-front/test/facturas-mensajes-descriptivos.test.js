@@ -17,22 +17,22 @@ const api = vi.hoisted(() => ({
   descargarPdf: vi.fn(),
 }))
 
-vi.mock('../src/api/facturas', async () => {
-  const actual = await vi.importActual('../src/api/facturas')
+vi.mock('../src/modules/facturas/api/facturas', async () => {
+  const actual = await vi.importActual('../src/modules/facturas/api/facturas')
   return { ...actual, default: api }
 })
-vi.mock('../src/api/usuarios', () => ({ default: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
-vi.mock('../src/api/bodegas', () => ({ default: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
-vi.mock('../src/api/tipos', () => ({ default: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
-vi.mock('../src/api/axios', () => ({
+vi.mock('../src/modules/catalogos/api/usuarios', () => ({ default: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
+vi.mock('../src/modules/catalogos/api/bodegas', () => ({ default: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
+vi.mock('../src/modules/catalogos/api/tipos', () => ({ default: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
+vi.mock('../src/shared/api/axios', () => ({
   default: {},
   getErrorMessage: vi.fn((error) => error?.message || 'Error'),
   isDuplicateError: vi.fn(() => false),
 }))
 
-import FacturaForm from '../src/components/FacturaForm.vue'
-import FacturaView from '../src/views/FacturaView.vue'
-import { useAuthStore } from '../src/stores/auth'
+import FacturaForm from '../src/modules/facturas/components/FacturaForm.vue'
+import FacturaView from '../src/modules/facturas/views/FacturaView.vue'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 const mountForm = () =>
   mount(FacturaForm, {
@@ -144,7 +144,7 @@ describe('Test 37 — Facturas: mensajes descriptivos y alerta visible', () => {
     expect(flotante.exists()).toBe(true)
     expect(flotante.find('[role="alert"]').text()).toContain('Fallo de red')
 
-    const codigo = readFileSync(resolve(process.cwd(), 'src/views/FacturaView.vue'), 'utf8')
+    const codigo = readFileSync(resolve(process.cwd(), 'src/modules/facturas/views/FacturaView.vue'), 'utf8')
     expect(codigo).toContain('alert-flotante')
     expect(codigo).toContain('z-index: 100')
   })

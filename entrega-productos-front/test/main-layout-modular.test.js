@@ -8,10 +8,10 @@ const { push } = vi.hoisted(() => ({ push: vi.fn() }))
 
 vi.mock('vue-router', () => ({ useRouter: () => ({ push }) }))
 
-import MainLayout from '../src/layouts/MainLayout.vue'
-import SidebarMenu from '../src/components/layout/SidebarMenu.vue'
-import TopBar from '../src/components/layout/TopBar.vue'
-import { useAuthStore } from '../src/stores/auth'
+import MainLayout from '../src/modules/layout/layouts/MainLayout.vue'
+import SidebarMenu from '../src/modules/layout/components/SidebarMenu.vue'
+import TopBar from '../src/modules/layout/components/TopBar.vue'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 const leer = (ruta) => readFileSync(new URL(ruta, import.meta.url), 'utf8')
 
@@ -41,7 +41,7 @@ describe('Test 53 — MainLayout modular: sidebar y barra superior', () => {
   })
 
   it('el layout solo coordina y deja el markup en las dos piezas', () => {
-    const vista = leer('../src/layouts/MainLayout.vue')
+    const vista = leer('../src/modules/layout/layouts/MainLayout.vue')
 
     expect(vista).toContain('SidebarMenu')
     expect(vista).toContain('TopBar')
@@ -51,7 +51,7 @@ describe('Test 53 — MainLayout modular: sidebar y barra superior', () => {
   })
 
   it('SidebarMenu conserva el drawer, el fondo y la accesibilidad', () => {
-    const codigo = leer('../src/components/layout/SidebarMenu.vue')
+    const codigo = leer('../src/modules/layout/components/SidebarMenu.vue')
 
     for (const test of ['sidebar-backdrop', 'sidebar', 'cerrar-menu']) {
       expect(codigo).toContain(`data-test="${test}"`)
@@ -64,7 +64,7 @@ describe('Test 53 — MainLayout modular: sidebar y barra superior', () => {
   })
 
   it('TopBar conserva el botón hamburguesa, el usuario y el logout', () => {
-    const codigo = leer('../src/components/layout/TopBar.vue')
+    const codigo = leer('../src/modules/layout/components/TopBar.vue')
 
     expect(codigo).toContain('data-test="menu-toggle"')
     expect(codigo).toContain('aria-controls="menu-principal"')

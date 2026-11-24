@@ -20,16 +20,16 @@ const usuarios = vi.hoisted(() => ({
 
 const roles = vi.hoisted(() => ({ list: vi.fn() }))
 
-vi.mock('../src/api/bodegas', () => ({ default: bodegas }))
-vi.mock('../src/api/usuarios', () => ({ default: usuarios }))
-vi.mock('../src/api/roles', () => ({ default: roles }))
+vi.mock('../src/modules/catalogos/api/bodegas', () => ({ default: bodegas }))
+vi.mock('../src/modules/catalogos/api/usuarios', () => ({ default: usuarios }))
+vi.mock('../src/modules/catalogos/api/roles', () => ({ default: roles }))
 
-import { resolveApiModes } from '../src/config/apiModes'
-import facturasApi from '../src/api/facturas'
-import BodegasView from '../src/views/BodegasView.vue'
-import UsuariosView from '../src/views/UsuariosView.vue'
-import StatusBadge from '../src/components/StatusBadge.vue'
-import { useAuthStore } from '../src/stores/auth'
+import { resolveApiModes } from '../src/shared/config/apiModes'
+import facturasApi from '../src/modules/facturas/api/facturas'
+import BodegasView from '../src/modules/catalogos/views/BodegasView.vue'
+import UsuariosView from '../src/modules/catalogos/views/UsuariosView.vue'
+import StatusBadge from '../src/shared/ui/StatusBadge.vue'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 describe('Test 33 — Contrato definitivo del backend', () => {
   beforeEach(() => {

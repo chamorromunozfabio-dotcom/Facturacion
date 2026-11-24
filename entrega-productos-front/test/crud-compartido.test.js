@@ -4,9 +4,9 @@ import { createPinia, setActivePinia } from 'pinia'
 import { defineComponent } from 'vue'
 import { readFileSync } from 'node:fs'
 
-import { useCrud } from '../src/composables/useCrud'
-import { changedFields, errorMessage, paramsLista, quitarVacios } from '../src/utils/crud'
-import { useAuthStore } from '../src/stores/auth'
+import { useCrud } from '../src/modules/catalogos/composables/useCrud'
+import { changedFields, errorMessage, paramsLista, quitarVacios } from '../src/modules/catalogos/utils/crud'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 const leer = (ruta) => readFileSync(new URL(ruta, import.meta.url), 'utf8')
 
@@ -168,18 +168,18 @@ describe('Test 56 — CRUD compartido: utilidades, composable y vistas delegadas
     ]
 
     for (const nombre of vistas) {
-      const codigo = leer(`../src/views/${nombre}.vue`)
+      const codigo = leer(`../src/modules/catalogos/views/${nombre}.vue`)
       expect(codigo).toContain('useCrud')
       for (const fragmento of repetidos) expect(codigo).not.toContain(fragmento)
       expect(codigo.split('\n').length).toBeLessThan(330)
     }
 
-    expect(leer('../src/views/BodegasView.vue')).toContain('loadBodegueros')
-    expect(leer('../src/views/TiposView.vue')).toContain('data-test="bodega-filter"')
-    expect(leer('../src/views/UsuariosView.vue')).toContain('data-test="role-filter"')
-    expect(leer('../src/views/RolesView.vue')).toContain('cell-estado')
+    expect(leer('../src/modules/catalogos/views/BodegasView.vue')).toContain('loadBodegueros')
+    expect(leer('../src/modules/catalogos/views/TiposView.vue')).toContain('data-test="bodega-filter"')
+    expect(leer('../src/modules/catalogos/views/UsuariosView.vue')).toContain('data-test="role-filter"')
+    expect(leer('../src/modules/catalogos/views/RolesView.vue')).toContain('cell-estado')
 
-    const composable = leer('../src/composables/useCrud.js')
+    const composable = leer('../src/modules/catalogos/composables/useCrud.js')
     for (const fragmento of [
       'async function load()',
       'async function save(payload)',

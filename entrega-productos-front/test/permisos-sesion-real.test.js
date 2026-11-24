@@ -9,13 +9,13 @@ const tipos = vi.hoisted(() => ({
   remove: vi.fn(),
 }))
 
-vi.mock('../src/api/tipos', () => ({ default: tipos }))
+vi.mock('../src/modules/catalogos/api/tipos', () => ({ default: tipos }))
 
-import { CATALOGO_PERMISOS, claveDelNombreBackend, tienePermiso } from '../src/config/permissions'
-import { visibleMenuFor } from '../src/config/navigation'
+import { CATALOGO_PERMISOS, claveDelNombreBackend, tienePermiso } from '../src/shared/config/permissions'
+import { visibleMenuFor } from '../src/shared/config/navigation'
 import router from '../src/router'
-import TiposView from '../src/views/TiposView.vue'
-import { useAuthStore } from '../src/stores/auth'
+import TiposView from '../src/modules/catalogos/views/TiposView.vue'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 describe('Test 41 — Menú, botones y rutas con los permisos reales de la sesión', () => {
   beforeEach(() => {

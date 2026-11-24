@@ -7,7 +7,7 @@ const axiosMock = vi.hoisted(() => ({
   delete: vi.fn(),
 }))
 
-vi.mock('../src/api/axios', () => ({
+vi.mock('../src/shared/api/axios', () => ({
   default: axiosMock,
   getErrorMessage: vi.fn((error) => error?.message || 'Error'),
   isDuplicateError: vi.fn(() => false),
@@ -19,7 +19,7 @@ import facturasApi, {
   postAccion,
   triggerDownload,
   validateFirma,
-} from '../src/api/facturas'
+} from '../src/modules/facturas/api/facturas'
 
 const VALIDA = 'data:image/png;base64,YWJj'
 

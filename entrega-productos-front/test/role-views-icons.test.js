@@ -7,9 +7,9 @@ const { push } = vi.hoisted(() => ({ push: vi.fn() }))
 
 vi.mock('vue-router', () => ({ useRouter: () => ({ push }) }))
 
-import MainLayout from '../src/layouts/MainLayout.vue'
-import DashboardView from '../src/views/DashboardView.vue'
-import { useAuthStore } from '../src/stores/auth'
+import MainLayout from '../src/modules/layout/layouts/MainLayout.vue'
+import DashboardView from '../src/modules/inicio/views/DashboardView.vue'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 const RouterLinkStub = {
   props: ['to'],

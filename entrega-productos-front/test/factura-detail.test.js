@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
-import FacturaDetail from '../src/components/FacturaDetail.vue'
+import FacturaDetail from '../src/modules/facturas/components/FacturaDetail.vue'
 
 const base = {
   id: 1,

@@ -20,7 +20,7 @@ vi.mock('@capacitor/share', () => ({
   Share: { share: mocks.share },
 }))
 
-import { abrirPdfNativo, blobABase64, esPlataformaNativa } from '../src/utils/pdfNativo'
+import { abrirPdfNativo, blobABase64, esPlataformaNativa } from '../src/modules/facturas/utils/pdfNativo'
 
 describe('PDF nativo (Capacitor)', () => {
   beforeEach(() => {

@@ -6,22 +6,22 @@ const mocks = vi.hoisted(() => ({
   abrirPdfNativo: vi.fn(),
 }))
 
-vi.mock('../src/api/axios', () => ({
+vi.mock('../src/shared/api/axios', () => ({
   default: { get: mocks.get, post: vi.fn(), put: vi.fn(), delete: vi.fn() },
   getErrorMessage: vi.fn((error) => error?.message || 'Error'),
   isDuplicateError: vi.fn(() => false),
 }))
 
-vi.mock('../src/config/apiModes', () => ({
+vi.mock('../src/shared/config/apiModes', () => ({
   resolveApiModes: () => ({ facturasMocks: false, catalogsMocks: false }),
 }))
 
-vi.mock('../src/utils/pdfNativo', () => ({
+vi.mock('../src/modules/facturas/utils/pdfNativo', () => ({
   esPlataformaNativa: mocks.isNativePlatform,
   abrirPdfNativo: mocks.abrirPdfNativo,
 }))
 
-import facturasApi from '../src/api/facturas'
+import facturasApi from '../src/modules/facturas/api/facturas'
 
 describe('descargarPdf en plataforma nativa', () => {
   beforeEach(() => {

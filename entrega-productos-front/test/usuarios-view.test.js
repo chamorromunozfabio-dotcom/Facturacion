@@ -11,11 +11,11 @@ const api = vi.hoisted(() => ({
 
 const roles = vi.hoisted(() => ({ list: vi.fn() }))
 
-vi.mock('../src/api/usuarios', () => ({ default: api }))
-vi.mock('../src/api/roles', () => ({ default: roles }))
+vi.mock('../src/modules/catalogos/api/usuarios', () => ({ default: api }))
+vi.mock('../src/modules/catalogos/api/roles', () => ({ default: roles }))
 
-import UsuariosView from '../src/views/UsuariosView.vue'
-import { useAuthStore } from '../src/stores/auth'
+import UsuariosView from '../src/modules/catalogos/views/UsuariosView.vue'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 const adminRow = { id: 1, nombre: 'Ana Pérez', correo: 'ana@entrega.com', rol: 'admin', rol_id: 1 }
 const clientRow = {

@@ -22,26 +22,26 @@ const facturas = vi.hoisted(() => ({
   descargarPdf: vi.fn(),
 }))
 
-vi.mock('../src/api/tipos', () => ({ default: tipos }))
-vi.mock('../src/api/facturas', async () => {
-  const actual = await vi.importActual('../src/api/facturas')
+vi.mock('../src/modules/catalogos/api/tipos', () => ({ default: tipos }))
+vi.mock('../src/modules/facturas/api/facturas', async () => {
+  const actual = await vi.importActual('../src/modules/facturas/api/facturas')
   return { ...actual, default: facturas }
 })
-vi.mock('../src/api/usuarios', () => ({ default: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
-vi.mock('../src/api/bodegas', () => ({ default: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
-vi.mock('../src/api/axios', () => ({
+vi.mock('../src/modules/catalogos/api/usuarios', () => ({ default: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
+vi.mock('../src/modules/catalogos/api/bodegas', () => ({ default: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
+vi.mock('../src/shared/api/axios', () => ({
   default: {},
   getErrorMessage: vi.fn((error) => error?.message || 'Error'),
   isDuplicateError: vi.fn(() => false),
 }))
 vi.mock('vue-router', () => ({ useRouter: () => ({ push: vi.fn() }) }))
 
-import FormModal from '../src/components/FormModal.vue'
-import ConfirmDelete from '../src/components/ConfirmDelete.vue'
-import FacturaForm from '../src/components/FacturaForm.vue'
-import FacturaView from '../src/views/FacturaView.vue'
-import TiposView from '../src/views/TiposView.vue'
-import { useAuthStore } from '../src/stores/auth'
+import FormModal from '../src/shared/ui/FormModal.vue'
+import ConfirmDelete from '../src/shared/ui/ConfirmDelete.vue'
+import FacturaForm from '../src/modules/facturas/components/FacturaForm.vue'
+import FacturaView from '../src/modules/facturas/views/FacturaView.vue'
+import TiposView from '../src/modules/catalogos/views/TiposView.vue'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 const nombresTransicion = (wrapper) =>
   wrapper.findAllComponents({ name: 'Transition' }).map((transition) => transition.props('name'))

@@ -10,8 +10,8 @@ vi.mock('vue-router', () => ({
   useRouter: () => ({ push }),
 }))
 
-import LoginView from '../src/views/LoginView.vue'
-import { avisoSesionVencida, marcarSesionVencida } from '../src/config/sessionNotice'
+import LoginView from '../src/modules/auth/views/LoginView.vue'
+import { avisoSesionVencida, marcarSesionVencida } from '../src/modules/auth/config/sessionNotice'
 
 describe('Test 49 — Aviso de sesión vencida en el login', () => {
   beforeEach(() => {

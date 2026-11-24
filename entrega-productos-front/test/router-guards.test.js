@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import router from '../src/router'
-import { useAuthStore } from '../src/stores/auth'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 describe('Test 4 — guardas del router', () => {
   beforeEach(async () => {

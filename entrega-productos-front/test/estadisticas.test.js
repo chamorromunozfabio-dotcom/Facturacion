@@ -4,10 +4,10 @@ import { defineComponent } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { readFileSync } from 'node:fs'
 
-import { CATALOGO_PERMISOS, claveDelNombreBackend, tienePermiso } from '../src/config/permissions'
-import { menuItems, visibleMenuFor } from '../src/config/navigation'
-import { getResumen } from '../src/api/estadisticas'
-import estadisticasApi from '../src/api/estadisticas'
+import { CATALOGO_PERMISOS, claveDelNombreBackend, tienePermiso } from '../src/shared/config/permissions'
+import { menuItems, visibleMenuFor } from '../src/shared/config/navigation'
+import { getResumen } from '../src/modules/estadisticas/api/estadisticas'
+import estadisticasApi from '../src/modules/estadisticas/api/estadisticas'
 import {
   esSerieBarras,
   esSerieLinea,
@@ -16,10 +16,10 @@ import {
   normalizarResumen,
   rangoInvalido,
   rangoPorDefecto,
-} from '../src/utils/estadisticas'
-import { getErrorMessage } from '../src/api/axios'
-import { useEstadisticas } from '../src/composables/useEstadisticas'
-import EstadisticasView from '../src/views/EstadisticasView.vue'
+} from '../src/modules/estadisticas/utils/estadisticas'
+import { getErrorMessage } from '../src/shared/api/axios'
+import { useEstadisticas } from '../src/modules/estadisticas/composables/useEstadisticas'
+import EstadisticasView from '../src/modules/estadisticas/views/EstadisticasView.vue'
 
 const leer = (ruta) => readFileSync(new URL(ruta, import.meta.url), 'utf8')
 
@@ -86,11 +86,13 @@ describe('Test 59 — Estadísticas por rol: reglas, permiso, API y panel', () =
   })
 
   it('la ruta exige el permiso estadisticas:view', () => {
-    const codigo = leer('../src/router/index.js')
+    const codigo = leer('../src/modules/estadisticas/routes/index.js')
     expect(codigo).toContain("path: 'estadisticas'")
     expect(codigo).toContain("name: 'estadisticas'")
     expect(codigo).toContain("component: () => import('../views/EstadisticasView.vue')")
     expect(codigo).toContain("permission: 'estadisticas:view'")
+    // El router global ensambla las rutas desde el módulo.
+    expect(leer('../src/router/index.js')).toContain("estadisticasRoutes")
   })
 
   it('un solo endpoint en modo demo y un resumen distinto por rol', async () => {
@@ -290,13 +292,13 @@ describe('Test 59 — Estadísticas por rol: reglas, permiso, API y panel', () =
 
   it('la estructura queda documentada y el contrato quedó escrito para backend', () => {
     for (const archivo of [
-      '../src/api/estadisticas.js',
-      '../src/utils/estadisticas.js',
-      '../src/composables/useEstadisticas.js',
-      '../src/components/estadisticas/StatCard.vue',
-      '../src/components/estadisticas/BarrasPorEstado.vue',
-      '../src/components/estadisticas/SerieTiempo.vue',
-      '../src/views/EstadisticasView.vue',
+      '../src/modules/estadisticas/api/estadisticas.js',
+      '../src/modules/estadisticas/utils/estadisticas.js',
+      '../src/modules/estadisticas/composables/useEstadisticas.js',
+      '../src/modules/estadisticas/components/StatCard.vue',
+      '../src/modules/estadisticas/components/BarrasPorEstado.vue',
+      '../src/modules/estadisticas/components/SerieTiempo.vue',
+      '../src/modules/estadisticas/views/EstadisticasView.vue',
     ]) {
       expect(leer(archivo).length).toBeGreaterThan(0)
     }

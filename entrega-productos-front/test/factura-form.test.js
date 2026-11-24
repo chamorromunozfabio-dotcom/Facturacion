@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
-import FacturaForm from '../src/components/FacturaForm.vue'
+import FacturaForm from '../src/modules/facturas/components/FacturaForm.vue'
 
 const clientes = [{ id: 3, nombre: 'Juan Pérez' }]
 const bodegas = [{ id: 1, nombre: 'Bodega Central' }]

@@ -6,9 +6,9 @@ import '@ionic/vue/css/normalize.css'
 
 import App from './App.vue'
 import router from './router'
-import { useAuthStore } from './stores/auth'
-import { hydrateSession } from './config/sessionTokens'
-import './assets/main.css'
+import { useAuthStore } from './modules/auth/store/auth'
+import { hydrateSession } from './modules/auth/config/sessionTokens'
+import './shared/assets/main.css'
 
 // En el WebView la sesión vive en Preferences y su lectura es async. Hidratar
 // antes de crear el store evita que la app arranque como invitado teniendo

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import AlertMessage from '../src/components/AlertMessage.vue'
+import AlertMessage from '../src/shared/ui/AlertMessage.vue'
 
 describe('Test 48 — Los avisos se cierran solos', () => {
   afterEach(() => vi.useRealTimers())

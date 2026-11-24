@@ -18,17 +18,17 @@ const usuarios = vi.hoisted(() => ({
   removePermiso: vi.fn(),
 }))
 
-vi.mock('../src/api/permisos', () => ({ default: permisos }))
-vi.mock('../src/api/roles', () => ({ default: roles }))
-vi.mock('../src/api/usuarios', () => ({ default: usuarios }))
+vi.mock('../src/modules/permisos/api/permisos', () => ({ default: permisos }))
+vi.mock('../src/modules/catalogos/api/roles', () => ({ default: roles }))
+vi.mock('../src/modules/catalogos/api/usuarios', () => ({ default: usuarios }))
 
 import {
   CATALOGO_PERMISOS,
   MODULOS_PERMISO,
   claveDelNombreBackend,
-} from '../src/config/permissions'
-import PermisosView from '../src/views/PermisosView.vue'
-import { useAuthStore } from '../src/stores/auth'
+} from '../src/shared/config/permissions'
+import PermisosView from '../src/modules/permisos/views/PermisosView.vue'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 const USUARIOS = [
   { id: 1, nombre: 'Ana', correo: 'ana@entrega.com', rol: 'admin', rol_id: 1 },

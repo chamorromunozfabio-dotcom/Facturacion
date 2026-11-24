@@ -9,8 +9,8 @@ vi.mock('vue-router', () => ({
   useRouter: () => ({ push }),
 }))
 
-import LoginView from '../src/views/LoginView.vue'
-import { useAuthStore } from '../src/stores/auth'
+import LoginView from '../src/modules/auth/views/LoginView.vue'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 describe('Test 7 — LoginView', () => {
   beforeEach(() => {

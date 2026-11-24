@@ -10,11 +10,11 @@ const usuarios = vi.hoisted(() => ({
   remove: vi.fn(),
 }))
 
-vi.mock('../src/api/roles', () => ({ default: roles }))
-vi.mock('../src/api/usuarios', () => ({ default: usuarios }))
+vi.mock('../src/modules/catalogos/api/roles', () => ({ default: roles }))
+vi.mock('../src/modules/catalogos/api/usuarios', () => ({ default: usuarios }))
 
-import UsuariosView from '../src/views/UsuariosView.vue'
-import { useAuthStore } from '../src/stores/auth'
+import UsuariosView from '../src/modules/catalogos/views/UsuariosView.vue'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 const ROLES_INICIALES = [
   { id: 1, nombre: 'admin', estado: true },

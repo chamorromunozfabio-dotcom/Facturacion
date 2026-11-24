@@ -10,12 +10,12 @@ const tiposApi = vi.hoisted(() => ({
 }))
 const bodegasApi = vi.hoisted(() => ({ list: vi.fn() }))
 
-vi.mock('../src/api/tipos', () => ({ default: tiposApi }))
-vi.mock('../src/api/bodegas', () => ({ default: bodegasApi }))
+vi.mock('../src/modules/catalogos/api/tipos', () => ({ default: tiposApi }))
+vi.mock('../src/modules/catalogos/api/bodegas', () => ({ default: bodegasApi }))
 
-import FacturaForm from '../src/components/FacturaForm.vue'
-import TiposView from '../src/views/TiposView.vue'
-import { useAuthStore } from '../src/stores/auth'
+import FacturaForm from '../src/modules/facturas/components/FacturaForm.vue'
+import TiposView from '../src/modules/catalogos/views/TiposView.vue'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 const BODEGAS = [
   { id: 1, nombre: 'Bodega Central' },

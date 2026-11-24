@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import SignaturePad from '../src/components/SignaturePad.vue'
-import { scalePoint } from '../src/utils/signature'
+import SignaturePad from '../src/shared/ui/SignaturePad.vue'
+import { scalePoint } from '../src/modules/facturas/utils/signature'
 
 const contextMock = {
   lineWidth: 0,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
-import AlertMessage from '../src/components/AlertMessage.vue'
+import AlertMessage from '../src/shared/ui/AlertMessage.vue'
 
 function mountAlert(props = {}) {
   return mount(AlertMessage, {

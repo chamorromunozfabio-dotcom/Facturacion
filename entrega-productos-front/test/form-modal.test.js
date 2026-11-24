@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
-import FormModal from '../src/components/FormModal.vue'
+import FormModal from '../src/shared/ui/FormModal.vue'
 
 const fields = [
   { key: 'nombre', label: 'Nombre', required: true },

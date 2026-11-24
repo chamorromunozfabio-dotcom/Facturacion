@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getErrorMessage } from '../src/api/axios'
+import { getErrorMessage } from '../src/shared/api/axios'
 
 describe('Test 1 — getErrorMessage', () => {
   it('usa el detail que envía FastAPI', () => {

@@ -14,12 +14,12 @@ vi.mock('vue-router', () => ({
   useRoute: () => ({ query: {} }),
   useRouter: () => ({ push }),
 }))
-vi.mock('../src/api/tipos', () => ({ default: api }))
+vi.mock('../src/modules/catalogos/api/tipos', () => ({ default: api }))
 
-import DataTable from '../src/components/DataTable.vue'
-import LoginView from '../src/views/LoginView.vue'
-import TiposView from '../src/views/TiposView.vue'
-import { useAuthStore } from '../src/stores/auth'
+import DataTable from '../src/shared/ui/DataTable.vue'
+import LoginView from '../src/modules/auth/views/LoginView.vue'
+import TiposView from '../src/modules/catalogos/views/TiposView.vue'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 describe('Test 31 — Mensajes claros para el usuario', () => {
   beforeEach(() => {

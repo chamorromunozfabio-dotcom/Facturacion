@@ -3,11 +3,11 @@ import { mount } from '@vue/test-utils'
 import { defineComponent } from 'vue'
 import { readFileSync } from 'node:fs'
 
-import AlertMessage from '../src/components/ui/AlertMessage.vue'
-import ConfirmDelete from '../src/components/ui/ConfirmDelete.vue'
-import CrudPage from '../src/components/ui/CrudPage.vue'
-import DataTable from '../src/components/ui/DataTable.vue'
-import FormModal from '../src/components/ui/FormModal.vue'
+import AlertMessage from '../src/shared/ui/AlertMessage.vue'
+import ConfirmDelete from '../src/shared/ui/ConfirmDelete.vue'
+import CrudPage from '../src/shared/ui/CrudPage.vue'
+import DataTable from '../src/shared/ui/DataTable.vue'
+import FormModal from '../src/shared/ui/FormModal.vue'
 
 const leer = (ruta) => readFileSync(new URL(ruta, import.meta.url), 'utf8')
 
@@ -137,7 +137,7 @@ describe('Test 57 — CrudPage: plantilla y eventos compartidos', () => {
   it('las cuatro vistas delegan la plantilla y conservan sus particularidades', () => {
     const vistas = ['RolesView', 'BodegasView', 'TiposView', 'UsuariosView']
     for (const nombre of vistas) {
-      const codigo = leer(`../src/views/${nombre}.vue`)
+      const codigo = leer(`../src/modules/catalogos/views/${nombre}.vue`)
       expect(codigo).toContain('CrudPage')
       for (const viejo of [
         'AlertMessage',
@@ -152,7 +152,7 @@ describe('Test 57 — CrudPage: plantilla y eventos compartidos', () => {
       expect(codigo.split('\n').length).toBeLessThan(270)
     }
 
-    const pagina = leer('../src/components/ui/CrudPage.vue')
+    const pagina = leer('../src/shared/ui/CrudPage.vue')
     for (const fragmento of [
       '<slot name="notice" />',
       '<slot name="filter" />',
@@ -164,12 +164,12 @@ describe('Test 57 — CrudPage: plantilla y eventos compartidos', () => {
       expect(pagina).toContain(fragmento)
     }
 
-    expect(leer('../src/views/RolesView.vue')).toContain('#cell-estado')
-    expect(leer('../src/views/BodegasView.vue')).toContain(
+    expect(leer('../src/modules/catalogos/views/RolesView.vue')).toContain('#cell-estado')
+    expect(leer('../src/modules/catalogos/views/BodegasView.vue')).toContain(
       'descripcion="Administra las bodegas y sus datos de contacto."',
     )
-    expect(leer('../src/views/TiposView.vue')).toContain('data-test="bodega-filter"')
-    expect(leer('../src/views/UsuariosView.vue')).toContain('data-test="role-filter"')
+    expect(leer('../src/modules/catalogos/views/TiposView.vue')).toContain('data-test="bodega-filter"')
+    expect(leer('../src/modules/catalogos/views/UsuariosView.vue')).toContain('data-test="role-filter"')
 
     // Solo queda la descripción bajo el título: sin carteles explicativos extra.
     const avisosViejos = [
@@ -180,7 +180,7 @@ describe('Test 57 — CrudPage: plantilla y eventos compartidos', () => {
       'Estás viendo solo usuarios con rol',
     ]
     for (const nombre of vistas) {
-      const codigo = leer(`../src/views/${nombre}.vue`)
+      const codigo = leer(`../src/modules/catalogos/views/${nombre}.vue`)
       expect(codigo).toContain('descripcion="')
       expect(codigo).not.toContain('class="notice"')
       for (const aviso of avisosViejos) expect(codigo).not.toContain(aviso)

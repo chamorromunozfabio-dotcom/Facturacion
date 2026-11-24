@@ -2,22 +2,22 @@ import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { readFileSync } from 'node:fs'
 
-import FacturaForm from '../src/components/FacturaForm.vue'
-import FacturaEncabezado from '../src/components/facturas/FacturaEncabezado.vue'
-import FacturaLineas from '../src/components/facturas/FacturaLineas.vue'
+import FacturaForm from '../src/modules/facturas/components/FacturaForm.vue'
+import FacturaEncabezado from '../src/modules/facturas/components/FacturaEncabezado.vue'
+import FacturaLineas from '../src/modules/facturas/components/FacturaLineas.vue'
 import {
   campoLineaValido,
   emptyLinea,
   esFechaValida,
   mensajeServidor,
   validarFormulario,
-} from '../src/utils/facturaCampos'
+} from '../src/modules/facturas/utils/facturaCampos'
 
 const leer = (ruta) => readFileSync(new URL(ruta, import.meta.url), 'utf8')
 
 describe('Test 52 — FacturaForm modular: encabezado, líneas y validación', () => {
   it('el formulario delega y deja de contener la validación completa', () => {
-    const vista = leer('../src/components/facturas/FacturaForm.vue')
+    const vista = leer('../src/modules/facturas/components/FacturaForm.vue')
 
     expect(vista).toContain('useFacturaForm')
     expect(vista).toContain('FacturaEncabezado')
@@ -31,7 +31,7 @@ describe('Test 52 — FacturaForm modular: encabezado, líneas y validación', (
   })
 
   it('el composable concentra el estado, las líneas y el envío', () => {
-    const codigo = leer('../src/composables/useFacturaForm.js')
+    const codigo = leer('../src/modules/facturas/composables/useFacturaForm.js')
 
     for (const nombre of ['tiposDisponibles', 'addLinea', 'removeLinea', 'validar', 'handleSubmit']) {
       expect(codigo).toContain(nombre)

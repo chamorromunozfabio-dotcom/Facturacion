@@ -9,10 +9,10 @@ const api = vi.hoisted(() => ({
   remove: vi.fn(),
 }))
 
-vi.mock('../src/api/bodegas', () => ({ default: api }))
+vi.mock('../src/modules/catalogos/api/bodegas', () => ({ default: api }))
 
-import BodegasView from '../src/views/BodegasView.vue'
-import { useAuthStore } from '../src/stores/auth'
+import BodegasView from '../src/modules/catalogos/views/BodegasView.vue'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 const row = {
   id: 1,

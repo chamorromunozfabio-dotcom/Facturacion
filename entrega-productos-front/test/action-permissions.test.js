@@ -9,11 +9,11 @@ const api = vi.hoisted(() => ({
   remove: vi.fn(),
 }))
 
-vi.mock('../src/api/tipos', () => ({ default: api }))
+vi.mock('../src/modules/catalogos/api/tipos', () => ({ default: api }))
 
-import DataTable from '../src/components/DataTable.vue'
-import TiposView from '../src/views/TiposView.vue'
-import { useAuthStore } from '../src/stores/auth'
+import DataTable from '../src/shared/ui/DataTable.vue'
+import TiposView from '../src/modules/catalogos/views/TiposView.vue'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 const columns = [{ key: 'nombre', label: 'Nombre' }]
 const rows = [{ id: 1, nombre: 'Alimentos' }]

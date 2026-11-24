@@ -22,23 +22,23 @@ const facturas = vi.hoisted(() => ({
   descargarPdf: vi.fn(),
 }))
 
-vi.mock('../src/api/tipos', () => ({ default: tipos }))
-vi.mock('../src/api/facturas', async () => {
-  const actual = await vi.importActual('../src/api/facturas')
+vi.mock('../src/modules/catalogos/api/tipos', () => ({ default: tipos }))
+vi.mock('../src/modules/facturas/api/facturas', async () => {
+  const actual = await vi.importActual('../src/modules/facturas/api/facturas')
   return { ...actual, default: facturas }
 })
-vi.mock('../src/api/usuarios', () => ({ default: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
-vi.mock('../src/api/bodegas', () => ({ default: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
-vi.mock('../src/api/axios', () => ({
+vi.mock('../src/modules/catalogos/api/usuarios', () => ({ default: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
+vi.mock('../src/modules/catalogos/api/bodegas', () => ({ default: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
+vi.mock('../src/shared/api/axios', () => ({
   default: {},
   getErrorMessage: vi.fn((error) => error?.message || 'Error'),
   isDuplicateError: vi.fn(() => false),
 }))
 
-import { hasPermission } from '../src/config/permissions'
-import TiposView from '../src/views/TiposView.vue'
-import FacturaView from '../src/views/FacturaView.vue'
-import { useAuthStore } from '../src/stores/auth'
+import { hasPermission } from '../src/shared/config/permissions'
+import TiposView from '../src/modules/catalogos/views/TiposView.vue'
+import FacturaView from '../src/modules/facturas/views/FacturaView.vue'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 describe('Test 34 — Permisos reales del bodeguero', () => {
   beforeEach(() => {

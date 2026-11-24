@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
-import FormModal from '../src/components/FormModal.vue'
-import ConfirmDelete from '../src/components/ConfirmDelete.vue'
-import FacturaForm from '../src/components/FacturaForm.vue'
-import SignaturePad from '../src/components/SignaturePad.vue'
+import FormModal from '../src/shared/ui/FormModal.vue'
+import ConfirmDelete from '../src/shared/ui/ConfirmDelete.vue'
+import FacturaForm from '../src/modules/facturas/components/FacturaForm.vue'
+import SignaturePad from '../src/shared/ui/SignaturePad.vue'
 
 const montados = []
 

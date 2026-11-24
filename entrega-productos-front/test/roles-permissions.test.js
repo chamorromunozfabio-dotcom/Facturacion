@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { hasPermission } from '../src/config/permissions'
-import { menuItems, visibleMenuFor } from '../src/config/navigation'
+import { hasPermission } from '../src/shared/config/permissions'
+import { menuItems, visibleMenuFor } from '../src/shared/config/navigation'
 
 const labels = (role) => visibleMenuFor(role).map((item) => item.label)
 

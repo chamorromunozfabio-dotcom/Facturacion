@@ -16,12 +16,12 @@ const permisos = vi.hoisted(() => ({
   remove: vi.fn(),
 }))
 
-vi.mock('../src/api/roles', () => ({ default: roles }))
-vi.mock('../src/api/permisos', () => ({ default: permisos }))
+vi.mock('../src/modules/catalogos/api/roles', () => ({ default: roles }))
+vi.mock('../src/modules/permisos/api/permisos', () => ({ default: permisos }))
 
-import { resolveApiModes } from '../src/config/apiModes'
-import RolesView from '../src/views/RolesView.vue'
-import { useAuthStore } from '../src/stores/auth'
+import { resolveApiModes } from '../src/shared/config/apiModes'
+import RolesView from '../src/modules/catalogos/views/RolesView.vue'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 describe('Test 32 — Módulos conectados a la API real', () => {
   beforeEach(() => {

@@ -3,10 +3,10 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 
 const api = vi.hoisted(() => ({ list: vi.fn(), create: vi.fn(), update: vi.fn(), remove: vi.fn() }))
-vi.mock('../src/api/bodegas', () => ({ default: api }))
+vi.mock('../src/modules/catalogos/api/bodegas', () => ({ default: api }))
 
-import BodegasView from '../src/views/BodegasView.vue'
-import { useAuthStore } from '../src/stores/auth'
+import BodegasView from '../src/modules/catalogos/views/BodegasView.vue'
+import { useAuthStore } from '../src/modules/auth/store/auth'
 
 const completo = {
   nombre: 'Bodega Norte',
