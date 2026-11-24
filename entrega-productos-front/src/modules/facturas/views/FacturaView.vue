@@ -1,15 +1,6 @@
 <script setup>
-import { IonButton, IonList } from "@ionic/vue";
-import {
-  Check,
-  Eye,
-  FileDown,
-  PackageCheck,
-  Pencil,
-  Trash2,
-  Truck,
-  X,
-} from "@lucide/vue";
+import { IonButton, IonList } from '@ionic/vue'
+import { Check, Eye, FileDown, PackageCheck, Pencil, Trash2, Truck, X } from '@lucide/vue'
 import AlertMessage from "../../../shared/ui/AlertMessage.vue";
 import ConfirmDelete from "../../../shared/ui/ConfirmDelete.vue";
 import DataTable from "../../../shared/ui/DataTable.vue";
@@ -284,150 +275,36 @@ const {
 </template>
 
 <style scoped>
-.facturas-page {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.facturas-page__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-h1 {
-  margin: 0;
-  font-size: 1.5rem;
-}
-p {
-  margin: 4px 0 0;
-  color: #6b7280;
-  font-size: 0.9rem;
-}
-.badge {
-  background: #e0e7ff;
-  color: #3730a3;
-  border-radius: 999px;
-  padding: 4px 10px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
+.facturas-page { display: flex; flex-direction: column; gap: 16px; }
+.facturas-page__header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+h1 { margin: 0; font-size: 1.5rem; }
+p { margin: 4px 0 0; color: #6b7280; font-size: 0.9rem; }
+.badge { background: #e0e7ff; color: #3730a3; border-radius: 999px; padding: 4px 10px; font-size: 0.8rem; font-weight: 600; }
 
 /* Sin IonCard: la vista conserva el aspecto del resto de los menús. */
-.facturas-page__bloque {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.facturas-page__filtros {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.acciones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
+.facturas-page__bloque { display: flex; flex-direction: column; gap: 16px; }
+.facturas-page__filtros { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.acciones { display: flex; flex-wrap: wrap; gap: 4px; }
 
 /* La alerta flota por encima de los modales (z-index 50). */
-.alert-flotante {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  left: 16px;
-  z-index: 100;
-  max-width: 480px;
-  margin-inline: auto;
-  pointer-events: none;
-}
-.alert-flotante :deep(.alert) {
-  pointer-events: auto;
-  margin-bottom: 0;
-  box-shadow: 0 10px 30px rgb(0 0 0 / 15%);
-}
+.alert-flotante { position: fixed; top: 16px; right: 16px; left: 16px; z-index: 100; max-width: 480px; margin-inline: auto; pointer-events: none; }
+.alert-flotante :deep(.alert) { pointer-events: auto; margin-bottom: 0; box-shadow: 0 10px 30px rgb(0 0 0 / 15%); }
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  border: 1px solid #d1d5db;
-  background: #fff;
-  color: #374151;
-  border-radius: 8px;
-  padding: 8px 12px;
-  cursor: pointer;
-}
-.btn--small {
-  padding: 5px 10px;
-  font-size: 0.85rem;
-}
-.btn--primary {
-  background: #4f46e5;
-  border-color: #4f46e5;
-  color: #fff;
-}
-.btn--danger {
-  color: #b91c1c;
-  border-color: #fca5a5;
-}
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #d1d5db; background: #fff; color: #374151; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+.btn--small { padding: 5px 10px; font-size: 0.85rem; }
+.btn--primary { background: #4f46e5; border-color: #4f46e5; color: #fff; }
+.btn--danger { color: #b91c1c; border-color: #fca5a5; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* `border: 0` evita el doble marco: Ionic pinta el suyo en shadow DOM. */
-ion-button.btn {
-  border: 0;
-  --background: #fff;
-  --color: #374151;
-  --border-color: #d1d5db;
-  --border-width: 1px;
-  --border-style: solid;
-  --border-radius: 8px;
-  --box-shadow: none;
-  text-transform: none;
-}
+ion-button.btn { border: 0; --background: #fff; --color: #374151; --border-color: #d1d5db; --border-width: 1px; --border-style: solid; --border-radius: 8px; --box-shadow: none; text-transform: none; }
+ion-button.btn--primary { --background: #4f46e5; --color: #fff; --border-color: #4f46e5; }
+ion-button.btn--danger { --color: #b91c1c; --border-color: #fca5a5; }
 
-ion-button.btn--primary {
-  --background: #4f46e5;
-  --color: #fff;
-  --border-color: #4f46e5;
-}
-
-ion-button.btn--danger {
-  --color: #b91c1c;
-  --border-color: #fca5a5;
-}
-
-.alert-enter-active,
-.alert-leave-active {
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
-}
-.alert-enter-from,
-.alert-leave-to {
-  opacity: 0;
-  transform: translateY(-6px);
-}
+.alert-enter-active, .alert-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.alert-enter-from, .alert-leave-to { opacity: 0; transform: translateY(-6px); }
 
 /* En pantallas chicas el aviso va dentro del flujo y no tapa el menú. */
-@media (max-width: 768px) {
-  .alert-flotante {
-    position: static;
-    max-width: none;
-    margin-inline: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .alert-enter-active,
-  .alert-leave-active {
-    transition: none;
-  }
-}
+@media (max-width: 768px) { .alert-flotante { position: static; max-width: none; margin-inline: 0; } }
+@media (prefers-reduced-motion: reduce) { .alert-enter-active, .alert-leave-active { transition: none; } }
 </style>

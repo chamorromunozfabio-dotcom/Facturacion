@@ -68,6 +68,17 @@ describe('Test 59 — Estadísticas por rol: reglas, permiso, API y panel', () =
       periodo: {},
       generado_para: '',
       tarjetas: [],
+      kpis: [],
+      filtros_disponibles: {
+        empresas: [],
+        bodegas: [],
+        bodegueros: [],
+        tipos: [],
+        estados: [],
+      },
+      desglose_principal: null,
+      serie_temporal: [],
+      alertas_detalle: [],
       series: [],
     })
   })
@@ -97,46 +108,55 @@ describe('Test 59 — Estadísticas por rol: reglas, permiso, API y panel', () =
 
   it('un solo endpoint en modo demo y un resumen distinto por rol', async () => {
     localStorage.setItem('user', JSON.stringify({ rol: 'bodeguero' }))
-    const bodeguero = await getResumen({ desde: '2026-11-01', hasta: '2026-11-30' })
+    const bodeguero = await getResumen({ fecha_inicio: '2026-11-01', fecha_fin: '2026-11-30' })
 
-    expect(bodeguero.periodo).toEqual({ desde: '2026-11-01', hasta: '2026-11-30' })
+    expect(bodeguero.periodo.fecha_inicio).toBe('2026-11-01')
     expect(bodeguero.generado_para).toBe('bodeguero')
-    expect(bodeguero.tarjetas.map((tarjeta) => tarjeta.clave)).toEqual([
-      'facturas',
-      'facturado',
-      'pendientes',
+    expect(bodeguero.kpis.map((kpi) => kpi.clave)).toEqual([
+      'por_despachar',
+      'sin_firma',
+      'completadas',
       'rechazadas',
-      'bodegas',
-      'tipos',
     ])
-    expect(bodeguero.series.map((serie) => serie.clave)).toEqual([
-      'por_estado',
-      'por_fecha',
-      'por_bodega',
-      'top_productos',
+    expect(bodeguero.filtros_disponibles.empresas).toEqual([])
+    expect(bodeguero.filtros_disponibles.tipos.length).toBeGreaterThan(0)
+    expect(bodeguero.desglose_principal.titulo).toBe('Actividad por Tipo de Producto')
+    expect(bodeguero.alertas_detalle.length).toBeGreaterThan(0)
+
+    localStorage.setItem('user', JSON.stringify({ rol: 'empresa' }))
+    const empresa = await getResumen({})
+    expect(empresa.generado_para).toBe('empresa')
+    expect(empresa.kpis.map((kpi) => kpi.clave)).toEqual([
+      'total_facturas',
+      'pendientes_cierre',
+      'tasa_aceptacion',
+      'tasa_rechazo',
     ])
-    expect(bodeguero.series.find((serie) => serie.clave === 'por_fecha').tipo).toBe('linea')
+    expect(empresa.filtros_disponibles.bodegas.length).toBeGreaterThan(0)
+    expect(empresa.desglose_principal.titulo).toBe('Rendimiento por Bodega')
 
     localStorage.setItem('user', JSON.stringify({ rol: 'cliente' }))
     const cliente = await getResumen({})
     expect(cliente.generado_para).toBe('cliente')
-    expect(cliente.tarjetas.map((tarjeta) => tarjeta.clave)).not.toContain('bodegas')
-    expect(cliente.tarjetas.map((tarjeta) => tarjeta.clave)).toContain('facturado')
-    expect(cliente.series.map((serie) => serie.clave)).toEqual(['por_estado', 'por_fecha'])
-    expect(cliente.series[0].datos.map((dato) => dato.etiqueta)).not.toContain('Emitida')
+    expect(cliente.kpis.map((kpi) => kpi.clave)).toEqual([
+      'pendientes_accion',
+      'recibidas_total',
+      'rechazadas_total',
+      'empresas_proveedoras',
+    ])
+    expect(cliente.desglose_principal.titulo).toBe('Resumen por Empresa Proveedora')
 
     localStorage.setItem('user', JSON.stringify({ rol: 'admin' }))
     const admin = await getResumen({})
     expect(admin.generado_para).toBe('admin')
-    expect(admin.tarjetas.map((tarjeta) => tarjeta.clave)).toContain('bodegas_activas')
-    expect(admin.tarjetas.map((tarjeta) => tarjeta.clave)).toContain('usuarios_activos')
-    expect(cliente.tarjetas.map((tarjeta) => tarjeta.clave)).not.toContain('usuarios_activos')
-    expect(bodeguero.tarjetas.map((tarjeta) => tarjeta.clave)).not.toContain('usuarios_activos')
-    // El admin ve las cifras globales: suma todos los creadores, no solo el suyo.
-    expect(admin.tarjetas.find((tarjeta) => tarjeta.clave === 'facturas').valor).toBeGreaterThan(
-      bodeguero.tarjetas.find((tarjeta) => tarjeta.clave === 'facturas').valor,
-    )
-    expect(admin.series.length).toBeGreaterThan(cliente.series.length)
+    expect(admin.kpis.map((kpi) => kpi.clave)).toEqual([
+      'empresas_activas',
+      'empresas_pendientes',
+      'clientes_globales',
+      'tasa_entrega_global',
+    ])
+    expect(admin.filtros_disponibles.empresas.length).toBeGreaterThan(0)
+    expect(admin.desglose_principal.titulo).toBe('Top Empresas por Volumen')
   })
 
   it('el composable carga al montar y muestra errores sin romper la vista', async () => {
@@ -185,9 +205,10 @@ describe('Test 59 — Estadísticas por rol: reglas, permiso, API y panel', () =
 
   it('la descripción bajo el título se personaliza por rol', async () => {
     const textos = {
-      admin: 'Analiza las cifras globales de todos los usuarios y el rendimiento general.',
-      bodeguero: 'Consulta las cifras de las facturas que creaste y de tus bodegas.',
-      cliente: 'Consulta las cifras y la evolución de tus facturas.',
+      admin: 'Métricas globales de empresas, clientes y operación de la plataforma.',
+      empresa: 'Rendimiento consolidado de tus bodegas, entregas y motivos de rechazo.',
+      bodeguero: 'Control diario de despachos, firmas pendientes y actividad de tu bodega.',
+      cliente: 'Historial personal de facturas recibidas, pendientes y rechazos.',
     }
 
     for (const [rol, texto] of Object.entries(textos)) {
@@ -199,6 +220,34 @@ describe('Test 59 — Estadísticas por rol: reglas, permiso, API y panel', () =
       expect(wrapper.find('.subtitle').text()).toBe(texto)
       wrapper.unmount()
     }
+  })
+
+  it('muestra filtros según filtros_disponibles y reconsulta al cambiar un filtro', async () => {
+    localStorage.setItem('user', JSON.stringify({ rol: 'empresa' }))
+    const spy = vi.spyOn(estadisticasApi, 'getResumen')
+
+    const wrapper = mount(EstadisticasView)
+    await flushPromises()
+
+    expect(wrapper.find('[data-test="filtro-empresa-wrap"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="filtro-bodega-wrap"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="filtro-bodeguero-wrap"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="filtro-tipo-wrap"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="desglose-principal"]').text()).toContain('Rendimiento por Bodega')
+    expect(wrapper.find('[data-test="alertas-detalle"]').text()).toContain('FE-0042')
+    expect(wrapper.find('[data-test="stat-alerta"]').exists()).toBe(true)
+
+    await wrapper.find('[data-test="filtro-bodega"]').setValue('1')
+    await flushPromises()
+
+    expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ bodega_id: 1 }))
+    expect(wrapper.find('[data-test="limpiar-filtros"]').exists()).toBe(true)
+
+    await wrapper.find('[data-test="limpiar-filtros"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('[data-test="limpiar-filtros"]').exists()).toBe(false)
+    spy.mockRestore()
   })
 
   it('pinta la serie por_fecha (linea) del backend real y respeta su contrato', async () => {

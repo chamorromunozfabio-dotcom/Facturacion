@@ -657,21 +657,42 @@ export async function mockResumenEstadisticas(params = {}) {
     rol = 'admin'
   }
 
-  const periodo = {
-    desde: params.desde || '2026-11-01',
-    hasta: params.hasta || '2026-11-30',
-  }
+  const fecha_inicio = params.fecha_inicio || params.desde || '2026-11-01'
+  const fecha_fin = params.fecha_fin || params.hasta || '2026-11-30'
+  const periodo = { fecha_inicio, fecha_fin, desde: fecha_inicio, hasta: fecha_fin }
+  const temporal = [
+    { fecha: '2026-11-01', completadas: 4, rechazadas: 0 },
+    { fecha: '2026-11-02', completadas: 7, rechazadas: 1 },
+    { fecha: '2026-11-03', completadas: 5, rechazadas: 0 },
+    { fecha: '2026-11-04', completadas: 9, rechazadas: 1 },
+  ]
 
   if (rol === 'cliente') {
     return {
       periodo,
       generado_para: 'cliente',
-      tarjetas: [
-        { clave: 'facturas', etiqueta: 'Mis facturas', valor: 4, sufijo: '' },
-        { clave: 'facturado', etiqueta: 'Total de mis facturas', valor: 8450000, sufijo: '$' },
-        { clave: 'pendientes', etiqueta: 'Por firmar', valor: 1, sufijo: '' },
-        { clave: 'rechazadas', etiqueta: 'Rechazadas', valor: 0, sufijo: '' },
+      filtros_disponibles: {
+        empresas: [{ id: 1, razon_social: 'Distribuidora Andina S.A.S.' }],
+        bodegas: [],
+        bodegueros: [],
+        tipos: [],
+        estados: ['todas', 'pendientes', 'aceptadas', 'rechazadas'],
+      },
+      kpis: [
+        { clave: 'pendientes_accion', titulo: 'Pendientes por firmar', valor: 1, formato: 'numero', alerta: true },
+        { clave: 'recibidas_total', titulo: 'Facturas aceptadas', valor: 3, formato: 'numero', alerta: false },
+        { clave: 'rechazadas_total', titulo: 'Facturas rechazadas', valor: 0, formato: 'numero', alerta: false },
+        { clave: 'empresas_proveedoras', titulo: 'Empresas proveedoras', valor: 1, formato: 'numero', alerta: false },
       ],
+      desglose_principal: {
+        titulo: 'Resumen por Empresa Proveedora',
+        columnas: ['Empresa', 'Total Facturas', 'Aceptadas', 'Rechazadas'],
+        filas: [
+          { empresa: 'Distribuidora Andina S.A.S.', total: 4, aceptadas: 3, rechazadas: 0 },
+        ],
+      },
+      serie_temporal: temporal.slice(0, 3),
+      alertas_detalle: [],
       series: [
         {
           clave: 'por_estado',
@@ -691,13 +712,30 @@ export async function mockResumenEstadisticas(params = {}) {
     return {
       periodo,
       generado_para: 'bodeguero',
-      tarjetas: [
-        { clave: 'facturas', etiqueta: 'Facturas', valor: 24, sufijo: '' },
-        { clave: 'facturado', etiqueta: 'Facturado', valor: 8450000, sufijo: '$' },
-        { clave: 'pendientes', etiqueta: 'Pendientes de firma', valor: 3, sufijo: '' },
-        { clave: 'rechazadas', etiqueta: 'Rechazadas', valor: 1, sufijo: '' },
-        { clave: 'bodegas', etiqueta: 'Mis bodegas', valor: 2, sufijo: '' },
-        { clave: 'tipos', etiqueta: 'Tipos en mis bodegas', valor: 20, sufijo: '' },
+      filtros_disponibles: {
+        empresas: [],
+        bodegas: [],
+        bodegueros: [],
+        tipos: [{ id: 1, nombre: 'Alimentos' }, { id: 2, nombre: 'Bebidas' }],
+        estados: ['todas', 'pendientes', 'completadas', 'rechazadas'],
+      },
+      kpis: [
+        { clave: 'por_despachar', titulo: 'Por despachar', valor: 4, formato: 'numero', alerta: false },
+        { clave: 'sin_firma', titulo: 'Esperando firma', valor: 6, formato: 'numero', alerta: true },
+        { clave: 'completadas', titulo: 'Completadas', valor: 14, formato: 'numero', alerta: false },
+        { clave: 'rechazadas', titulo: 'Rechazadas', valor: 1, formato: 'numero', alerta: false },
+      ],
+      desglose_principal: {
+        titulo: 'Actividad por Tipo de Producto',
+        columnas: ['Tipo Producto', 'Emitidas', 'Completadas', 'Rechazadas'],
+        filas: [
+          { tipo: 'Alimentos', emitidas: 15, completadas: 10, rechazadas: 1 },
+          { tipo: 'Bebidas', emitidas: 9, completadas: 4, rechazadas: 0 },
+        ],
+      },
+      serie_temporal: temporal,
+      alertas_detalle: [
+        { numero_factura: 'FE-0018', motivo_rechazo: 'Caja averiada en transporte', fecha: '2026-11-22' },
       ],
       series: [
         {
@@ -713,25 +751,6 @@ export async function mockResumenEstadisticas(params = {}) {
           ],
         },
         seriePorFecha(periodo, [0, 2, 4, 3, 7, 5]),
-        {
-          clave: 'por_bodega',
-          titulo: 'Facturado por bodega',
-          tipo: 'barras',
-          datos: [
-            { etiqueta: 'Plaza satelite', valor: 5310500 },
-            { etiqueta: 'Plaza central', valor: 3139500 },
-          ],
-        },
-        {
-          clave: 'top_productos',
-          titulo: 'Productos más vendidos',
-          tipo: 'barras',
-          datos: [
-            { etiqueta: 'Papa', valor: 18 },
-            { etiqueta: 'Yuca', valor: 12 },
-            { etiqueta: 'Manzana', valor: 9 },
-          ],
-        },
       ],
     }
   }
@@ -740,13 +759,30 @@ export async function mockResumenEstadisticas(params = {}) {
     return {
       periodo,
       generado_para: 'empresa',
-      tarjetas: [
-        { clave: 'facturas', etiqueta: 'Facturas de la empresa', valor: 64, sufijo: '' },
-        { clave: 'facturado', etiqueta: 'Facturado', valor: 22800000, sufijo: '$' },
-        { clave: 'pendientes', etiqueta: 'Pendientes de firma', valor: 6, sufijo: '' },
-        { clave: 'rechazadas', etiqueta: 'Rechazadas', valor: 1, sufijo: '' },
-        { clave: 'bodegas', etiqueta: 'Bodegas', valor: 2, sufijo: '' },
-        { clave: 'usuarios', etiqueta: 'Bodegueros', valor: 3, sufijo: '' },
+      filtros_disponibles: {
+        empresas: [],
+        bodegas: [{ id: 1, nombre: 'Bodega Norte' }, { id: 2, nombre: 'Bodega Centro' }],
+        bodegueros: [{ id: 2, nombre: 'Luis Gómez' }],
+        tipos: [{ id: 1, nombre: 'Alimentos' }],
+        estados: [],
+      },
+      kpis: [
+        { clave: 'total_facturas', titulo: 'Facturas del periodo', valor: 148, formato: 'numero', alerta: false },
+        { clave: 'pendientes_cierre', titulo: 'Pendientes de firma', valor: 12, formato: 'numero', alerta: true },
+        { clave: 'tasa_aceptacion', titulo: 'Tasa de aceptación', valor: 94.5, formato: 'porcentaje', alerta: false },
+        { clave: 'tasa_rechazo', titulo: 'Tasa de rechazo', valor: 5.5, formato: 'porcentaje', alerta: false },
+      ],
+      desglose_principal: {
+        titulo: 'Rendimiento por Bodega',
+        columnas: ['Bodega', 'Emitidas', 'Completadas', 'Rechazadas', 'Efectividad'],
+        filas: [
+          { nombre: 'Bodega Norte', emitidas: 90, completadas: 86, rechazadas: 4, efectividad: '95.5%' },
+          { nombre: 'Bodega Centro', emitidas: 58, completadas: 54, rechazadas: 4, efectividad: '93.1%' },
+        ],
+      },
+      serie_temporal: temporal,
+      alertas_detalle: [
+        { numero_factura: 'FE-0042', motivo_rechazo: 'Caja golpeada al momento de la entrega', fecha: '2026-11-23' },
       ],
       series: [
         {
@@ -762,15 +798,6 @@ export async function mockResumenEstadisticas(params = {}) {
           ],
         },
         seriePorFecha(periodo, [0, 2, 5, 4, 8, 6]),
-        {
-          clave: 'por_bodega',
-          titulo: 'Facturado por bodega',
-          tipo: 'barras',
-          datos: [
-            { etiqueta: 'Bodega Central', valor: 14250000 },
-            { etiqueta: 'Bodega Norte', valor: 8550000 },
-          ],
-        },
       ],
     }
   }
@@ -778,14 +805,32 @@ export async function mockResumenEstadisticas(params = {}) {
   return {
     periodo,
     generado_para: 'admin',
-    tarjetas: [
-      { clave: 'facturas', etiqueta: 'Facturas', valor: 128, sufijo: '' },
-      { clave: 'facturado', etiqueta: 'Facturado', valor: 45600000, sufijo: '$' },
-      { clave: 'pendientes', etiqueta: 'Pendientes de firma', valor: 12, sufijo: '' },
-      { clave: 'rechazadas', etiqueta: 'Rechazadas', valor: 2, sufijo: '' },
-      { clave: 'usuarios_activos', etiqueta: 'Usuarios activos', valor: 6, sufijo: '' },
-      { clave: 'bodegas_activas', etiqueta: 'Bodegas activas', valor: 2, sufijo: '' },
+    filtros_disponibles: {
+      empresas: [
+        { id: 1, razon_social: 'Distribuidora Andina S.A.S.' },
+        { id: 2, razon_social: 'Comercializadora del Caribe S.A.S.' },
+      ],
+      bodegas: [],
+      bodegueros: [],
+      tipos: [],
+      estados: ['activa', 'pendiente', 'suspendida'],
+    },
+    kpis: [
+      { clave: 'empresas_activas', titulo: 'Empresas activas', valor: 1, formato: 'numero', alerta: false },
+      { clave: 'empresas_pendientes', titulo: 'Empresas pendientes', valor: 1, formato: 'numero', alerta: true },
+      { clave: 'clientes_globales', titulo: 'Clientes registrados', valor: 42, formato: 'numero', alerta: false },
+      { clave: 'tasa_entrega_global', titulo: 'Tasa de entrega global', valor: 88.4, formato: 'porcentaje', alerta: false },
     ],
+    desglose_principal: {
+      titulo: 'Top Empresas por Volumen',
+      columnas: ['Empresa', 'Bodegas', 'Facturas', 'Rechazadas', 'Efectividad'],
+      filas: [
+        { nombre: 'Distribuidora Andina S.A.S.', bodegas: 2, facturas: 148, rechazadas: 8, efectividad: '94.6%' },
+        { nombre: 'Comercializadora del Caribe S.A.S.', bodegas: 1, facturas: 45, rechazadas: 2, efectividad: '95.5%' },
+      ],
+    },
+    serie_temporal: temporal,
+    alertas_detalle: [],
     series: [
       {
         clave: 'por_estado',
@@ -800,27 +845,6 @@ export async function mockResumenEstadisticas(params = {}) {
         ],
       },
       seriePorFecha(periodo, [0, 3, 6, 4, 9, 7]),
-      {
-        clave: 'por_bodega',
-        titulo: 'Facturado por bodega',
-        tipo: 'barras',
-        datos: [
-          { etiqueta: 'Plaza satelite', valor: 27105000 },
-          { etiqueta: 'Plaza central', valor: 18495000 },
-        ],
-      },
-      {
-        clave: 'top_productos',
-        titulo: 'Productos más vendidos',
-        tipo: 'barras',
-        datos: [
-          { etiqueta: 'Papa', valor: 120 },
-          { etiqueta: 'Yuca', valor: 110 },
-          { etiqueta: 'Manzana', valor: 50 },
-          { etiqueta: 'Arroz', valor: 35 },
-          { etiqueta: 'Pera', valor: 20 },
-        ],
-      },
     ],
   }
 }
