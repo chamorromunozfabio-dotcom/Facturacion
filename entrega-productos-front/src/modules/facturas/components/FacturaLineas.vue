@@ -19,6 +19,12 @@ function escribirNumero(linea, campo, index, evento) {
   linea[campo] = sanitizarDecimal(evento.target.value)
   emit('marcar', `linea_${index}_${campo}`)
 }
+
+/** Bloquea la tecla antes de que aparezca: solo dígitos y el punto decimal. */
+function bloquearTeclaNumero(evento) {
+  if (evento.ctrlKey || evento.metaKey || evento.altKey) return
+  if (evento.key.length === 1 && !/[0-9.]/.test(evento.key)) evento.preventDefault()
+}
 </script>
 
 <template>
@@ -65,19 +71,19 @@ function escribirNumero(linea, campo, index, evento) {
 
       <label>
         Cant. *
-        <input :value="linea.cantidad" :data-test="`linea-cantidad-${index}`" type="text" inputmode="decimal" placeholder="Ej. 10" @input="escribirNumero(linea, 'cantidad', index, $event)" />
+        <input :value="linea.cantidad" :data-test="`linea-cantidad-${index}`" type="text" inputmode="decimal" placeholder="Ej. 10" @keydown="bloquearTeclaNumero" @input="escribirNumero(linea, 'cantidad', index, $event)" />
         <small v-if="errores[`linea_${index}_cantidad`]" :data-test="`error-linea-${index}-cantidad`" class="campo-error">{{ errores[`linea_${index}_cantidad`] }}</small>
       </label>
 
       <label>
         Precio *
-        <input :value="linea.precio_unitario" :data-test="`linea-precio_unitario-${index}`" type="text" inputmode="decimal" placeholder="Ej. 3500" @input="escribirNumero(linea, 'precio_unitario', index, $event)" />
+        <input :value="linea.precio_unitario" :data-test="`linea-precio_unitario-${index}`" type="text" inputmode="decimal" placeholder="Ej. 3500" @keydown="bloquearTeclaNumero" @input="escribirNumero(linea, 'precio_unitario', index, $event)" />
         <small v-if="errores[`linea_${index}_precio_unitario`]" :data-test="`error-linea-${index}-precio_unitario`" class="campo-error">{{ errores[`linea_${index}_precio_unitario`] }}</small>
       </label>
 
       <label>
         Dto. % *
-        <input :value="linea.descuento_porcentaje" :data-test="`linea-descuento_porcentaje-${index}`" type="text" inputmode="decimal" placeholder="0" @input="escribirNumero(linea, 'descuento_porcentaje', index, $event)" />
+        <input :value="linea.descuento_porcentaje" :data-test="`linea-descuento_porcentaje-${index}`" type="text" inputmode="decimal" placeholder="0" @keydown="bloquearTeclaNumero" @input="escribirNumero(linea, 'descuento_porcentaje', index, $event)" />
         <small v-if="errores[`linea_${index}_descuento_porcentaje`]" :data-test="`error-linea-${index}-descuento_porcentaje`" class="campo-error">{{ errores[`linea_${index}_descuento_porcentaje`] }}</small>
       </label>
 

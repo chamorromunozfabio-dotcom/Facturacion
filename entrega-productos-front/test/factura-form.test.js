@@ -134,6 +134,20 @@ describe('Test 23 — FacturaForm (líneas y validaciones)', () => {
     expect(wrapper.find('[data-test="linea-cantidad-0"]').element.value).toBe('10.55')
     expect(wrapper.find('[data-test="linea-precio_unitario-0"]').element.value).toBe('5')
     expect(wrapper.find('[data-test="linea-descuento_porcentaje-0"]').element.value).toBe('10')
+
+    // La letra se bloquea ANTES de aparecer; el punto y los dígitos pasan.
+    const cantidad = wrapper.find('[data-test="linea-cantidad-0"]')
+    const letra = new KeyboardEvent('keydown', { key: 'a', cancelable: true })
+    cantidad.element.dispatchEvent(letra)
+    expect(letra.defaultPrevented).toBe(true)
+
+    const punto = new KeyboardEvent('keydown', { key: '.', cancelable: true })
+    cantidad.element.dispatchEvent(punto)
+    expect(punto.defaultPrevented).toBe(false)
+
+    const digito = new KeyboardEvent('keydown', { key: '7', cancelable: true })
+    cantidad.element.dispatchEvent(digito)
+    expect(digito.defaultPrevented).toBe(false)
   })
 
   it('rechaza descuento fuera de rango e IVA no permitido', async () => {

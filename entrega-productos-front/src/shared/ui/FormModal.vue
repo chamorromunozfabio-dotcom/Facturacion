@@ -90,6 +90,19 @@ function limpiarValor(field, valor) {
   return texto
 }
 
+/**
+ * Bloquea la tecla ANTES de que aparezca: en un campo de solo números, la "a"
+ * nunca se escribe. Se permiten los atajos (Ctrl/Cmd+V) porque el filtro de
+ * `limpiarValor` limpia también lo pegado.
+ */
+function bloquearTecla(field, evento) {
+  if (!field || evento.ctrlKey || evento.metaKey || evento.altKey) return
+  if (evento.key.length !== 1) return
+  if (field.digitsOnly && !/[0-9]/.test(evento.key)) evento.preventDefault()
+  else if (field.lettersDigitsOnly && !/[A-Za-z0-9]/.test(evento.key)) evento.preventDefault()
+  else if (field.noSpaces && /\s/.test(evento.key)) evento.preventDefault()
+}
+
 function validarCampo(field) {
   const valor = form[field.key] ?? ''
   const texto = String(valor).trim()
@@ -203,6 +216,8 @@ function handleSubmit() {
           :type="field.type || 'text'"
           :value="form[field.key] ?? ''"
           :placeholder="field.placeholder || ''"
+          :inputmode="field.digitsOnly || field.lettersDigitsOnly ? 'numeric' : undefined"
+          @keydown="bloquearTecla(field, $event)"
           @input="setValue(field.key, $event.target.value)"
         />
 

@@ -51,6 +51,20 @@ describe('Test 15 — Validación según contrato del backend', () => {
     await wrapper.find('[data-test="field-telefono"]').setValue('300-12345678901234567')
 
     expect(wrapper.find('[data-test="field-telefono"]').element.value).toBe('300123456789012')
+
+    // La letra se bloquea ANTES de aparecer; el dígito y Backspace pasan.
+    const input = wrapper.find('[data-test="field-telefono"]')
+    const letra = new KeyboardEvent('keydown', { key: 'a', cancelable: true })
+    input.element.dispatchEvent(letra)
+    expect(letra.defaultPrevented).toBe(true)
+
+    const digito = new KeyboardEvent('keydown', { key: '3', cancelable: true })
+    input.element.dispatchEvent(digito)
+    expect(digito.defaultPrevented).toBe(false)
+
+    const retroceso = new KeyboardEvent('keydown', { key: 'Backspace', cancelable: true })
+    input.element.dispatchEvent(retroceso)
+    expect(retroceso.defaultPrevented).toBe(false)
   })
 
   it('quita los espacios al inicio y al final antes de enviar', async () => {
