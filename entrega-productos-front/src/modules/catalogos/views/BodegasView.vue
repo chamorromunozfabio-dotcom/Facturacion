@@ -38,8 +38,17 @@ const fields = [
     maxLength: 30,
     pattern: phonePattern,
     message: phoneMessage,
+    hint: 'Ej. 3001234567',
   },
-  { key: 'correo', label: 'Correo de la bodega', required: true, type: 'email', maxLength: 100 },
+  {
+    key: 'correo',
+    label: 'Correo de la bodega',
+    required: true,
+    type: 'email',
+    maxLength: 100,
+    noSpaces: true,
+    hint: 'Ej. bodega@empresa.com.',
+  },
   { key: 'recibe_nombre', label: 'Nombre de quien recibe', required: true, maxLength: 100 },
   { key: 'recibe_documento', label: 'Documento de quien recibe', required: true, maxLength: 30 },
   { key: 'recibe_cargo', label: 'Cargo de quien recibe', required: true, maxLength: 100 },
@@ -50,6 +59,7 @@ const fields = [
     maxLength: 30,
     pattern: phonePattern,
     message: phoneMessage,
+    hint: 'Ej. 3109876543',
   },
 ]
 

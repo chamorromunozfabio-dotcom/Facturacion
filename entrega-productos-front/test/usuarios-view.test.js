@@ -151,7 +151,7 @@ describe('Test 19 — UsuariosView (roles y campos condicionales)', () => {
     expect(api.update).toHaveBeenCalledWith(3, { nombre: 'Juan Actualizado' })
   })
 
-  it('rechaza documento con guiones y teléfono con letras o símbolos', async () => {
+  it('descarta guiones y letras del documento y del teléfono mientras se escribe', async () => {
     useAuthStore().saveSession('token-123', { nombre: 'Ana', rol: 'admin' })
     const wrapper = mount(UsuariosView)
     await flushPromises()
@@ -164,28 +164,23 @@ describe('Test 19 — UsuariosView (roles y campos condicionales)', () => {
     await wrapper.find('[data-test="field-tipo_documento"]').setValue('CC')
     await wrapper.find('[data-test="field-numero_documento"]').setValue('1020-304050')
     await wrapper.find('[data-test="field-telefono"]').setValue('300-1234')
-    await wrapper.find('form').trigger('submit')
 
-    expect(wrapper.find('[data-test="error-numero_documento"]').text()).toBe(
-      'Solo números, sin puntos, guiones ni espacios.',
-    )
-    expect(wrapper.find('[data-test="error-telefono"]').text()).toBe('Solo dígitos: entre 7 y 15.')
-    expect(api.create).not.toHaveBeenCalled()
+    // Los caracteres que no van se descartaron al instante.
+    expect(wrapper.find('[data-test="field-numero_documento"]').element.value).toBe('1020304050')
+    expect(wrapper.find('[data-test="field-telefono"]').element.value).toBe('3001234')
 
-    await wrapper.find('[data-test="field-numero_documento"]').setValue('1020304050')
-    await wrapper.find('[data-test="field-telefono"]').setValue('3001234567')
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
     expect(api.create).toHaveBeenCalledWith(
       expect.objectContaining({
         numero_documento: '1020304050',
-        telefono: '3001234567',
+        telefono: '3001234',
       }),
     )
   })
 
-  it('el pasaporte acepta letras y números, pero sin símbolos', async () => {
+  it('el pasaporte descarta símbolos pero conserva letras y números', async () => {
     useAuthStore().saveSession('token-123', { nombre: 'Ana', rol: 'admin' })
     const wrapper = mount(UsuariosView)
     await flushPromises()
@@ -197,20 +192,31 @@ describe('Test 19 — UsuariosView (roles y campos condicionales)', () => {
     await wrapper.find('[data-test="field-rol_id"]').setValue('3')
     await wrapper.find('[data-test="field-tipo_documento"]').setValue('PA')
     await wrapper.find('[data-test="field-numero_documento"]').setValue('AB-123')
-    await wrapper.find('form').trigger('submit')
 
-    expect(wrapper.find('[data-test="error-numero_documento"]').text()).toBe(
-      'Solo letras y números, sin símbolos.',
-    )
-    expect(api.create).not.toHaveBeenCalled()
+    expect(wrapper.find('[data-test="field-numero_documento"]').element.value).toBe('AB123')
 
-    await wrapper.find('[data-test="field-numero_documento"]').setValue('AB123456')
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
     expect(api.create).toHaveBeenCalledWith(
-      expect.objectContaining({ tipo_documento: 'PA', numero_documento: 'AB123456' }),
+      expect.objectContaining({ tipo_documento: 'PA', numero_documento: 'AB123' }),
     )
+  })
+
+  it('muestra pistas de qué escribir en cada campo antes de equivocarse', async () => {
+    useAuthStore().saveSession('token-123', { nombre: 'Ana', rol: 'admin' })
+    const wrapper = mount(UsuariosView)
+    await flushPromises()
+
+    await wrapper.find('[data-test="create"]').trigger('click')
+    await wrapper.find('[data-test="field-rol_id"]').setValue('3')
+
+    expect(wrapper.find('[data-test="hint-correo"]').text()).toBe('Ej. nombre@empresa.com.')
+    expect(wrapper.find('[data-test="hint-contrasena"]').text()).toBe('Mínimo 8 caracteres.')
+    expect(wrapper.find('[data-test="hint-numero_documento"]').text()).toBe(
+      'Solo números, sin puntos ni guiones.',
+    )
+    expect(wrapper.find('[data-test="hint-telefono"]').text()).toBe('Solo números, entre 7 y 15.')
   })
 
   it('rechaza un teléfono de menos de 7 dígitos', async () => {

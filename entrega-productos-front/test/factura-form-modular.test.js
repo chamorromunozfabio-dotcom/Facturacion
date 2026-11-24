@@ -10,6 +10,7 @@ import {
   emptyLinea,
   esFechaValida,
   mensajeServidor,
+  sanitizarDecimal,
   validarFormulario,
 } from '../src/modules/facturas/utils/facturaCampos'
 
@@ -52,6 +53,13 @@ describe('Test 52 — FacturaForm modular: encabezado, líneas y validación', (
     expect(campoLineaValido('iva_porcentaje', { iva_porcentaje: '0,5' })).toBe(false)
     expect(campoLineaValido('cantidad', { cantidad: '1.5' })).toBe(true)
     expect(campoLineaValido('cantidad', { cantidad: '1.555' })).toBe(false)
+
+    // El filtro de escritura descarta lo que no va en un campo numérico.
+    expect(sanitizarDecimal('12.345')).toBe('12.34')
+    expect(sanitizarDecimal('-5')).toBe('5')
+    expect(sanitizarDecimal('1a0')).toBe('10')
+    expect(sanitizarDecimal('10.5.5')).toBe('10.55')
+    expect(sanitizarDecimal('abc')).toBe('')
 
     const errores = validarFormulario(
       {
@@ -149,7 +157,7 @@ describe('Test 52 — FacturaForm modular: encabezado, líneas y validación', (
 
     expect(wrapper.emitted('add')).toHaveLength(1)
     expect(wrapper.emitted('remove')[0][0]).toBe(0)
-    expect(lineas[0].cantidad).toBe(2)
+    expect(lineas[0].cantidad).toBe('2')
     expect(wrapper.emitted('marcar')).toContainEqual(['linea_0_cantidad'])
   })
 

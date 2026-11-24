@@ -120,7 +120,7 @@ describe('Test 18 — Campos nuevos de Bodega', () => {
     )
   })
 
-  it('limita el documento de quien recibe a 30 caracteres', async () => {
+  it('corta el documento de quien recibe a 30 caracteres al escribir', async () => {
     const wrapper = mount(BodegasView)
     await flushPromises()
     await wrapper.find('[data-test="create"]').trigger('click')
@@ -129,10 +129,14 @@ describe('Test 18 — Campos nuevos de Bodega', () => {
       ...datos,
       recibe_documento: '1234567890123456789012345678901',
     })
-    await wrapper.find('form').trigger('submit')
 
-    expect(wrapper.find('[data-test="error-recibe_documento"]').text()).toBe(
-      'Máximo 30 caracteres.',
+    expect(wrapper.find('[data-test="field-recibe_documento"]').element.value).toHaveLength(30)
+
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(api.create).toHaveBeenCalledWith(
+      expect.objectContaining({ recibe_documento: '123456789012345678901234567890' }),
     )
   })
 

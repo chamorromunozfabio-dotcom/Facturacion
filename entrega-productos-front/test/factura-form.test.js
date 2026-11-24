@@ -98,6 +98,18 @@ describe('Test 23 — FacturaForm (líneas y validaciones)', () => {
     expect(wrapper.find('[data-test="error-linea-0-cantidad"]').text()).toBe('Cantidad mayor que 0.')
   })
 
+  it('solo deja escribir dígitos y un punto en cantidad, precio y descuento', async () => {
+    const wrapper = mountForm()
+
+    await wrapper.find('[data-test="linea-cantidad-0"]').setValue('10.555')
+    await wrapper.find('[data-test="linea-precio_unitario-0"]').setValue('-5')
+    await wrapper.find('[data-test="linea-descuento_porcentaje-0"]').setValue('1a0')
+
+    expect(wrapper.find('[data-test="linea-cantidad-0"]').element.value).toBe('10.55')
+    expect(wrapper.find('[data-test="linea-precio_unitario-0"]').element.value).toBe('5')
+    expect(wrapper.find('[data-test="linea-descuento_porcentaje-0"]').element.value).toBe('10')
+  })
+
   it('rechaza descuento fuera de rango e IVA no permitido', async () => {
     const wrapper = mountForm()
     await llenarEncabezado(wrapper)

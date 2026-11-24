@@ -96,17 +96,17 @@ describe('Test 37 — Facturas: mensajes descriptivos y alerta visible', () => {
     }
   })
 
-  it('el mensaje cambia si el dato está escrito pero es inválido', async () => {
+  it('el signo y las letras no se pueden escribir en cantidad ni precio', async () => {
     const wrapper = mountForm()
 
     await wrapper.find('[data-test="linea-cantidad-0"]').setValue('0')
     await wrapper.find('[data-test="linea-precio_unitario-0"]').setValue('-5')
     await wrapper.find('form').trigger('submit')
 
+    // El precio quedó limpio como "5": el "-" se descartó al escribir.
+    expect(wrapper.find('[data-test="linea-precio_unitario-0"]').element.value).toBe('5')
+    expect(wrapper.find('[data-test="error-linea-0-precio_unitario"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="error-linea-0-cantidad"]').text()).toBe('Cantidad mayor que 0.')
-    expect(wrapper.find('[data-test="error-linea-0-precio_unitario"]').text()).toBe(
-      'Precio mayor o igual que 0.',
-    )
   })
 
   it('limpia el aviso en cuanto el campo se llena correctamente', async () => {

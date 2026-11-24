@@ -109,6 +109,22 @@ export function masDeDosDecimales(valor) {
   return /\.(\d{3,})$/.test(String(valor).trim())
 }
 
+/**
+ * Filtra mientras se escribe: solo dígitos y un punto, con máximo 2 decimales.
+ * Así el usuario ni siquiera puede escribir un dato que el backend rechazaría.
+ */
+export function sanitizarDecimal(valor) {
+  let texto = String(valor ?? '')
+  texto = texto.replace(/[^\d.]/g, '')
+  const punto = texto.indexOf('.')
+  if (punto !== -1) {
+    texto = texto.slice(0, punto + 1) + texto.slice(punto + 1).replace(/\./g, '')
+    const [entera = '', decimales = ''] = texto.split('.')
+    texto = `${entera || '0'}.${decimales.slice(0, 2)}`
+  }
+  return texto
+}
+
 export function esFechaValida(valor) {
   const texto = String(valor ?? '').trim()
   if (!/^\d{4}-\d{2}-\d{2}$/.test(texto)) return false

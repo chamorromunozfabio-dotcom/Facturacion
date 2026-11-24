@@ -80,7 +80,7 @@ describe('Test 39 — Bodegas con todos los datos obligatorios', () => {
     expect(api.create).toHaveBeenCalledWith(completo)
   })
 
-  it('valida el tipo de correo y el largo máximo del cargo', async () => {
+  it('valida el tipo de correo y corta el largo del cargo al escribir', async () => {
     const wrapper = await abrir()
     await llenar(wrapper, {
       ...completo,
@@ -93,7 +93,9 @@ describe('Test 39 — Bodegas con todos los datos obligatorios', () => {
     expect(wrapper.find('[data-test="error-correo"]').text()).toBe(
       'Escribe un correo válido, como nombre@empresa.com.',
     )
-    expect(wrapper.find('[data-test="error-recibe_cargo"]').text()).toBe('Máximo 100 caracteres.')
+    // Los 101 caracteres se cortaron a 100 al escribir: no queda error por largo.
+    expect(wrapper.find('[data-test="field-recibe_cargo"]').element.value).toHaveLength(100)
+    expect(wrapper.find('[data-test="error-recibe_cargo"]').exists()).toBe(false)
   })
 
   it('no borra datos al editar: envía el campo con texto vacío para que el backend avise', async () => {

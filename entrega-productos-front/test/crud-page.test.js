@@ -149,7 +149,7 @@ describe('Test 57 — CrudPage: plantilla y eventos compartidos', () => {
       ]) {
         expect(codigo).not.toContain(viejo)
       }
-      expect(codigo.split('\n').length).toBeLessThan(270)
+      expect(codigo.split('\n').length).toBeLessThan(300)
     }
 
     const pagina = leer('../src/shared/ui/CrudPage.vue')

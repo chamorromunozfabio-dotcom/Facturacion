@@ -1,5 +1,6 @@
 <script setup>
 import TipoSearch from './TipoSearch.vue'
+import { sanitizarDecimal } from '../utils/facturaCampos'
 
 /** Productos de la factura. Cada línea es un renglón editable. */
 defineProps({
@@ -11,7 +12,13 @@ defineProps({
   ivas: { type: Array, default: () => [0, 5, 19] },
 })
 
-defineEmits(['add', 'remove', 'select-tipo', 'marcar'])
+const emit = defineEmits(['add', 'remove', 'select-tipo', 'marcar'])
+
+/** Cantidad, precio y descuento solo aceptan dígitos y un punto (2 decimales). */
+function escribirNumero(linea, campo, index, evento) {
+  linea[campo] = sanitizarDecimal(evento.target.value)
+  emit('marcar', `linea_${index}_${campo}`)
+}
 </script>
 
 <template>
@@ -22,6 +29,8 @@ defineEmits(['add', 'remove', 'select-tipo', 'marcar'])
         + Agregar línea
       </button>
     </div>
+
+    <p class="hint">Cantidad, precio y descuento: solo números, con hasta 2 decimales (el descuento va de 0 a 100).</p>
 
     <p v-if="!tieneTipo" class="hint">
       {{ bodegaId ? 'Cargando productos de la bodega…' : 'Elige una bodega para ver sus productos.' }}
@@ -56,19 +65,19 @@ defineEmits(['add', 'remove', 'select-tipo', 'marcar'])
 
       <label>
         Cant. *
-        <input v-model.number="linea.cantidad" :data-test="`linea-cantidad-${index}`" type="number" min="1" step="0.01" placeholder="Ej. 10" @input="$emit('marcar', `linea_${index}_cantidad`)" />
+        <input :value="linea.cantidad" :data-test="`linea-cantidad-${index}`" type="text" inputmode="decimal" placeholder="Ej. 10" @input="escribirNumero(linea, 'cantidad', index, $event)" />
         <small v-if="errores[`linea_${index}_cantidad`]" :data-test="`error-linea-${index}-cantidad`" class="campo-error">{{ errores[`linea_${index}_cantidad`] }}</small>
       </label>
 
       <label>
         Precio *
-        <input v-model.number="linea.precio_unitario" :data-test="`linea-precio_unitario-${index}`" type="number" min="0" step="0.01" placeholder="Ej. 3500" @input="$emit('marcar', `linea_${index}_precio_unitario`)" />
+        <input :value="linea.precio_unitario" :data-test="`linea-precio_unitario-${index}`" type="text" inputmode="decimal" placeholder="Ej. 3500" @input="escribirNumero(linea, 'precio_unitario', index, $event)" />
         <small v-if="errores[`linea_${index}_precio_unitario`]" :data-test="`error-linea-${index}-precio_unitario`" class="campo-error">{{ errores[`linea_${index}_precio_unitario`] }}</small>
       </label>
 
       <label>
         Dto. % *
-        <input v-model.number="linea.descuento_porcentaje" :data-test="`linea-descuento_porcentaje-${index}`" type="number" min="0" max="100" step="0.01" placeholder="0" @input="$emit('marcar', `linea_${index}_descuento_porcentaje`)" />
+        <input :value="linea.descuento_porcentaje" :data-test="`linea-descuento_porcentaje-${index}`" type="text" inputmode="decimal" placeholder="0" @input="escribirNumero(linea, 'descuento_porcentaje', index, $event)" />
         <small v-if="errores[`linea_${index}_descuento_porcentaje`]" :data-test="`error-linea-${index}-descuento_porcentaje`" class="campo-error">{{ errores[`linea_${index}_descuento_porcentaje`] }}</small>
       </label>
 

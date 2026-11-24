@@ -63,8 +63,22 @@ const columns = [
 
 const baseFields = [
   { key: 'nombre', label: 'Nombre', required: true, maxLength: 100 },
-  { key: 'correo', label: 'Correo', type: 'email', required: true },
-  { key: 'contrasena', label: 'Contraseña', type: 'password', required: true },
+  {
+    key: 'correo',
+    label: 'Correo',
+    type: 'email',
+    required: true,
+    noSpaces: true,
+    hint: 'Ej. nombre@empresa.com.',
+  },
+  {
+    key: 'contrasena',
+    label: 'Contraseña',
+    type: 'password',
+    required: true,
+    minLength: 8,
+    hint: 'Mínimo 8 caracteres.',
+  },
   { key: 'rol_id', label: 'Rol', type: 'select', required: true },
 ]
 // El backend los acepta como opcionales para todos los roles (PA incluido).
@@ -83,12 +97,23 @@ const clienteFields = computed(() => {
       key: 'numero_documento',
       label: 'Número de documento',
       maxLength: 20,
+      digitsOnly: !esPasaporte,
+      lettersDigitsOnly: esPasaporte,
       pattern: esPasaporte ? documentPatterns.pasaporte : documentPatterns.numerico,
       message: esPasaporte
         ? 'Solo letras y números, sin símbolos.'
         : 'Solo números, sin puntos, guiones ni espacios.',
+      hint: esPasaporte ? 'Letras y números, sin símbolos.' : 'Solo números, sin puntos ni guiones.',
     },
-    { key: 'telefono', label: 'Teléfono', pattern: phonePattern, message: phoneMessage },
+    {
+      key: 'telefono',
+      label: 'Teléfono',
+      digitsOnly: true,
+      maxLength: 15,
+      pattern: phonePattern,
+      message: phoneMessage,
+      hint: 'Solo números, entre 7 y 15.',
+    },
     { key: 'direccion', label: 'Dirección' },
     { key: 'ciudad', label: 'Ciudad' },
   ]

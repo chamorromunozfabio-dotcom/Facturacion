@@ -17,14 +17,40 @@ function mountModal() {
 }
 
 describe('Test 15 — Validación según contrato del backend', () => {
-  it('rechaza más caracteres de los permitidos', async () => {
+  it('corta el texto en el máximo mientras se escribe', async () => {
     const wrapper = mountModal()
 
     await wrapper.find('[data-test="field-nombre"]').setValue('Demasiado largo')
-    await wrapper.find('form').trigger('submit')
 
-    expect(wrapper.find('[data-test="error-nombre"]').text()).toBe('Máximo 5 caracteres.')
-    expect(wrapper.emitted('submit')).toBeUndefined()
+    expect(wrapper.find('[data-test="field-nombre"]').element.value).toBe('Demas')
+
+    await wrapper.find('form').trigger('submit')
+    expect(wrapper.emitted('submit')[0][0]).toEqual({ nombre: 'Demas' })
+  })
+
+  it('descarta letras y corta el largo en campos de solo dígitos, y muestra la pista', async () => {
+    const wrapper = mount(FormModal, {
+      props: {
+        open: true,
+        title: 'Nuevo tipo',
+        fields: [
+          {
+            key: 'telefono',
+            label: 'Teléfono',
+            digitsOnly: true,
+            maxLength: 15,
+            hint: 'Solo números, entre 7 y 15.',
+          },
+        ],
+        modelValue: { telefono: '' },
+      },
+    })
+
+    expect(wrapper.find('[data-test="hint-telefono"]').text()).toBe('Solo números, entre 7 y 15.')
+
+    await wrapper.find('[data-test="field-telefono"]').setValue('300-12345678901234567')
+
+    expect(wrapper.find('[data-test="field-telefono"]').element.value).toBe('300123456789012')
   })
 
   it('quita los espacios al inicio y al final antes de enviar', async () => {

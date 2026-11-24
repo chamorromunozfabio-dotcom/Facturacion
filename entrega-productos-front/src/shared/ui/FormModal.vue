@@ -75,6 +75,21 @@ function esNumerico(valor) {
   return texto !== '' && Number.isFinite(Number(texto))
 }
 
+/**
+ * Filtra lo que el usuario escribe según la regla del campo. Así el dato que no
+ * va (letras en un teléfono, espacios en un correo, más caracteres del máximo)
+ * ni siquiera llega al modelo: se descarta al instante.
+ */
+function limpiarValor(field, valor) {
+  let texto = String(valor ?? '')
+  if (field.digitsOnly) texto = texto.replace(/[^0-9]/g, '')
+  if (field.lettersDigitsOnly) texto = texto.replace(/[^A-Za-z0-9]/g, '')
+  if (field.noSpaces) texto = texto.replace(/\s+/g, '')
+  texto = texto.trim()
+  if (field.maxLength) texto = texto.slice(0, field.maxLength)
+  return texto
+}
+
 function validarCampo(field) {
   const valor = form[field.key] ?? ''
   const texto = String(valor).trim()
@@ -98,9 +113,10 @@ function validarCampo(field) {
 }
 
 function setValue(key, value) {
-  form[key] = value
+  const field = props.fields.find((f) => f.key === key)
+  form[key] = field ? limpiarValor(field, value) : value
   if (tocados.has(key)) {
-    const aviso = validarCampo(props.fields.find((f) => f.key === key))
+    const aviso = validarCampo(field)
     if (aviso) errores[key] = aviso
     else delete errores[key]
   }
@@ -190,6 +206,9 @@ function handleSubmit() {
         <small v-if="errores[field.key]" :data-test="`error-${field.key}`" class="campo-error">
           {{ errores[field.key] }}
         </small>
+        <small v-else-if="field.hint" :data-test="`hint-${field.key}`" class="campo-hint">
+          {{ field.hint }}
+        </small>
       </div>
 
       <footer class="modal__footer">
@@ -213,6 +232,7 @@ h2 { margin: 0; font-size: 1.1rem; }
 .modal__field label { font-size: 0.85rem; font-weight: 600; color: #374151; }
 input, select, textarea { width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px; font: inherit; }
 .campo-error { color: #b91c1c; font-size: 0.78rem; font-weight: 500; line-height: 1.25; }
+.campo-hint { color: #6b7280; font-size: 0.75rem; line-height: 1.25; }
 .modal__footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
 .btn { border: 1px solid #d1d5db; background: #fff; border-radius: 8px; padding: 8px 14px; cursor: pointer; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
