@@ -253,4 +253,43 @@ describe('Test 36 — Permisos por usuario (contrato publicado por el backend)',
 
     expect(router.currentRoute.value.name).toBe('inicio')
   })
+
+  it('busca usuarios por empresa_nombre y aplica la plantilla del rol empresa', async () => {
+    usuarios.list.mockResolvedValueOnce({
+      data: [
+        {
+          id: 9,
+          nombre: 'Ana Torres',
+          correo: 'empresa@entrega.com',
+          rol: 'empresa',
+          rol_id: 4,
+          empresa_nombre: 'Distribuidora Andina S.A.S.',
+          permisos: [],
+        },
+      ],
+      total: 1,
+      page: 1,
+      limit: 100,
+    })
+
+    const wrapper = mount(PermisosView)
+    await flushPromises()
+
+    await wrapper.find('[data-test="user-search"]').setValue('Andina')
+    await flushPromises()
+
+    expect(wrapper.find('[data-test="usuario-empresa"]').text()).toBe('Distribuidora Andina S.A.S.')
+    await wrapper.find('[data-test="usuario-9"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Distribuidora Andina S.A.S.')
+    await wrapper.find('[data-test="aplicar-rol"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('[data-test="check-facturas:view"]').element.checked).toBe(true)
+    expect(wrapper.find('[data-test="check-usuarios:create"]').element.checked).toBe(true)
+    expect(wrapper.find('[data-test="check-facturas:aceptar"]').element.checked).toBe(false)
+    expect(wrapper.find('[data-test="check-facturas:rechazar"]').element.checked).toBe(false)
+    expect(visibleMenuFor('empresa').map((item) => item.label)).not.toContain('Permisos')
+  })
 })

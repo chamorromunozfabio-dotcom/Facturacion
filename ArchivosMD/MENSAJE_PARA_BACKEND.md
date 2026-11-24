@@ -479,3 +479,24 @@ Confirmar que el backend también lo bloquea con `403`, y si van a crear los per
 - El login ya muestra el `detail` del `403` (empresa pendiente, rechazada o suspendida).
 
 Cuando nos confirmen estos puntos, activamos la fase de catálogos/facturas con datos reales. Si algo del contrato propuesto no les sirve, mándenlo como lo necesitan y lo adaptamos. ¡Gracias! 🚀
+
+
+---
+
+### Respuesta recibida (24-11-2026) — multiempresa, búsqueda de clientes y solo números ✅ adaptado
+
+Gracias por `RESPUESTA_EMPRESAS.md` y `RESPUESTA_SOLO_NUMEROS.md`. Ya aplicamos todos los ajustes en el frontend (seguimos trabajando contra mocks mientras publican los endpoints):
+
+1. **Multiempresa:**
+   - El admin ya filtra por `?empresa_id=` (cargado desde `GET /empresas?estado=activa`) en Usuarios, Bodegas, Tipos, Facturas y Estadísticas, y envía `empresa_id` numérico obligatorio al crear bodegueros, usuarios `empresa` o bodegas.
+   - Leemos `user.empresa` (`{ id, razon_social, estado }`) en `/login` y `/me`.
+   - El rol `empresa` se resuelve siempre por nombre desde `GET /roles` (quitamos el respaldo `4`).
+2. **Búsqueda de clientes:** `FacturaForm` ya consulta `GET /clientes/buscar?q=` (mínimo 5 caracteres, debounce 300 ms). Ya pueden retirar `/facturas/clientes` cuando publiquen `/clientes/buscar`.
+3. **Facturas:**
+   - Mantenemos `numero` (`FE-0001`) y usamos siempre `id` en claves y rutas (soportando numeración repetida entre empresas).
+   - Mostramos `empresa_nombre` en listado y detalle al `admin` y al `cliente`.
+   - Migramos el rechazo a `{ motivo_rechazo }` (10 a 255 caracteres), ocultamos **Editar** y **Eliminar** cuando `estado !== 'emitida'` y mostramos `motivo_rechazo` en el detalle.
+4. **Solo números (teclado y pegado):** aplicado en Bodegas (`telefono`, `recibe_documento`, `recibe_telefono`), Usuarios (`telefono` y `numero_documento`, salvo `PA`) y Facturas (`cantidad`, `precio_unitario`, `descuento_porcentaje`), enviando los valores numéricos como número.
+5. **Permisos por usuario:** `PermisosView` ya busca y muestra `empresa_nombre` y aplica la plantilla del rol `empresa` (sin `facturas_aceptar`, `facturas_rechazar`, `empresas_*` ni `roles_*`).
+
+Estado actual del frontend: **71 archivos de test / 394 pruebas en verde y `vite build` correcto.** En cuanto nos avisen que `/register`, `/empresas` y `/clientes/buscar` están arriba, probamos contra el servidor real. 🚀

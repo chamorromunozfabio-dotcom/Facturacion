@@ -1,7 +1,7 @@
 <script setup>
-import { ChevronLeft, KeyRound } from '@lucide/vue'
-import BotonBase from '../../../shared/ui/BotonBase.vue'
-import { iniciales } from '../utils/permisos'
+import { ChevronLeft, KeyRound } from "@lucide/vue";
+import BotonBase from "../../../shared/ui/BotonBase.vue";
+import { iniciales } from "../utils/permisos";
 
 /** Paso 2, cabecera: quién se está editando y cuántos permisos tiene. */
 defineProps({
@@ -11,9 +11,9 @@ defineProps({
   activos: { type: Number, default: 0 },
   total: { type: Number, default: 0 },
   faltan: { type: Number, default: 0 },
-})
+});
 
-defineEmits(['cambiar'])
+defineEmits(["cambiar"]);
 </script>
 
 <template>
@@ -24,7 +24,12 @@ defineEmits(['cambiar'])
         Permisos de <strong>{{ usuario.nombre }}</strong>
         <template v-if="rol">({{ rol.nombre }})</template>
       </h2>
-      <p>{{ usuario.correo }}</p>
+      <p>
+        {{ usuario.correo }}
+        <template v-if="usuario.empresa_nombre">
+          · {{ usuario.empresa_nombre }}</template
+        >
+      </p>
     </div>
     <BotonBase type="button" class="btn btn--suave" @click="$emit('cambiar')">
       <ChevronLeft :size="16" aria-hidden="true" />
@@ -48,13 +53,14 @@ defineEmits(['cambiar'])
   </div>
 
   <p class="nota" data-test="plantilla-rol">
-    Referencia del rol: {{ plantilla.length }} permisos predefinidos. No se aplican automáticamente,
-    pero podés usar el botón “Por defecto del rol”.
+    Referencia del rol: {{ plantilla.length }} permisos predefinidos. No se
+    aplican automáticamente, pero podés usar el botón “Por defecto del rol”.
   </p>
 
   <p v-if="faltan" class="aviso" data-test="permisos-pendientes">
     <KeyRound :size="15" aria-hidden="true" />
-    Faltan {{ faltan }} funciones en el catálogo del backend. Quedan marcadas como pendientes.
+    Faltan {{ faltan }} funciones en el catálogo del backend. Quedan marcadas
+    como pendientes.
   </p>
 </template>
 

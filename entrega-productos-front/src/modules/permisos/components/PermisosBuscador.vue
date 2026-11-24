@@ -65,6 +65,7 @@ defineEmits(['update:modelValue', 'select'])
           <span class="usuario__datos">
             <strong>{{ usuario.nombre }}</strong>
             <small>{{ usuario.correo }}</small>
+            <small v-if="usuario.empresa_nombre" data-test="usuario-empresa">{{ usuario.empresa_nombre }}</small>
           </span>
           <span class="rol">{{ usuario.rol }}</span>
         </BotonBase>

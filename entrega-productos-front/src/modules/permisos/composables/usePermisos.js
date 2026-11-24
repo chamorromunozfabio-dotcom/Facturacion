@@ -39,7 +39,7 @@ export function usePermisos() {
     const texto = normalizarTexto(busqueda.value).trim()
     if (!texto || !usuarios.value.length) return []
     return usuarios.value.filter((usuario) =>
-      [usuario.nombre, usuario.correo, usuario.rol].some((valor) =>
+      [usuario.nombre, usuario.correo, usuario.rol, usuario.empresa_nombre].some((valor) =>
         normalizarTexto(valor).includes(texto),
       ),
     )
