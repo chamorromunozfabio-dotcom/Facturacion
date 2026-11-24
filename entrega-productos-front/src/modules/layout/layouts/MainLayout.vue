@@ -38,6 +38,7 @@ async function logout() {
     :menu="visibleMenu"
     :logo-url="logoUrl"
     :role="auth.role"
+    :empresa="auth.empresaNombre"
     @cerrar="cerrarMenu"
     @toggle="menuAbierto = true"
     @logout="logout"
@@ -48,6 +49,7 @@ async function logout() {
         :abierto="menuAbierto"
         :menu="visibleMenu"
         :logo-url="logoUrl"
+        :empresa="auth.empresaNombre"
         @cerrar="cerrarMenu"
       />
     </template>
@@ -57,6 +59,7 @@ async function logout() {
         :abierto="menuAbierto"
         :nombre="auth.userName"
         :rol="auth.role"
+        :empresa="auth.empresaNombre"
         @toggle="menuAbierto = true"
         @logout="logout"
       />

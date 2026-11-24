@@ -1,7 +1,7 @@
 # Mensaje para el backend — contrato v2 aplicado
 
 > Listo para copiar y pegar. Fecha: 23-11-2026 (actualizado).
-> Estado del frontend: **61 archivos de test / 324 pruebas en verde y build correcto.**
+> Estado del frontend: **70 archivos de test / 390 pruebas en verde y build correcto.**
 
 ---
 
@@ -372,3 +372,110 @@ Gracias, quedó confirmado:
 - **401 del refresh** → `{"detail":"Refresh token inválido o vencido"}`. El front cierra sesión con el aviso actual.
 
 De nuestro lado quedó integrado: guardamos siempre el último refresh recibido, ante un 401 hacemos **una sola** renovación compartida entre peticiones concurrentes, reintentamos la petición original una vez y, si el refresh falla, limpiamos la sesión y mostramos `Tu sesión venció…`. Seguimos enviando `Authorization: Bearer <access_token>` y el body de `/login` con `correo`/`contrasena`, sin cambios. ✅
+
+---
+
+## Pedido (24-11-2026) — rol `empresa`, registro público y multiempresa
+
+Hola equipo 👋 Ya implementamos en el frontend la base del rol **`empresa`**, el **registro público** y el módulo **Empresas** para el admin. Para cerrar la parte de catálogos y facturas necesitamos que confirmen estos contratos. Mientras responden, el front sigue funcionando con mocks y con los endpoints actuales; no rompimos web ni móvil.
+
+### 1. Registro público — `POST /register`
+
+Hoy el front envía un único endpoint con un discriminador `tipo`:
+
+**Cliente**
+```json
+{
+  "tipo": "cliente",
+  "nombre": "Juan Pérez",
+  "tipo_documento": "CC",
+  "numero_documento": "1020304050",
+  "telefono": "3001234567",
+  "correo": "juan@cliente.com",
+  "contrasena": "Cliente123*"
+}
+```
+
+**Empresa**
+```json
+{
+  "tipo": "empresa",
+  "razon_social": "Distribuidora Andina S.A.S.",
+  "nit": "900123456-1",
+  "telefono": "3001234567",
+  "direccion": "Calle 10 # 20-30",
+  "representante": "Ana Torres",
+  "correo": "empresa@entrega.com",
+  "contrasena": "Empresa123*"
+}
+```
+
+Necesitamos confirmar:
+
+1. ¿Les sirve `POST /register` con `tipo`, o prefieren `POST /register/cliente` y `POST /register/empresa`? Si prefieren dos endpoints, los adaptamos.
+2. ¿El cliente queda **activo** y puede iniciar sesión de inmediato? ¿La empresa queda **pendiente** y `POST /login` debe devolver `403` con un `detail` claro hasta que un admin la active?
+3. Respuesta esperada (propuesta): `201` con `{ message, user }` para cliente y `{ message, estado: "pendiente", empresa }` para empresa. ¿Nos confirman la forma exacta?
+4. Errores: ¿`409` o `400` para correo/NIT repetido? ¿`422` con `detail` tipo FastAPI (`loc`/`msg`) o con `{ errores: { campo: mensaje } }`? El front ya acepta ambos.
+5. ¿El registro de empresa crea también el usuario administrador de esa empresa, o queda pendiente hasta que el admin la apruebe? Si lo crea, ¿qué rol y qué permisos recibe?
+6. ¿Se puede registrar una empresa con un correo que ya existe como cliente? ¿Y al revés?
+
+### 2. Módulo Empresas — admin
+
+El front ya consume:
+
+- `GET /empresas?q=&page=1&limit=10&estado=pendiente`
+- `PATCH /empresas/{id}/estado` con `{ "estado": "activa" }`, `{ "estado": "rechazada", "motivo_rechazo": "..." }`, `{ "estado": "suspendida" }` o `{ "estado": "activa" }` para reactivar.
+
+Confirmar:
+
+1. Forma de `GET /empresas`: ¿`{ data, total, page, limit }` como los demás listados? ¿Qué campos trae cada empresa (`id`, `razon_social`, `nit`, `correo`, `telefono`, `direccion`, `representante`, `estado`, `motivo_rechazo`, `fecha_registro`, totales)?
+2. ¿Los estados exactos son `pendiente`, `activa`, `rechazada` y `suspendida`? ¿Reactivar una suspendida se hace con `PATCH .../estado { estado: "activa" }` o hay un endpoint aparte?
+3. ¿El rechazo exige `motivo_rechazo` de mínimo 10 caracteres? ¿Qué código y mensaje devuelven si falta?
+4. ¿Suspender una empresa bloquea el login de todos sus usuarios (`403`)? ¿Y qué pasa con sus bodegas y facturas?
+5. ¿`GET /empresas` es solo admin? El front oculta la ruta y el menú a los demás roles, pero el backend debe devolver `403`.
+
+### 3. Multiempresa — datos y filtros
+
+Para la siguiente fase necesitamos saber cómo queda el modelo:
+
+1. ¿`empresa_id` viaja en `/login` y `/me`? ¿Con qué forma? El front ya lee `user.empresa.id`, `user.empresa.razon_social` y, como respaldo, `user.empresa_id` / `user.empresa_nombre`.
+2. En `GET /usuarios`, `GET /bodegas`, `GET /tipos` y `GET /facturas`, ¿el backend filtra automáticamente por la empresa del token? ¿Un usuario `empresa` ve solo los bodegueros, bodegas, tipos y facturas de su empresa?
+3. ¿El admin puede filtrar por empresa con `?empresa_id=`? ¿O el front debe cargar `GET /empresas?estado=activa` y enviar `empresa_id` al crear?
+4. Al crear un usuario `bodeguero` o una bodega como admin, ¿el body debe incluir `empresa_id`? ¿Es obligatorio? ¿Qué pasa si falta?
+5. ¿Un usuario `empresa` puede crear bodegueros? ¿El backend asigna su `empresa_id` por token aunque el front no lo envíe?
+6. ¿El rol `empresa` ya existe en `GET /roles`? El front lo resuelve por nombre y usa `4` solo como respaldo; no lo damos por fijo.
+
+### 4. Búsqueda de clientes para facturar
+
+La especificación pide `GET /clientes/buscar?q=...` (mínimo 5 caracteres) para reemplazar el listado abierto. Hoy el front usa `GET /facturas/clientes` (hasta 100). Confirmar:
+
+1. ¿Publican `GET /clientes/buscar?q=`? ¿Qué devuelve: `{ data, total, page, limit }`? ¿Busca por nombre, documento y correo?
+2. ¿Está disponible para admin, bodeguero y empresa? ¿O solo para quien puede crear facturas?
+3. Si no lo van a publicar, seguimos usando `/facturas/clientes` con búsqueda local; avísenos para no duplicar.
+
+### 5. Facturas: dos diferencias con el contrato actual
+
+1. La especificación usa `factura.numero_factura` (ej. `FAC-0001`), pero el backend y el front hoy usan `numero`. ¿Agregan `numero_factura` como alias, lo renombramos o mantenemos `numero`?
+2. El rechazo del cliente hoy envía `{ motivo }`; la especificación pide `{ motivo_rechazo }` con mínimo 10 caracteres. ¿Migramos a `motivo_rechazo` o mantenemos `motivo` por compatibilidad?
+3. ¿La edición y eliminación de facturas deben bloquearse cuando `estado !== 'emitida'`? Hoy el front muestra los botones según permisos; si el backend ya lo bloquea, ajustamos la UI.
+
+### 6. Permisos del rol `empresa`
+
+El front ya aplica estas reglas duras, aunque el backend mande otra cosa:
+
+- `empresa` nunca puede `facturas:aceptar` ni `facturas:rechazar`.
+- `empresa` nunca puede `empresas:view`.
+- `empresa` puede `tipos`, `bodegas`, `usuarios`, `facturas` y `estadisticas` según sus permisos reales.
+
+Confirmar que el backend también lo bloquea con `403`, y si van a crear los permisos `empresa_*` o si reutilizan los existentes por usuario.
+
+### Lo que ya está hecho del lado del front
+
+- Rol `empresa` en la matriz de respaldo, navegación, color propio y mensajes de Inicio/Estadísticas.
+- Registro público `/register` con selector Cliente/Empresa, validaciones en vivo, bloqueo de teclas no numéricas y confirmación de empresa pendiente.
+- Módulo `/empresas` solo admin: listado paginado, filtro por estado, búsqueda con debounce, aprobar, rechazar con motivo mínimo de 10 y suspender/reactivar.
+- Mocks de `POST /register`, `GET /empresas`, `PATCH /empresas/{id}/estado`, `GET /clientes/buscar`, cuenta demo `empresa@entrega.com / Empresa123*` y estadísticas de empresa.
+- `UsuariosView`: la empresa solo ve y crea bodegueros de su equipo; el rol queda fijo y no se muestra el selector.
+- El login ya muestra el `detail` del `403` (empresa pendiente, rechazada o suspendida).
+
+Cuando nos confirmen estos puntos, activamos la fase de catálogos/facturas con datos reales. Si algo del contrato propuesto no les sirve, mándenlo como lo necesitan y lo adaptamos. ¡Gracias! 🚀

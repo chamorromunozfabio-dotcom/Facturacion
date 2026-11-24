@@ -11,6 +11,8 @@ const modules = computed(() =>
 /** Cada rol ve un panel distinto: solo sus módulos y un mensaje acorde. */
 const roleMessages = {
   admin: 'Supervisa todos los módulos, el ciclo completo de las facturas y las estadísticas globales.',
+  empresa:
+    'Administra tus bodegas, tu equipo y las facturas de tu empresa, y revisa sus estadísticas.',
   bodeguero: 'Gestionas Tipos, tus bodegas, el ciclo de las facturas y consultas tus estadísticas.',
   cliente: 'Consulta tus facturas, acéptalas o recházalas, descarga el PDF y revisa tus estadísticas.',
 }

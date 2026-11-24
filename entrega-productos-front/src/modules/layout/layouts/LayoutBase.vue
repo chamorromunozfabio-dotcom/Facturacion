@@ -1,5 +1,5 @@
 <script setup>
-import { watch } from 'vue'
+import { computed, watch } from 'vue'
 import { Capacitor } from '@capacitor/core'
 import {
   IonButton,
@@ -23,9 +23,18 @@ const props = defineProps({
   menu: { type: Array, default: () => [] },
   logoUrl: { type: String, default: '' },
   role: { type: String, default: '' },
+  empresa: { type: String, default: '' },
 })
 const emit = defineEmits(['toggle', 'cerrar', 'logout', 'navigate'])
 const esMovil = Capacitor.isNativePlatform()
+
+const acentos = {
+  admin: '#4f46e5',
+  empresa: '#0f766e',
+  bodeguero: '#059669',
+  cliente: '#d97706',
+}
+const accent = computed(() => acentos[props.role] || '#2563eb')
 
 watch(
   () => props.abierto,
@@ -38,7 +47,12 @@ watch(
 </script>
 
 <template>
-  <div v-if="!esMovil" class="layout" :data-role="role || 'invitado'">
+  <div
+    v-if="!esMovil"
+    class="layout"
+    :data-role="role || 'invitado'"
+    :style="{ '--accent': accent }"
+  >
     <slot name="sidebar" />
     <div class="main">
       <slot name="topbar" />
@@ -59,7 +73,7 @@ watch(
             <img :src="logoUrl" alt="Logo de Entrega de Productos" class="brand__logo" />
             <div>
               <strong>Entrega de Productos</strong>
-              <small>Panel principal</small>
+              <small data-test="empresa-menu">{{ empresa || 'Panel principal' }}</small>
             </div>
           </div>
 
@@ -84,7 +98,7 @@ watch(
       </IonContent>
     </IonMenu>
 
-    <IonPage id="contenido-principal">
+    <IonPage id="contenido-principal" :style="{ '--accent': accent }">
       <IonHeader>
         <IonToolbar>
           <slot name="topbar" />
@@ -104,6 +118,7 @@ watch(
 }
 
 .layout[data-role='admin'] { --accent: #4f46e5; }
+.layout[data-role='empresa'] { --accent: #0f766e; }
 .layout[data-role='bodeguero'] { --accent: #059669; }
 .layout[data-role='cliente'] { --accent: #d97706; }
 

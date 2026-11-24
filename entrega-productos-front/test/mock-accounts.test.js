@@ -7,6 +7,12 @@ const { push } = vi.hoisted(() => ({ push: vi.fn() }))
 vi.mock('vue-router', () => ({
   useRoute: () => ({ query: {} }),
   useRouter: () => ({ push }),
+  RouterLink: {
+    props: ['to'],
+    setup(_, { slots }) {
+      return () => slots.default?.()
+    },
+  },
 }))
 
 import LoginView from '../src/modules/auth/views/LoginView.vue'
@@ -51,7 +57,12 @@ describe('Test 30 — Cuentas demo por rol', () => {
     const wrapper = mount(LoginView)
     const botones = wrapper.findAll('.demo-accounts__btn')
 
-    expect(botones.map((boton) => boton.text())).toEqual(['Admin', 'Bodeguero', 'Cliente'])
+    expect(botones.map((boton) => boton.text())).toEqual([
+      'Admin',
+      'Bodeguero',
+      'Cliente',
+      'Empresa',
+    ])
 
     await botones[1].trigger('click')
 

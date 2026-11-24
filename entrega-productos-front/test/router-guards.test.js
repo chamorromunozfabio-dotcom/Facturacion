@@ -63,4 +63,42 @@ describe('Test 4 — guardas del router', () => {
 
     expect(router.currentRoute.value.name).toBe('inicio')
   })
+
+  it('sin sesión se puede abrir el registro público', async () => {
+    await router.push('/register')
+
+    expect(router.currentRoute.value.name).toBe('register')
+  })
+
+  it('con sesión, /register redirige al inicio', async () => {
+    const auth = useAuthStore()
+    auth.saveSession('token-123', { nombre: 'Distribuidora Andina', rol: 'empresa' })
+
+    await router.push('/register')
+
+    expect(router.currentRoute.value.name).toBe('inicio')
+  })
+
+  it('solo el admin puede entrar a /empresas', async () => {
+    const auth = useAuthStore()
+
+    auth.saveSession('token-123', { nombre: 'Distribuidora Andina', rol: 'empresa' })
+    await router.push('/empresas')
+    expect(router.currentRoute.value.name).toBe('inicio')
+
+    auth.saveSession('token-456', { nombre: 'Ana', rol: 'admin' })
+    await router.push('/empresas')
+    expect(router.currentRoute.value.name).toBe('empresas')
+  })
+
+  it('la empresa puede entrar a Usuarios y Bodegas', async () => {
+    const auth = useAuthStore()
+    auth.saveSession('token-123', { nombre: 'Distribuidora Andina', rol: 'empresa' })
+
+    await router.push('/usuarios')
+    expect(router.currentRoute.value.name).toBe('usuarios')
+
+    await router.push('/bodegas')
+    expect(router.currentRoute.value.name).toBe('bodegas')
+  })
 })

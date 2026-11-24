@@ -63,4 +63,20 @@ const clases = computed(() => `status-badge status-badge--${props.estado}`)
   background: #dbeafe;
   color: #1e40af;
 }
+
+/* Estados del módulo Empresas. */
+.status-badge--pendiente {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge--activa {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-badge--suspendida {
+  background: #ede9fe;
+  color: #5b21b6;
+}
 </style>

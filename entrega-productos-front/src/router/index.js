@@ -5,6 +5,7 @@ import MainLayout from '../modules/layout/layouts/MainLayout.vue'
 
 import authRoutes from '../modules/auth/routes'
 import catalogosRoutes from '../modules/catalogos/routes'
+import empresasRoutes from '../modules/empresas/routes'
 import estadisticasRoutes from '../modules/estadisticas/routes'
 import facturasRoutes from '../modules/facturas/routes'
 import inicioRoutes from '../modules/inicio/routes'
@@ -24,6 +25,7 @@ const router = createRouter({
         porNombre(catalogosRoutes, 'tipos'),
         porNombre(catalogosRoutes, 'bodegas'),
         porNombre(catalogosRoutes, 'usuarios'),
+        ...empresasRoutes,
         porNombre(permisosRoutes, 'permisos'),
         porNombre(catalogosRoutes, 'roles'),
         // "Órdenes" se eliminó: la orden es la factura. Redirigimos las rutas viejas.
@@ -39,7 +41,9 @@ router.beforeEach((to) => {
   const auth = useAuthStore()
 
   if (to.meta.public) {
-    if (auth.isAuthenticated && to.name === 'login') return { name: 'inicio' }
+    if (auth.isAuthenticated && (to.name === 'login' || to.name === 'register')) {
+      return { name: 'inicio' }
+    }
     return true
   }
 

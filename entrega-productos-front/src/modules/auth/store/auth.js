@@ -44,6 +44,21 @@ export const useAuthStore = defineStore('auth', () => {
     () => user.value?.nombre ?? user.value?.name ?? user.value?.correo ?? user.value?.usuario ?? '',
   )
 
+  // /login y /me deben devolver `empresa.razon_social` para la empresa y sus
+  // bodegueros. Si el backend todavía no lo envía, el layout simplemente no
+  // muestra el badge y nada se rompe.
+  const empresaNombre = computed(
+    () =>
+      user.value?.empresa?.razon_social ??
+      user.value?.empresa_nombre ??
+      user.value?.razon_social ??
+      '',
+  )
+
+  const empresaId = computed(
+    () => user.value?.empresa?.id ?? user.value?.empresa_id ?? null,
+  )
+
   // El backend devuelve `permisos` en /login y /me. El menú, los botones y las
   // rutas usan esta lista real; la matriz por rol queda solo como respaldo.
   const permisos = computed(() => user.value?.permisos ?? [])
@@ -120,6 +135,8 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     role,
     userName,
+    empresaNombre,
+    empresaId,
     permisos,
     login,
     fetchMe,

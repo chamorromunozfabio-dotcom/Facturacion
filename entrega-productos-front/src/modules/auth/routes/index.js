@@ -5,4 +5,10 @@ export default [
     component: () => import('../views/LoginView.vue'),
     meta: { public: true },
   },
+  {
+    path: '/register',
+    name: 'register',
+    component: () => import('../views/RegisterView.vue'),
+    meta: { public: true },
+  },
 ]

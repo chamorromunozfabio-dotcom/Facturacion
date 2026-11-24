@@ -9,24 +9,24 @@ import { useCrud } from '../composables/useCrud'
 
 const auth = useAuthStore()
 const isBodeguero = computed(() => auth.role === 'bodeguero')
+const isEmpresa = computed(() => auth.role === 'empresa')
 const roleFilter = ref('')
 
 // Los roles NO son fijos: el admin puede crear otros y el backend los devuelve en GET /roles.
 const ROLES_POR_DEFECTO = [
-  { value: 1, label: 'admin' },
-  { value: 2, label: 'bodeguero' },
-  { value: 3, label: 'cliente' },
+  { value: 1, label: 'admin' }, { value: 2, label: 'bodeguero' },
+  { value: 3, label: 'cliente' }, { value: 4, label: 'empresa' },
 ]
-const IDS_POR_DEFECTO = Object.fromEntries(
-  ROLES_POR_DEFECTO.map((rol) => [rol.label, rol.value]),
-)
+const IDS_POR_DEFECTO = Object.fromEntries(ROLES_POR_DEFECTO.map((rol) => [rol.label, rol.value]))
 const rolesDisponibles = ref([])
 
 const roleOptions = computed(() => {
   const activos = rolesDisponibles.value
     .filter((rol) => rol.estado !== false)
     .map((rol) => ({ value: rol.id, label: rol.nombre }))
-  return activos.length ? activos : ROLES_POR_DEFECTO
+  const opciones = activos.length ? activos : ROLES_POR_DEFECTO
+  // La empresa solo puede crear y editar bodegueros de su propio equipo.
+  return isEmpresa.value ? opciones.filter((rol) => rol.label === 'bodeguero') : opciones
 })
 
 function nombreRol(id) {
@@ -49,10 +49,7 @@ const documentOptions = [
 const phonePattern = /^[0-9]{7,15}$/
 const phoneMessage = 'Solo dígitos: entre 7 y 15.'
 
-const documentPatterns = {
-  numerico: /^[0-9]+$/,
-  pasaporte: /^[A-Za-z0-9]+$/,
-}
+const documentPatterns = { numerico: /^[0-9]+$/, pasaporte: /^[A-Za-z0-9]+$/ }
 
 const columns = [
   { key: 'nombre', label: 'Nombre' },
@@ -119,12 +116,18 @@ const clienteFields = computed(() => {
   ]
 })
 
-const effectiveRole = computed(() => (isBodeguero.value ? 'cliente' : roleFilter.value))
+const effectiveRole = computed(() => {
+  if (isBodeguero.value) return 'cliente'
+  if (isEmpresa.value) return 'bodeguero'
+  return roleFilter.value
+})
 
 const fields = computed(() => {
-  const list = baseFields.map((field) =>
-    field.key === 'rol_id' ? { ...field, options: roleOptions.value } : { ...field },
-  )
+  const list = baseFields
+    .filter((field) => field.key !== 'rol_id' || !isEmpresa.value)
+    .map((field) =>
+      field.key === 'rol_id' ? { ...field, options: roleOptions.value } : { ...field },
+    )
   if (nombreRol(form.value.rol_id) === 'cliente') list.push(...clienteFields.value)
   if (editing.value) {
     const password = list.find((field) => field.key === 'contrasena')
@@ -144,9 +147,19 @@ async function cargarRoles() {
   }
 }
 
+function rolBodegueroId() {
+  return roleOptions.value.find((rol) => rol.label === 'bodeguero')?.value ?? 2
+}
+
 function cleanPayload(payload) {
   const clean = quitarVacios(payload)
-  if (clean.rol_id !== undefined) clean.rol_id = Number(clean.rol_id)
+  if (isEmpresa.value) {
+    // La empresa nunca crea admins ni clientes: el backend además asigna la
+    // empresa del token, así que el rol viaja fijo como bodeguero.
+    clean.rol_id = rolBodegueroId()
+  } else if (clean.rol_id !== undefined) {
+    clean.rol_id = Number(clean.rol_id)
+  }
   return clean
 }
 
@@ -181,7 +194,11 @@ const {
   columns,
   fields,
   createLabel: 'Nuevo usuario',
-  emptyForm: () => Object.fromEntries(fields.value.map((field) => [field.key, ''])),
+  emptyForm: () => {
+    const empty = Object.fromEntries(fields.value.map((field) => [field.key, '']))
+    if (isEmpresa.value) empty.rol_id = rolBodegueroId()
+    return empty
+  },
   formFromRow: (row) => ({
     nombre: row.nombre ?? '',
     correo: row.correo ?? '',
@@ -256,7 +273,7 @@ const {
     @close-alert="alert = null"
   >
     <template #filter>
-      <label v-if="!isBodeguero" class="filter">
+      <label v-if="!isBodeguero && !isEmpresa" class="filter">
         Filtrar por rol
         <select v-model="roleFilter" data-test="role-filter">
           <option value="">Todos</option>
@@ -275,16 +292,6 @@ const {
 </template>
 
 <style scoped>
-.filter {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.9rem;
-}
-
-.filter select {
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 8px 10px;
-}
+.filter { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
+.filter select { border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 10px; }
 </style>

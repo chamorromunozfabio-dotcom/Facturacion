@@ -143,7 +143,7 @@ describe('Test 42 — Roles nuevos del backend disponibles para asignar a usuari
     expect(wrapper.find('[data-test="field-rol_id"]').element.value).toBe('8')
   })
 
-  it('si el backend no responde, siguen disponibles los tres roles clásicos', async () => {
+  it('si el backend no responde, siguen disponibles los roles clásicos', async () => {
     roles.list.mockRejectedValue(new Error('sin conexión'))
     const wrapper = mount(UsuariosView)
     await flushPromises()
@@ -151,6 +151,6 @@ describe('Test 42 — Roles nuevos del backend disponibles para asignar a usuari
 
     expect(
       wrapper.findAll('[data-test="field-rol_id"] option').map((op) => op.text()),
-    ).toEqual(['admin', 'bodeguero', 'cliente'])
+    ).toEqual(['admin', 'bodeguero', 'cliente', 'empresa'])
   })
 })

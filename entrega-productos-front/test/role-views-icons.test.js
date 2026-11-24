@@ -37,18 +37,38 @@ describe('Test 25 — Vistas por rol con iconos Lucide y transiciones', () => {
     push.mockClear()
   })
 
-  it('admin ve los 8 módulos con iconos SVG en vez de emoji', () => {
+  it('admin ve los 9 módulos con iconos SVG en vez de emoji', () => {
     login('admin')
 
     const wrapper = mount(MainLayout, { global: globalOptions })
     const labels = wrapper.findAll('.menu__item').map((item) => item.text())
 
-    expect(labels).toHaveLength(8)
+    expect(labels).toHaveLength(9)
+    expect(labels).toContain('Empresas')
     expect(labels).toContain('Permisos')
     expect(labels).toContain('Roles')
     expect(labels).toContain('Estadísticas')
-    expect(wrapper.findAll('.menu__item svg')).toHaveLength(8)
+    expect(wrapper.findAll('.menu__item svg')).toHaveLength(9)
     expect(wrapper.text()).not.toContain('🏠')
+  })
+
+  it('empresa ve Inicio, Tipos, Bodegas, Usuarios, Facturas y Estadísticas', () => {
+    login('empresa')
+
+    const wrapper = mount(MainLayout, { global: globalOptions })
+    const labels = wrapper.findAll('.menu__item').map((item) => item.text())
+
+    expect(labels).toEqual([
+      'Inicio',
+      'Tipos',
+      'Bodegas',
+      'Usuarios',
+      'Facturas',
+      'Estadísticas',
+    ])
+    expect(wrapper.text()).not.toContain('Empresas')
+    expect(wrapper.text()).not.toContain('Permisos')
+    expect(wrapper.text()).not.toContain('Roles')
   })
 
   it('bodeguero ve Inicio, Tipos, Bodegas, Facturas y Estadísticas', () => {
@@ -90,6 +110,8 @@ describe('Test 25 — Vistas por rol con iconos Lucide y transiciones', () => {
   it('el mensaje del inicio menciona Estadísticas y se ajusta a cada rol', () => {
     const mensajes = {
       admin: 'Supervisa todos los módulos, el ciclo completo de las facturas y las estadísticas globales.',
+      empresa:
+        'Administra tus bodegas, tu equipo y las facturas de tu empresa, y revisa sus estadísticas.',
       bodeguero:
         'Gestionas Tipos, tus bodegas, el ciclo de las facturas y consultas tus estadísticas.',
       cliente:

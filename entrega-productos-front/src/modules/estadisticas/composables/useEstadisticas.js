@@ -21,6 +21,9 @@ export function useEstadisticas() {
     if (auth.role === 'admin') {
       return 'Analiza las cifras globales de todos los usuarios y el rendimiento general.'
     }
+    if (auth.role === 'empresa') {
+      return 'Resumen consolidado de tus bodegas, tu equipo y tus entregas.'
+    }
     if (auth.role === 'bodeguero') {
       return 'Consulta las cifras de las facturas que creaste y de tus bodegas.'
     }

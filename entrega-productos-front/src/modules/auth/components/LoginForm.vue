@@ -1,5 +1,6 @@
 <script setup>
 import { IonButton, IonContent, IonInput, IonPage } from '@ionic/vue'
+import { RouterLink } from 'vue-router'
 import { MOCK_ACCOUNTS } from '../../../shared/api/mocks'
 import { MENSAJE_SESION_VENCIDA } from '../config/sessionNotice'
 import { useLogin } from '../composables/useLogin'
@@ -111,6 +112,11 @@ const {
               {{ cuenta.pista }}
             </IonButton>
           </div>
+
+          <p class="register-link">
+            ¿No tienes cuenta?
+            <RouterLink :to="{ name: 'register' }">Regístrate aquí</RouterLink>
+          </p>
         </form>
       </div>
     </IonContent>
@@ -269,6 +275,18 @@ ion-button[disabled] {
   --box-shadow: none;
   font-size: 0.8rem;
   text-transform: none;
+}
+
+.register-link {
+  margin: 4px 0 0;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.register-link a {
+  color: #1d4ed8;
+  font-weight: 600;
 }
 
 @media (max-width: 480px) {

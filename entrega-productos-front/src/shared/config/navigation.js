@@ -1,4 +1,5 @@
 import {
+  Building2,
   ChartColumn,
   Home,
   KeyRound,
@@ -21,6 +22,7 @@ export const menuItems = [
   { label: 'Tipos', to: '/tipos', icon: Tags, module: 'tipos' },
   { label: 'Bodegas', to: '/bodegas', icon: Warehouse, module: 'bodegas' },
   { label: 'Usuarios', to: '/usuarios', icon: Users, module: 'usuarios' },
+  { label: 'Empresas', to: '/empresas', icon: Building2, module: 'empresas' },
   { label: 'Permisos', to: '/permisos', icon: KeyRound, module: 'permisos' },
   { label: 'Roles', to: '/roles', icon: ShieldCheck, module: 'roles' },
   { label: 'Facturas', to: '/facturas', icon: ReceiptText, module: 'facturas' },

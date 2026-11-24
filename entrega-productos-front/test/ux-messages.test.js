@@ -13,6 +13,12 @@ const api = vi.hoisted(() => ({
 vi.mock('vue-router', () => ({
   useRoute: () => ({ query: {} }),
   useRouter: () => ({ push }),
+  RouterLink: {
+    props: ['to'],
+    setup(_, { slots }) {
+      return () => slots.default?.()
+    },
+  },
 }))
 vi.mock('../src/modules/catalogos/api/tipos', () => ({ default: api }))
 

@@ -7,6 +7,12 @@ const { push } = vi.hoisted(() => ({ push: vi.fn() }))
 vi.mock('vue-router', () => ({
   useRoute: () => ({ query: {} }),
   useRouter: () => ({ push }),
+  RouterLink: {
+    props: ['to'],
+    setup(_, { slots }) {
+      return () => slots.default?.()
+    },
+  },
 }))
 
 import LoginView from '../src/modules/auth/views/LoginView.vue'

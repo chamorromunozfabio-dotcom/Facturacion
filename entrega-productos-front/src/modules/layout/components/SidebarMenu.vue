@@ -8,6 +8,7 @@ const props = defineProps({
   abierto: { type: Boolean, default: false },
   menu: { type: Array, default: () => [] },
   logoUrl: { type: String, default: '' },
+  empresa: { type: String, default: '' },
 })
 const emit = defineEmits(['cerrar'])
 
@@ -39,7 +40,7 @@ const { panelRef } = useModalA11y(
       <img :src="logoUrl" alt="Logo de Entrega de Productos" class="brand__logo" />
       <div>
         <strong>Entrega de Productos</strong>
-        <small>Panel principal</small>
+        <small data-test="empresa-sidebar">{{ empresa || 'Panel principal' }}</small>
       </div>
       <button
         type="button"

@@ -2,12 +2,12 @@
  * Datos falsos para poder desarrollar hoy sin esperar al backend.
  * Se activan con VITE_USE_MOCKS=true en .env.
  * Campos ajustados a lo que respondió el backend.
- * Roles provisionales: admin, bodeguero, cliente (confirmar con el líder).
+ * Roles: admin, empresa, bodeguero y cliente.
  */
 
 export const wait = (ms = 250) => new Promise((resolve) => setTimeout(resolve, ms))
 
-export const PROVISIONAL_ROLES = ['admin', 'bodeguero', 'cliente']
+export const PROVISIONAL_ROLES = ['admin', 'empresa', 'bodeguero', 'cliente']
 
 export const mockUser = {
   id: 1,
@@ -42,6 +42,24 @@ export const MOCK_ACCOUNTS = [
       cliente_id: 3,
     },
   },
+  {
+    correo: 'empresa@entrega.com',
+    contrasena: 'Empresa123*',
+    pista: 'Empresa',
+    user: {
+      id: 4,
+      nombre: 'Distribuidora Andina',
+      correo: 'empresa@entrega.com',
+      rol: 'empresa',
+      empresa_id: 1,
+      empresa: {
+        id: 1,
+        razon_social: 'Distribuidora Andina S.A.S.',
+        nit: '900123456-1',
+        estado: 'activa',
+      },
+    },
+  },
 ]
 
 /** Genera una factura completa (detalle) a partir de los datos mínimos. */
@@ -49,6 +67,8 @@ function factura({ id, numero, estado, cliente, trazabilidad = {} }) {
   return {
     id,
     numero,
+    numero_factura: numero,
+    empresa_id: 1,
     estado,
     fecha_emision: '2026-11-18T10:30:00',
     fecha_vencimiento: null,
@@ -124,14 +144,74 @@ const clienteJuan = {
 }
 
 const rowsByResource = {
+  empresas: [
+    {
+      id: 1,
+      razon_social: 'Distribuidora Andina S.A.S.',
+      nit: '900123456-1',
+      correo: 'empresa@entrega.com',
+      telefono: '3001234567',
+      direccion: 'Calle 10 # 20-30',
+      representante: 'Ana Torres',
+      estado: 'activa',
+      motivo_rechazo: null,
+      fecha_registro: '2026-11-10T09:00:00',
+      total_usuarios: 3,
+      total_bodegas: 2,
+    },
+    {
+      id: 2,
+      razon_social: 'Comercializadora del Caribe S.A.S.',
+      nit: '900987654-2',
+      correo: 'contacto@caribe.com',
+      telefono: '3059876543',
+      direccion: 'Avenida 20 # 30-40',
+      representante: 'Luis Prado',
+      estado: 'pendiente',
+      motivo_rechazo: null,
+      fecha_registro: '2026-11-20T14:30:00',
+      total_usuarios: 0,
+      total_bodegas: 0,
+    },
+    {
+      id: 3,
+      razon_social: 'Suministros del Pacífico S.A.S.',
+      nit: '901222333-4',
+      correo: 'gerencia@suministros.com',
+      telefono: '3125557788',
+      direccion: 'Carrera 5 # 10-15',
+      representante: 'Sofía Ramírez',
+      estado: 'rechazada',
+      motivo_rechazo: 'El NIT no coincide con la cámara de comercio.',
+      fecha_registro: '2026-11-15T11:00:00',
+      total_usuarios: 0,
+      total_bodegas: 0,
+    },
+    {
+      id: 4,
+      razon_social: 'Logística Nacional S.A.S.',
+      nit: '900444555-6',
+      correo: 'operaciones@logisticanacional.com',
+      telefono: '3184445566',
+      direccion: 'Calle 80 # 50-20',
+      representante: 'Jorge Medina',
+      estado: 'suspendida',
+      motivo_rechazo: null,
+      fecha_registro: '2026-10-05T08:00:00',
+      total_usuarios: 4,
+      total_bodegas: 1,
+    },
+  ],
   tipos: [
-    { id: 1, nombre: 'Alimentos', bodega_id: 1, bodega_nombre: 'Bodega Central' },
-    { id: 2, nombre: 'Bebidas', bodega_id: 1, bodega_nombre: 'Bodega Central' },
-    { id: 3, nombre: 'Limpieza', bodega_id: 2, bodega_nombre: 'Bodega Norte' },
+    { id: 1, nombre: 'Alimentos', bodega_id: 1, bodega_nombre: 'Bodega Central', empresa_id: 1 },
+    { id: 2, nombre: 'Bebidas', bodega_id: 1, bodega_nombre: 'Bodega Central', empresa_id: 1 },
+    { id: 3, nombre: 'Limpieza', bodega_id: 2, bodega_nombre: 'Bodega Norte', empresa_id: 2 },
   ],
   bodegas: [
     {
       id: 1,
+      empresa_id: 1,
+      empresa_nombre: 'Distribuidora Andina S.A.S.',
       nombre: 'Bodega Central',
       codigo: 'BOG-01',
       direccion: 'Calle Principal 123',
@@ -139,6 +219,8 @@ const rowsByResource = {
       departamento: 'Cundinamarca',
       telefono: '3001234567',
       correo: 'bodega@entrega.com',
+      bodeguero_id: 2,
+      bodeguero_nombre: 'Luis Gómez',
       recibe_nombre: 'María Rodríguez',
       recibe_documento: '1020304050',
       recibe_cargo: 'Jefe de bodega',
@@ -146,6 +228,8 @@ const rowsByResource = {
     },
     {
       id: 2,
+      empresa_id: 2,
+      empresa_nombre: 'Comercializadora del Caribe S.A.S.',
       nombre: 'Bodega Norte',
       codigo: null,
       direccion: null,
@@ -166,10 +250,46 @@ const rowsByResource = {
       tipo_documento: clienteJuan.tipo_documento,
       numero_documento: clienteJuan.numero_documento,
     },
+    {
+      id: 5,
+      nombre: 'María López',
+      tipo_documento: 'CC',
+      numero_documento: '1098765432',
+      telefono: '3105557788',
+      direccion: 'Calle 45 # 12-10',
+      correo: 'maria@cliente.com',
+    },
+    {
+      id: 6,
+      nombre: 'Comercial Sur S.A.S.',
+      tipo_documento: 'NIT',
+      numero_documento: '900555111-2',
+      telefono: '3204445566',
+      direccion: 'Avenida 68 # 20-30',
+      correo: 'compras@comercialsur.com',
+    },
+    {
+      id: 7,
+      nombre: 'Carlos Ruiz',
+      tipo_documento: 'CE',
+      numero_documento: '778899',
+      telefono: '3012223344',
+      direccion: 'Calle 12 # 4-5',
+      correo: 'carlos@cliente.com',
+    },
   ],
   usuarios: [
     { id: 1, nombre: 'Ana Pérez', correo: 'ana@entrega.com', rol: 'admin', rol_id: 1, permisos: [] },
-    { id: 2, nombre: 'Luis Gómez', correo: 'luis@entrega.com', rol: 'bodeguero', rol_id: 2, permisos: [] },
+    {
+      id: 2,
+      nombre: 'Luis Gómez',
+      correo: 'luis@entrega.com',
+      rol: 'bodeguero',
+      rol_id: 2,
+      empresa_id: 1,
+      empresa_nombre: 'Distribuidora Andina S.A.S.',
+      permisos: [],
+    },
     {
       id: 3,
       nombre: 'Juan Pérez',
@@ -178,6 +298,20 @@ const rowsByResource = {
       rol_id: 3,
       tipo_documento: 'CC',
       numero_documento: '1020304050',
+      telefono: '3001234567',
+      direccion: 'Calle 10 # 20-30',
+      ciudad: 'Bogotá',
+    },
+    {
+      id: 4,
+      nombre: 'Distribuidora Andina',
+      correo: 'empresa@entrega.com',
+      rol: 'empresa',
+      rol_id: 4,
+      empresa_id: 1,
+      empresa_nombre: 'Distribuidora Andina S.A.S.',
+      tipo_documento: 'NIT',
+      numero_documento: '900123456-1',
       telefono: '3001234567',
       direccion: 'Calle 10 # 20-30',
       ciudad: 'Bogotá',
@@ -191,6 +325,7 @@ const rowsByResource = {
     { id: 1, nombre: 'admin', descripcion: 'Acceso total', permisos: [] },
     { id: 2, nombre: 'bodeguero', descripcion: 'Gestión de bodega y órdenes', permisos: [] },
     { id: 3, nombre: 'cliente', descripcion: 'Consulta de órdenes y factura', permisos: [] },
+    { id: 4, nombre: 'empresa', descripcion: 'Administra bodegas y equipo de su empresa', permisos: [] },
   ],
   facturas: [
     factura({ id: 1, numero: 'FE-0001', estado: 'emitida', cliente: clienteJuan }),
@@ -245,7 +380,9 @@ export async function mockList(resource, params = {}) {
   let filtered = q
     ? all.filter((row) =>
         resource === 'facturas'
-          ? `${row.numero} ${row.cliente_nombre}`.toLowerCase().includes(q)
+          ? `${row.numero_factura ?? row.numero} ${row.cliente_nombre}`
+              .toLowerCase()
+              .includes(q)
           : JSON.stringify(row).toLowerCase().includes(q),
       )
     : all
@@ -295,6 +432,84 @@ export async function mockUpdate(resource, id, payload) {
 export async function mockRemove() {
   await wait()
   return { detail: 'Eliminado (modo demo)' }
+}
+
+/**
+ * Registro público simulado.
+ * El backend real decide si el cliente queda activo y si la empresa queda
+ * pendiente; acá reproducimos ese comportamiento para probar la UI.
+ */
+export async function mockRegister(payload = {}) {
+  await wait(350)
+  const tipo = payload.tipo === 'empresa' ? 'empresa' : 'cliente'
+  const correo = String(payload.correo ?? '').trim().toLowerCase()
+  const existe =
+    rowsByResource.usuarios.some((row) => String(row.correo).toLowerCase() === correo) ||
+    rowsByResource.empresas.some((row) => String(row.correo).toLowerCase() === correo)
+  if (existe) throw new Error('Ya existe una cuenta con ese correo.')
+
+  if (tipo === 'empresa') {
+    const empresa = {
+      id: Date.now(),
+      razon_social: String(payload.razon_social ?? '').trim(),
+      nit: String(payload.nit ?? '').trim(),
+      correo,
+      telefono: String(payload.telefono ?? '').trim(),
+      direccion: String(payload.direccion ?? '').trim(),
+      representante: String(payload.representante ?? '').trim(),
+      estado: 'pendiente',
+      motivo_rechazo: null,
+      fecha_registro: new Date().toISOString(),
+      total_usuarios: 0,
+      total_bodegas: 0,
+    }
+    rowsByResource.empresas.unshift(empresa)
+    return {
+      message: 'Empresa registrada. Queda pendiente de aprobación.',
+      estado: 'pendiente',
+      empresa,
+    }
+  }
+
+  const usuario = {
+    id: Date.now(),
+    nombre: String(payload.nombre ?? '').trim(),
+    correo,
+    rol: 'cliente',
+    rol_id: 3,
+    tipo_documento: payload.tipo_documento ?? 'CC',
+    numero_documento: payload.numero_documento ?? '',
+    telefono: payload.telefono ?? '',
+    permisos: [],
+  }
+  rowsByResource.usuarios.unshift(usuario)
+  return { message: 'Cuenta creada. Ya puedes iniciar sesión.', user: usuario }
+}
+
+/** Búsqueda puntual de clientes para facturar (mínimo 5 caracteres). */
+export async function mockBuscarClientes(q = '') {
+  await wait(250)
+  const texto = String(q ?? '').trim().toLowerCase()
+  if (texto.length < 5) return { data: [], total: 0, page: 1, limit: 20 }
+
+  const data = rowsByResource.facturasClientes.filter((cliente) =>
+    [cliente.nombre, cliente.numero_documento, cliente.correo]
+      .filter(Boolean)
+      .some((valor) => String(valor).toLowerCase().includes(texto)),
+  )
+  return { data, total: data.length, page: 1, limit: 20 }
+}
+
+/** Aprueba, rechaza, suspende o reactiva una empresa en el modo demo. */
+export async function mockCambiarEstadoEmpresa(id, payload = {}) {
+  await wait()
+  const empresa = rowsByResource.empresas.find((row) => String(row.id) === String(id))
+  if (!empresa) throw new Error('Empresa no encontrada')
+  empresa.estado = payload.estado ?? empresa.estado
+  if (Object.hasOwn(payload, 'motivo_rechazo')) {
+    empresa.motivo_rechazo = payload.motivo_rechazo || null
+  }
+  return { ...empresa }
 }
 
 function usuarioDemo(usuarioId) {
@@ -476,6 +691,45 @@ export async function mockResumenEstadisticas(params = {}) {
             { etiqueta: 'Papa', valor: 18 },
             { etiqueta: 'Yuca', valor: 12 },
             { etiqueta: 'Manzana', valor: 9 },
+          ],
+        },
+      ],
+    }
+  }
+
+  if (rol === 'empresa') {
+    return {
+      periodo,
+      generado_para: 'empresa',
+      tarjetas: [
+        { clave: 'facturas', etiqueta: 'Facturas de la empresa', valor: 64, sufijo: '' },
+        { clave: 'facturado', etiqueta: 'Facturado', valor: 22800000, sufijo: '$' },
+        { clave: 'pendientes', etiqueta: 'Pendientes de firma', valor: 6, sufijo: '' },
+        { clave: 'rechazadas', etiqueta: 'Rechazadas', valor: 1, sufijo: '' },
+        { clave: 'bodegas', etiqueta: 'Bodegas', valor: 2, sufijo: '' },
+        { clave: 'usuarios', etiqueta: 'Bodegueros', valor: 3, sufijo: '' },
+      ],
+      series: [
+        {
+          clave: 'por_estado',
+          titulo: 'Facturas de la empresa por estado',
+          tipo: 'barras',
+          datos: [
+            { etiqueta: 'Emitida', valor: 9 },
+            { etiqueta: 'Entregada', valor: 17 },
+            { etiqueta: 'Firmada', valor: 28 },
+            { etiqueta: 'Rechazada', valor: 1 },
+            { etiqueta: 'Recibida', valor: 9 },
+          ],
+        },
+        seriePorFecha(periodo, [0, 2, 5, 4, 8, 6]),
+        {
+          clave: 'por_bodega',
+          titulo: 'Facturado por bodega',
+          tipo: 'barras',
+          datos: [
+            { etiqueta: 'Bodega Central', valor: 14250000 },
+            { etiqueta: 'Bodega Norte', valor: 8550000 },
           ],
         },
       ],

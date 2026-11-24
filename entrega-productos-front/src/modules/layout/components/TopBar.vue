@@ -6,6 +6,7 @@ defineProps({
   abierto: { type: Boolean, default: false },
   nombre: { type: String, default: '' },
   rol: { type: String, default: '' },
+  empresa: { type: String, default: '' },
 })
 defineEmits(['toggle', 'logout'])
 </script>
@@ -28,6 +29,7 @@ defineEmits(['toggle', 'logout'])
     <div class="user">
       <strong>{{ nombre || 'Usuario' }}</strong>
       <small v-if="rol">Rol: {{ rol }}</small>
+      <small v-if="empresa" class="user__empresa" data-test="empresa-topbar">{{ empresa }}</small>
     </div>
     <button type="button" class="logout" @click="$emit('logout')">Cerrar sesión</button>
   </header>
@@ -63,6 +65,11 @@ defineEmits(['toggle', 'logout'])
   color: var(--accent);
   font-size: 0.78rem;
   font-weight: 600;
+}
+
+.user__empresa {
+  color: #6b7280;
+  font-weight: 500;
 }
 
 .logout {

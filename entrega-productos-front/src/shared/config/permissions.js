@@ -16,6 +16,20 @@ const RULES = {
     usuarios: ['view', 'create', 'edit', 'delete'],
     roles: ['view', 'create', 'edit', 'delete'],
     permisos: ['view', 'create', 'edit', 'delete'],
+    // Módulo exclusivo del admin. No entra al catálogo de permisos asignables.
+    empresas: ['view'],
+    facturas: ['view', 'create', 'edit', 'delete', 'entregar', 'recibir', 'pdf'],
+    estadisticas: ['view'],
+  },
+  empresa: {
+    // La empresa administra el catálogo y las bodegas de su propio equipo.
+    tipos: ['view', 'create', 'edit', 'delete'],
+    bodegas: ['view', 'create', 'edit', 'delete'],
+    // Solo sus bodegueros; el backend filtra por empresa_id.
+    usuarios: ['view', 'create', 'edit', 'delete'],
+    roles: [],
+    permisos: [],
+    empresas: [],
     facturas: ['view', 'create', 'edit', 'delete', 'entregar', 'recibir', 'pdf'],
     estadisticas: ['view'],
   },
@@ -106,6 +120,20 @@ export function claveDelNombreBackend(nombre) {
  * matriz del rol como respaldo para no dejar la pantalla vacía.
  */
 export function tienePermiso(permisos, role, modulo, accion) {
+  // "Empresas" es exclusivo del admin: ni los permisos reales del backend
+  // pueden abrir esta ruta a otro rol.
+  if (modulo === 'empresas') return role === 'admin'
+
+  // La empresa nunca acepta ni rechaza facturas, aunque el backend le asigne
+  // esos permisos por error. El cliente sí puede (son sus propias facturas).
+  if (
+    role === 'empresa' &&
+    modulo === 'facturas' &&
+    (accion === 'aceptar' || accion === 'rechazar')
+  ) {
+    return false
+  }
+
   if (role === 'admin') {
     // El backend da 403 al admin que intente aceptar/rechazar facturas ajenas.
     if (modulo === 'facturas' && (accion === 'aceptar' || accion === 'rechazar')) return false
