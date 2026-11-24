@@ -90,7 +90,9 @@ describe('Test 39 — Bodegas con todos los datos obligatorios', () => {
 
     await wrapper.find('form').trigger('submit')
 
-    expect(wrapper.find('[data-test="error-correo"]').text()).toBe('Dato no válido.')
+    expect(wrapper.find('[data-test="error-correo"]').text()).toBe(
+      'Escribe un correo válido, como nombre@empresa.com.',
+    )
     expect(wrapper.find('[data-test="error-recibe_cargo"]').text()).toBe('Máximo 100 caracteres.')
   })
 

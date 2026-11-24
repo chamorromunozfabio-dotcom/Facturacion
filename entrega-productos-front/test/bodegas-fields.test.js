@@ -115,7 +115,9 @@ describe('Test 18 — Campos nuevos de Bodega', () => {
     await llenar(wrapper, { ...datos, correo: 'no-es-correo' })
     await wrapper.find('form').trigger('submit')
 
-    expect(wrapper.find('[data-test="error-correo"]').text()).toBe('Dato no válido.')
+    expect(wrapper.find('[data-test="error-correo"]').text()).toBe(
+      'Escribe un correo válido, como nombre@empresa.com.',
+    )
   })
 
   it('limita el documento de quien recibe a 30 caracteres', async () => {

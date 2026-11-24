@@ -229,4 +229,30 @@ describe('Test 19 — UsuariosView (roles y campos condicionales)', () => {
     expect(wrapper.find('[data-test="error-telefono"]').text()).toBe('Solo dígitos: entre 7 y 15.')
     expect(api.create).not.toHaveBeenCalled()
   })
+
+  it('rechaza un correo mal escrito y explica qué debe contener', async () => {
+    useAuthStore().saveSession('token-123', { nombre: 'Ana', rol: 'admin' })
+    const wrapper = mount(UsuariosView)
+    await flushPromises()
+
+    await wrapper.find('[data-test="create"]').trigger('click')
+    await wrapper.find('[data-test="field-nombre"]').setValue('Pedro')
+    await wrapper.find('[data-test="field-correo"]').setValue('pedro-sin-arroba')
+    await wrapper.find('[data-test="field-contrasena"]').setValue('Clave123*')
+    await wrapper.find('[data-test="field-rol_id"]').setValue('3')
+    await wrapper.find('form').trigger('submit')
+
+    expect(wrapper.find('[data-test="error-correo"]').text()).toBe(
+      'Escribe un correo válido, como nombre@empresa.com.',
+    )
+    expect(api.create).not.toHaveBeenCalled()
+
+    await wrapper.find('[data-test="field-correo"]').setValue('pedro@cliente.com')
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(api.create).toHaveBeenCalledWith(
+      expect.objectContaining({ correo: 'pedro@cliente.com' }),
+    )
+  })
 })

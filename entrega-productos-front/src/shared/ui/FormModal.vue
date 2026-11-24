@@ -60,7 +60,8 @@ function mensaje(field, tipo = 'requerido') {
     requerido: `Escribe ${field.label.toLowerCase()}.`,
     longitud: `Máximo ${field.maxLength} caracteres.`,
     minlongitud: `Mínimo ${field.minLength} caracteres.`,
-    formato: field.message || 'Dato no válido.',
+    formato: field.message || 'Revisa el formato de este dato.',
+    correo: 'Escribe un correo válido, como nombre@empresa.com.',
     numero: 'Escribe un número.',
     entero: 'Debe ser un número entero.',
     minimo: `Mínimo ${field.min}.`,
@@ -81,7 +82,7 @@ function validarCampo(field) {
   if (!texto) return ''
   if (field.maxLength && texto.length > field.maxLength) return mensaje(field, 'longitud')
   if (field.minLength && texto.length < field.minLength) return mensaje(field, 'minlongitud')
-  if (field.type === 'email' && !EMAIL_RE.test(texto)) return mensaje(field, 'formato')
+  if (field.type === 'email' && !EMAIL_RE.test(texto)) return mensaje(field, 'correo')
   if (field.pattern && !toRegExp(field.pattern).test(texto)) return mensaje(field, 'formato')
   if (field.type === 'number' && !esNumerico(valor)) return mensaje(field, 'numero')
   if (field.type === 'number' && field.integer && !Number.isInteger(Number(valor))) {
