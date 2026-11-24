@@ -20,8 +20,8 @@ const columns = computed(() => [
   { key: 'telefono', label: 'Teléfono' },
 ])
 
-const phonePattern = /^[0-9+\- ]{7,20}$/
-const phoneMessage = 'Usa entre 7 y 20 caracteres: dígitos, espacios, + o -.'
+const phonePattern = /^[0-9]{7,20}$/
+const phoneMessage = 'Solo dígitos: entre 7 y 20.'
 
 // El backend exige los 11 datos. `codigo`, `recibe_documento` y `recibe_cargo`
 // tenían un largo distinto en el front; aquí van con el nuevo límite.
@@ -35,7 +35,8 @@ const fields = [
     key: 'telefono',
     label: 'Teléfono',
     required: true,
-    maxLength: 30,
+    digitsOnly: true,
+    maxLength: 20,
     pattern: phonePattern,
     message: phoneMessage,
     hint: 'Ej. 3001234567',
@@ -50,13 +51,21 @@ const fields = [
     hint: 'Ej. bodega@empresa.com.',
   },
   { key: 'recibe_nombre', label: 'Nombre de quien recibe', required: true, maxLength: 100 },
-  { key: 'recibe_documento', label: 'Documento de quien recibe', required: true, maxLength: 30 },
+  {
+    key: 'recibe_documento',
+    label: 'Documento de quien recibe',
+    required: true,
+    digitsOnly: true,
+    maxLength: 30,
+    hint: 'Solo números, sin puntos ni guiones.',
+  },
   { key: 'recibe_cargo', label: 'Cargo de quien recibe', required: true, maxLength: 100 },
   {
     key: 'recibe_telefono',
     label: 'Teléfono de quien recibe',
     required: true,
-    maxLength: 30,
+    digitsOnly: true,
+    maxLength: 20,
     pattern: phonePattern,
     message: phoneMessage,
     hint: 'Ej. 3109876543',

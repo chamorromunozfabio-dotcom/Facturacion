@@ -67,7 +67,7 @@ defineEmits(['marcar'])
 
     <label class="full">
       Observaciones (opcional)
-      <textarea v-model="form.observaciones" data-test="field-observaciones" rows="2" @input="$emit('marcar', 'observaciones')"></textarea>
+      <textarea v-model="form.observaciones" data-test="field-observaciones" rows="2" maxlength="1000" @input="$emit('marcar', 'observaciones')"></textarea>
       <small v-if="errores.observaciones" data-test="error-observaciones" class="campo-error">{{ errores.observaciones }}</small>
     </label>
   </div>

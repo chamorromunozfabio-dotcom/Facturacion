@@ -1,8 +1,6 @@
 import { computed, reactive, watch } from 'vue'
 import {
   aplicarErroresServidor,
-  campoCabeceraValido,
-  campoLineaValido,
   clavesDelFormulario,
   defaults,
   emptyLinea,
@@ -66,6 +64,11 @@ export function useFacturaForm(props, emit) {
   const tieneTipo = computed(() => tiposDisponibles.value.length > 0)
   const esCredito = computed(() => form.forma_pago === 'credito')
 
+  /** El botón guardar queda deshabilitado mientras haya datos vacíos o mal escritos. */
+  const formularioValido = computed(
+    () => Object.keys(validarFormulario(form, esCredito.value)).length === 0,
+  )
+
   function addLinea() {
     form.detalle.push(emptyLinea())
   }
@@ -102,13 +105,10 @@ export function useFacturaForm(props, emit) {
       if (form.detalle.length) delete errores[clave]
       return
     }
-    const coincidencia = clave.match(/^linea_(\d+)_(.+)$/)
-    if (coincidencia) {
-      const linea = form.detalle[Number(coincidencia[1])]
-      if (!linea || campoLineaValido(coincidencia[2], linea)) delete errores[clave]
-      return
-    }
-    if (campoCabeceraValido(clave, form, esCredito.value)) delete errores[clave]
+    // Recalcula todo el formulario (es chico) y toma solo el aviso del campo tocado.
+    const nuevos = validarFormulario(form, esCredito.value)
+    if (nuevos[clave]) errores[clave] = nuevos[clave]
+    else delete errores[clave]
   }
 
   function marca(clave) {
@@ -170,6 +170,7 @@ export function useFacturaForm(props, emit) {
     tiposDisponibles,
     tieneTipo,
     esCredito,
+    formularioValido,
     addLinea,
     removeLinea,
     onTipoChange,

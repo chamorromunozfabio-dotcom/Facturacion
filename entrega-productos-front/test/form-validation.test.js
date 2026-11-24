@@ -71,6 +71,31 @@ describe('Test 15 — Validación según contrato del backend', () => {
     expect(wrapper.emitted('submit')[0][0]).toEqual({ nombre: 'Alima' })
   })
 
+  it('deshabilita el botón mientras haya campos vacíos y lo habilita al completar', async () => {
+    const wrapper = mountModal()
+
+    expect(wrapper.find('[data-test="submit"]').attributes('disabled')).toBeDefined()
+    expect(wrapper.find('[data-test="form-hint"]').text()).toBe(
+      'Completa los campos marcados para guardar.',
+    )
+
+    await wrapper.find('[data-test="field-nombre"]').setValue('Ali')
+
+    expect(wrapper.find('[data-test="submit"]').attributes('disabled')).toBeUndefined()
+  })
+
+  it('avisa debajo del campo apenas queda vacío, sin enviar', async () => {
+    const wrapper = mountModal()
+
+    await wrapper.find('[data-test="field-nombre"]').setValue('Ali')
+    expect(wrapper.find('[data-test="error-nombre"]').exists()).toBe(false)
+
+    await wrapper.find('[data-test="field-nombre"]').setValue('')
+
+    expect(wrapper.find('[data-test="error-nombre"]').text()).toBe('Escribe nombre.')
+    expect(wrapper.emitted('submit')).toBeUndefined()
+  })
+
   it('rechaza textos más cortos que el mínimo de caracteres', async () => {
     const wrapper = mount(FormModal, {
       props: {

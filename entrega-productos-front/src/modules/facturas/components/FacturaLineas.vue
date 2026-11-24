@@ -51,15 +51,15 @@ function escribirNumero(linea, campo, index, evento) {
         <small v-if="errores[`linea_${index}_tipo`]" :data-test="`error-linea-${index}-tipo`" class="campo-error">{{ errores[`linea_${index}_tipo`] }}</small>
       </label>
 
-      <label class="linea__desc">
+      <label>
         Descripción *
-        <input v-model="linea.descripcion" :data-test="`linea-descripcion-${index}`" type="text" placeholder="Ej. Arroz 500 g" @input="$emit('marcar', `linea_${index}_descripcion`)" />
+        <input v-model="linea.descripcion" :data-test="`linea-descripcion-${index}`" type="text" maxlength="255" placeholder="Ej. Arroz 500 g" @input="$emit('marcar', `linea_${index}_descripcion`)" />
         <small v-if="errores[`linea_${index}_descripcion`]" :data-test="`error-linea-${index}-descripcion`" class="campo-error">{{ errores[`linea_${index}_descripcion`] }}</small>
       </label>
 
       <label class="linea__unidad">
         Unidad *
-        <input v-model="linea.unidad_medida" :data-test="`linea-unidad_medida-${index}`" type="text" placeholder="UND" @input="$emit('marcar', `linea_${index}_unidad_medida`)" />
+        <input v-model="linea.unidad_medida" :data-test="`linea-unidad_medida-${index}`" type="text" maxlength="20" placeholder="UND" @input="$emit('marcar', `linea_${index}_unidad_medida`)" />
         <small v-if="errores[`linea_${index}_unidad_medida`]" :data-test="`error-linea-${index}-unidad_medida`" class="campo-error">{{ errores[`linea_${index}_unidad_medida`] }}</small>
       </label>
 

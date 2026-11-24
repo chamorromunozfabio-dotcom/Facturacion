@@ -27,6 +27,7 @@ const {
   tiposDisponibles,
   tieneTipo,
   esCredito,
+  formularioValido,
   addLinea,
   removeLinea,
   onTipoChange,
@@ -77,8 +78,11 @@ const {
       />
 
       <footer class="modal__footer">
+        <small v-if="!formularioValido && !loading" class="campo-hint form-hint" data-test="form-hint">
+          Completa los campos marcados para guardar.
+        </small>
         <button data-test="cancel" type="button" class="btn" @click="emit('close')">Cancelar</button>
-        <button data-test="submit" type="submit" class="btn btn--primary" :disabled="loading">
+        <button data-test="submit" type="submit" class="btn btn--primary" :disabled="loading || !formularioValido">
           {{ loading ? 'Guardando...' : submitLabel }}
         </button>
       </footer>
@@ -95,6 +99,7 @@ h2 { margin: 0; font-size: 1.1rem; }
 .btn { border: 1px solid #d1d5db; background: #fff; border-radius: 8px; padding: 8px 14px; cursor: pointer; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn--primary { background: #4f46e5; border-color: #4f46e5; color: #fff; }
+.modal__footer .form-hint { margin-right: auto; align-self: center; color: #92400e; font-size: 0.8rem; }
 
 @media (max-width: 700px) {
   .modal__body { padding: 14px; }

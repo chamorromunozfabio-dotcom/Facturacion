@@ -88,6 +88,32 @@ describe('Test 23 — FacturaForm (líneas y validaciones)', () => {
     expect(wrapper.find('[data-test="form-error"]').exists()).toBe(false)
   })
 
+  it('mantiene deshabilitado el guardar hasta completar los obligatorios', async () => {
+    const wrapper = mountForm()
+
+    expect(wrapper.find('[data-test="submit"]').attributes('disabled')).toBeDefined()
+    expect(wrapper.find('[data-test="form-hint"]').text()).toBe(
+      'Completa los campos marcados para guardar.',
+    )
+
+    await llenarEncabezado(wrapper)
+    await llenarLinea(wrapper)
+
+    expect(wrapper.find('[data-test="submit"]').attributes('disabled')).toBeUndefined()
+  })
+
+  it('avisa debajo del campo apenas se deja vacío o mal escrito', async () => {
+    const wrapper = mountForm()
+    await llenarEncabezado(wrapper)
+
+    await wrapper.find('[data-test="linea-cantidad-0"]').setValue('2')
+    expect(wrapper.find('[data-test="error-linea-0-cantidad"]').exists()).toBe(false)
+
+    await wrapper.find('[data-test="linea-cantidad-0"]').setValue('')
+    expect(wrapper.find('[data-test="error-linea-0-cantidad"]').text()).toBe('Escribe la cantidad.')
+    expect(wrapper.emitted('submit')).toBeUndefined()
+  })
+
   it('rechaza cantidad 0 con un mensaje que dice qué dato revisar', async () => {
     const wrapper = mountForm()
     await llenarEncabezado(wrapper)

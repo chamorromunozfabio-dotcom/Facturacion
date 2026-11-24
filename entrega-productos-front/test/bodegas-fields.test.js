@@ -93,17 +93,17 @@ describe('Test 18 — Campos nuevos de Bodega', () => {
     }
   })
 
-  it('rechaza un teléfono con letras con un aviso junto al campo', async () => {
+  it('descarta las letras del teléfono mientras se escribe', async () => {
     const wrapper = mount(BodegasView)
     await flushPromises()
     await wrapper.find('[data-test="create"]').trigger('click')
 
     await llenar(wrapper, { ...datos, telefono: 'abc' })
+    expect(wrapper.find('[data-test="field-telefono"]').element.value).toBe('')
+
     await wrapper.find('form').trigger('submit')
 
-    expect(wrapper.find('[data-test="error-telefono"]').text()).toBe(
-      'Usa entre 7 y 20 caracteres: dígitos, espacios, + o -.',
-    )
+    expect(wrapper.find('[data-test="error-telefono"]').text()).toBe('Escribe teléfono.')
     expect(api.create).not.toHaveBeenCalled()
   })
 

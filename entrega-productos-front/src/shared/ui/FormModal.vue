@@ -115,13 +115,16 @@ function validarCampo(field) {
 function setValue(key, value) {
   const field = props.fields.find((f) => f.key === key)
   form[key] = field ? limpiarValor(field, value) : value
-  if (tocados.has(key)) {
-    const aviso = validarCampo(field)
-    if (aviso) errores[key] = aviso
-    else delete errores[key]
-  }
+  // Apenas el usuario toca el campo, el aviso aparece o se quita en vivo.
+  tocados.add(key)
+  const aviso = field ? validarCampo(field) : ''
+  if (aviso) errores[key] = aviso
+  else delete errores[key]
   emit('update:modelValue', { ...form })
 }
+
+/** El botón queda deshabilitado mientras haya un campo obligatorio vacío o mal escrito. */
+const camposInvalidos = computed(() => props.fields.some((field) => validarCampo(field)))
 
 function handleSubmit() {
   for (const field of props.fields) {
@@ -212,10 +215,13 @@ function handleSubmit() {
       </div>
 
       <footer class="modal__footer">
+        <small v-if="camposInvalidos && !loading" class="campo-hint form-hint" data-test="form-hint">
+          Completa los campos marcados para guardar.
+        </small>
         <BotonBase data-test="cancel" type="button" class="btn" @click="emit('close')">
           Cancelar
         </BotonBase>
-        <BotonBase data-test="submit" type="submit" class="btn btn--primary" :disabled="loading">
+        <BotonBase data-test="submit" type="submit" class="btn btn--primary" :disabled="loading || camposInvalidos">
           {{ loading ? 'Guardando...' : submitLabel }}
         </BotonBase>
       </footer>
@@ -234,6 +240,7 @@ input, select, textarea { width: 100%; border: 1px solid #d1d5db; border-radius:
 .campo-error { color: #b91c1c; font-size: 0.78rem; font-weight: 500; line-height: 1.25; }
 .campo-hint { color: #6b7280; font-size: 0.75rem; line-height: 1.25; }
 .modal__footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+.modal__footer .form-hint { margin-right: auto; align-self: center; color: #92400e; }
 .btn { border: 1px solid #d1d5db; background: #fff; border-radius: 8px; padding: 8px 14px; cursor: pointer; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn--primary { background: #4f46e5; border-color: #4f46e5; color: #fff; }
