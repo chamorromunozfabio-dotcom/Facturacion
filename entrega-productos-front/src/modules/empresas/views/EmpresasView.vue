@@ -34,6 +34,9 @@ const columns = [
   { key: 'nit', label: 'NIT' },
   { key: 'correo', label: 'Correo' },
   { key: 'estado', label: 'Estado' },
+  { key: 'total_bodegueros', label: 'Bodegueros' },
+  { key: 'total_bodegas', label: 'Bodegas' },
+  { key: 'total_facturas', label: 'Facturas' },
   { key: 'fecha_registro', label: 'Registro' },
 ]
 
@@ -127,7 +130,7 @@ function fecha(value) {
           <Pause :size="14" aria-hidden="true" /><span>Suspender</span>
         </button>
         <button
-          v-if="row.estado === 'suspendida'"
+          v-if="row.estado === 'suspendida' || row.estado === 'rechazada'"
           type="button"
           class="btn btn--small btn--primary"
           data-test="reactivar"

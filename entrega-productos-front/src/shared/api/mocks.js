@@ -28,7 +28,13 @@ export const MOCK_ACCOUNTS = [
     correo: 'luis@entrega.com',
     contrasena: 'Bodega123*',
     pista: 'Bodeguero',
-    user: { id: 2, nombre: 'Luis Gómez', correo: 'luis@entrega.com', rol: 'bodeguero' },
+    user: {
+      id: 2,
+      nombre: 'Luis Gómez',
+      correo: 'luis@entrega.com',
+      rol: 'bodeguero',
+      empresa: { id: 1, razon_social: 'Distribuidora Andina S.A.S.', estado: 'activa' },
+    },
   },
   {
     correo: 'juan@cliente.com',
@@ -51,7 +57,6 @@ export const MOCK_ACCOUNTS = [
       nombre: 'Distribuidora Andina',
       correo: 'empresa@entrega.com',
       rol: 'empresa',
-      empresa_id: 1,
       empresa: {
         id: 1,
         razon_social: 'Distribuidora Andina S.A.S.',
@@ -63,12 +68,20 @@ export const MOCK_ACCOUNTS = [
 ]
 
 /** Genera una factura completa (detalle) a partir de los datos mínimos. */
-function factura({ id, numero, estado, cliente, trazabilidad = {} }) {
+function factura({
+  id,
+  numero,
+  estado,
+  cliente,
+  trazabilidad = {},
+  empresa = { id: 1, razon_social: 'Distribuidora Andina S.A.S.', nit: '900123456-1' },
+}) {
   return {
     id,
     numero,
     numero_factura: numero,
-    empresa_id: 1,
+    empresa_id: empresa.id,
+    empresa_nombre: empresa.razon_social,
     estado,
     fecha_emision: '2026-11-18T10:30:00',
     fecha_vencimiento: null,
@@ -156,8 +169,9 @@ const rowsByResource = {
       estado: 'activa',
       motivo_rechazo: null,
       fecha_registro: '2026-11-10T09:00:00',
-      total_usuarios: 3,
+      total_bodegueros: 3,
       total_bodegas: 2,
+      total_facturas: 45,
     },
     {
       id: 2,
@@ -170,8 +184,9 @@ const rowsByResource = {
       estado: 'pendiente',
       motivo_rechazo: null,
       fecha_registro: '2026-11-20T14:30:00',
-      total_usuarios: 0,
+      total_bodegueros: 0,
       total_bodegas: 0,
+      total_facturas: 0,
     },
     {
       id: 3,
@@ -184,8 +199,9 @@ const rowsByResource = {
       estado: 'rechazada',
       motivo_rechazo: 'El NIT no coincide con la cámara de comercio.',
       fecha_registro: '2026-11-15T11:00:00',
-      total_usuarios: 0,
+      total_bodegueros: 0,
       total_bodegas: 0,
+      total_facturas: 0,
     },
     {
       id: 4,
@@ -198,8 +214,9 @@ const rowsByResource = {
       estado: 'suspendida',
       motivo_rechazo: null,
       fecha_registro: '2026-10-05T08:00:00',
-      total_usuarios: 4,
+      total_bodegueros: 4,
       total_bodegas: 1,
+      total_facturas: 120,
     },
   ],
   tipos: [
@@ -357,13 +374,27 @@ const rowsByResource = {
       cliente: clienteJuan,
       trazabilidad: { fecha_recepcion: '2026-11-18T15:00:00' },
     }),
+    // Otra empresa: cada una tiene su propia numeración (FE-0001 se repite).
+    factura({
+      id: 6,
+      numero: 'FE-0001',
+      estado: 'emitida',
+      cliente: clienteJuan,
+      empresa: { id: 2, razon_social: 'Comercializadora del Caribe S.A.S.', nit: '900987654-2' },
+    }),
   ],
 }
 
 /** Aplica una acción de estado sobre una factura del modo demo. */
 export function mockFacturaAction(id, patch) {
   const found = rowsByResource.facturas?.find((row) => String(row.id) === String(id))
-  if (found) Object.assign(found, patch)
+  if (found) {
+    Object.assign(found, patch)
+    // El motivo del rechazo vive en la trazabilidad del detalle.
+    if (patch.motivo_rechazo) {
+      found.trazabilidad = { ...(found.trazabilidad ?? {}), motivo_rechazo: patch.motivo_rechazo }
+    }
+  }
   return { id: Number(id), ...patch }
 }
 
@@ -397,6 +428,13 @@ export async function mockList(resource, params = {}) {
   // El backend fuerza rol=cliente para bodeguero y permite cualquier rol al admin.
   if (params.rol) {
     filtered = filtered.filter((row) => row.rol === params.rol)
+  }
+
+  // Multiempresa: el admin filtra usuarios, bodegas, tipos y facturas por empresa.
+  if (params.empresa_id) {
+    filtered = filtered.filter(
+      (row) => row.empresa_id === undefined || String(row.empresa_id) === String(params.empresa_id),
+    )
   }
 
   // El listado de facturas filtra por un estado exacto.
@@ -460,8 +498,9 @@ export async function mockRegister(payload = {}) {
       estado: 'pendiente',
       motivo_rechazo: null,
       fecha_registro: new Date().toISOString(),
-      total_usuarios: 0,
+      total_bodegueros: 0,
       total_bodegas: 0,
+      total_facturas: 0,
     }
     rowsByResource.empresas.unshift(empresa)
     return {

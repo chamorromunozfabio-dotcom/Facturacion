@@ -1,19 +1,21 @@
 <script setup>
 import CrudPage from '../../../shared/ui/CrudPage.vue'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import bodegasApi from '../api/bodegas'
 import usuariosApi from '../api/usuarios'
 import { useAuthStore } from '../../auth/store/auth'
 import { useCrud } from '../composables/useCrud'
+import EmpresaSelect from '../../empresas/components/EmpresaSelect.vue'
+import { campoEmpresa, empresaParams, useEmpresaFiltro } from '../../empresas/composables/useEmpresaFiltro'
 
-const auth = useAuthStore()
-// Solo el admin asigna el dueño; el backend filtra el resto de los roles.
-const esAdmin = computed(() => auth.role === 'admin')
+// Solo el admin asigna la empresa y el dueño; el backend filtra y asigna al resto.
+const { esAdmin, empresaId, empresaOpciones } = useEmpresaFiltro()
 const bodegueroOptions = ref([])
 
-// El admin ve todas las bodegas y su dueño; los demás solo ven las suyas.
+// El admin ve todas las bodegas, su empresa y su dueño; los demás solo las suyas.
 const columns = computed(() => [
   { key: 'nombre', label: 'Nombre' },
+  ...(esAdmin.value ? [{ key: 'empresa_nombre', label: 'Empresa' }] : []),
   ...(esAdmin.value ? [{ key: 'bodeguero_nombre', label: 'Bodeguero' }] : []),
   { key: 'ciudad', label: 'Ciudad' },
   { key: 'recibe_nombre', label: 'Responsable' },
@@ -72,10 +74,11 @@ const fields = [
   },
 ]
 
-// Solo el admin puede asignar/cambiar el dueño; si no, el backend se lo asigna al creador.
+// Solo el admin elige empresa y dueño; el backend asigna la empresa al resto.
 const formFields = computed(() =>
   esAdmin.value
     ? [
+        campoEmpresa(empresaOpciones.value),
         ...fields,
         {
           key: 'bodeguero_id',
@@ -99,7 +102,10 @@ const formFromRow = (row) =>
 async function loadBodegueros() {
   if (!esAdmin.value) return
   try {
-    const result = await usuariosApi.list({ rol: 'bodeguero', page: 1, limit: 100 })
+    // El dueño debe ser de la misma empresa que la bodega (400 si no).
+    const params = { rol: 'bodeguero', page: 1, limit: 100 }
+    if (empresaId.value) params.empresa_id = empresaId.value
+    const result = await usuariosApi.list(params)
     bodegueroOptions.value = (result.data ?? []).map((user) => ({
       value: user.id,
       label: user.nombre,
@@ -109,6 +115,9 @@ async function loadBodegueros() {
   }
 }
 
+// Al cambiar de empresa, los bodegueros disponibles deben ser solo los de ella.
+watch(empresaId, loadBodegueros)
+
 // Todos los datos son obligatorios: no filtramos vacíos para que el usuario
 // vea el aviso en el campo en vez de un error raro del backend.
 function cleanPayload(payload) {
@@ -116,6 +125,9 @@ function cleanPayload(payload) {
     Object.entries(payload).filter(([key]) => key !== 'bodeguero_id'),
   )
   if (typeof limpio.codigo === 'string') limpio.codigo = limpio.codigo.trim().toUpperCase()
+  if (esAdmin.value && limpio.empresa_id !== undefined) {
+    limpio.empresa_id = Number(limpio.empresa_id)
+  }
   if (esAdmin.value && payload.bodeguero_id) {
     limpio.bodeguero_id = Number(payload.bodeguero_id)
   } else if (esAdmin.value && editing.value?.bodeguero_id != null) {
@@ -160,7 +172,8 @@ const {
   formFromRow,
   cleanPayload,
   // El dueño puede venir como número o como string según el backend.
-  normalizarCambio: (key, valor) => (key === 'bodeguero_id' ? String(valor ?? '') : valor),
+  normalizarCambio: (key, valor) =>
+    key === 'bodeguero_id' || key === 'empresa_id' ? String(valor ?? '') : valor,
   duplicateMessage: 'Ya existe una bodega con ese nombre. Probá con otro.',
   mensajes: {
     creado: (clean) => `Bodega creada. "${clean.nombre}" ya está en la lista.`,
@@ -173,6 +186,8 @@ const {
     titulo: 'Eliminar bodega',
     mensaje: 'La bodega se eliminará de forma permanente. Esta acción no se puede deshacer.',
   },
+  paramsExtra: () => empresaParams(esAdmin.value, empresaId.value),
+  filtros: [empresaId],
   alMontar: loadBodegueros,
 })
 </script>
@@ -219,5 +234,8 @@ const {
     @cancel="confirmOpen = false"
     @close-alert="alert = null"
   >
+    <template #filter>
+      <EmpresaSelect v-if="esAdmin" v-model="empresaId" :empresas="empresaOpciones" />
+    </template>
   </CrudPage>
 </template>

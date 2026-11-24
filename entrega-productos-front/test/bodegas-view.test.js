@@ -9,7 +9,12 @@ const api = vi.hoisted(() => ({
   remove: vi.fn(),
 }))
 
+const empresas = vi.hoisted(() => ({
+  listActivas: vi.fn(),
+}))
+
 vi.mock('../src/modules/catalogos/api/bodegas', () => ({ default: api }))
+vi.mock('../src/modules/empresas/api/empresas', () => ({ default: empresas }))
 
 import BodegasView from '../src/modules/catalogos/views/BodegasView.vue'
 import { useAuthStore } from '../src/modules/auth/store/auth'
@@ -37,6 +42,9 @@ describe('Test 14 — BodegasView (CRUD con componentes)', () => {
     })
     api.create.mockResolvedValue({ id: 2, nombre: 'Bodega Norte', direccion: null })
     api.remove.mockResolvedValue({ detail: 'Eliminado' })
+    empresas.listActivas.mockResolvedValue({
+      data: [{ id: 1, razon_social: 'Distribuidora Andina S.A.S.' }],
+    })
   })
 
   it('carga y muestra nombre y ciudad', async () => {
@@ -67,6 +75,7 @@ describe('Test 14 — BodegasView (CRUD con componentes)', () => {
     departamento: 'Valle',
     telefono: '3001234567',
     correo: 'norte@entrega.com',
+    empresa_id: 1,
     recibe_nombre: 'Carlos Pérez',
     recibe_documento: '1020304051',
     recibe_cargo: 'Jefe de bodega',

@@ -19,10 +19,12 @@ const usuarios = vi.hoisted(() => ({
 }))
 
 const roles = vi.hoisted(() => ({ list: vi.fn() }))
+const empresas = vi.hoisted(() => ({ listActivas: vi.fn() }))
 
 vi.mock('../src/modules/catalogos/api/bodegas', () => ({ default: bodegas }))
 vi.mock('../src/modules/catalogos/api/usuarios', () => ({ default: usuarios }))
 vi.mock('../src/modules/catalogos/api/roles', () => ({ default: roles }))
+vi.mock('../src/modules/empresas/api/empresas', () => ({ default: empresas }))
 
 import { resolveApiModes } from '../src/shared/config/apiModes'
 import facturasApi from '../src/modules/facturas/api/facturas'
@@ -52,6 +54,9 @@ describe('Test 33 — Contrato definitivo del backend', () => {
     })
     bodegas.create.mockResolvedValue({ id: 2, nombre: 'Bodega Sur' })
     usuarios.create.mockResolvedValue({ id: 4, nombre: 'Nuevo' })
+    empresas.listActivas.mockResolvedValue({
+      data: [{ id: 1, razon_social: 'Distribuidora Andina S.A.S.' }],
+    })
   })
 
   it('la API real de facturas ya no necesita mocks', () => {
@@ -106,6 +111,7 @@ describe('Test 33 — Contrato definitivo del backend', () => {
       departamento: 'Cundinamarca',
       telefono: '3001234567',
       correo: 'sur@entrega.com',
+      empresa_id: 1,
       recibe_nombre: 'Ana Recibe',
       recibe_documento: '1020304052',
       recibe_cargo: 'Supervisora',

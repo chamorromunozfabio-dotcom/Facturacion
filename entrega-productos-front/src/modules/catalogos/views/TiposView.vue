@@ -3,13 +3,13 @@ import CrudPage from '../../../shared/ui/CrudPage.vue'
 import { computed, ref, watch } from 'vue'
 import bodegasApi from '../api/bodegas'
 import tiposApi from '../api/tipos'
-import { useAuthStore } from '../../auth/store/auth'
 import { useCrud } from '../composables/useCrud'
+import EmpresaSelect from '../../empresas/components/EmpresaSelect.vue'
+import { empresaParams, useEmpresaFiltro } from '../../empresas/composables/useEmpresaFiltro'
 
-const auth = useAuthStore()
-// El admin elige la bodega; el bodeguero queda atado a la suya (la lista que
-// devuelve el backend ya viene filtrada por dueño).
-const esAdmin = computed(() => auth.role === 'admin')
+// El admin elige empresa y bodega; el bodeguero queda atado a la suya (la lista
+// que devuelve el backend ya viene filtrada por dueño).
+const { esAdmin, empresaId, empresaOpciones } = useEmpresaFiltro()
 const bodegas = ref([])
 const bodegaId = ref('')
 
@@ -40,12 +40,22 @@ const fields = computed(() => {
 
 async function cargarBodegas() {
   try {
-    const result = await bodegasApi.list({ page: 1, limit: 100 })
+    // Con empresa elegida, las bodegas del selector son solo las de esa empresa.
+    const params = { page: 1, limit: 100 }
+    if (empresaId.value) params.empresa_id = empresaId.value
+    const result = await bodegasApi.list(params)
     bodegas.value = result.data ?? []
   } catch {
     bodegas.value = []
   }
 }
+
+// Al cambiar la empresa del filtro se recargan bodegas y listado de tipos.
+watch(empresaId, () => {
+  cargarBodegas()
+  if (page.value !== 1) page.value = 1
+  else load()
+})
 
 function cleanPayload(payload) {
   const clean = { nombre: String(payload.nombre ?? '').trim() }
@@ -111,7 +121,11 @@ const {
     ...tipo,
     bodega_nombre: tipo.bodega_nombre || nombreBodega(tipo.bodega_id) || 'General',
   }),
-  paramsExtra: () => (bodegaId.value ? { bodega_id: bodegaId.value } : {}),
+  paramsExtra: () => ({
+    ...(bodegaId.value ? { bodega_id: bodegaId.value } : {}),
+    ...empresaParams(esAdmin.value, empresaId.value),
+  }),
+  filtros: [bodegaId, empresaId],
   duplicateMessage: 'Ya existe un tipo con ese nombre en esta bodega. Probá con otro.',
   mensajes: {
     creado: (clean) => `Producto creado. "${clean.nombre}" ya está en la lista.`,
@@ -188,6 +202,7 @@ watch(bodegaId, () => {
     @close-alert="alert = null"
   >
     <template #filter>
+      <EmpresaSelect v-if="esAdmin" v-model="empresaId" :empresas="empresaOpciones" />
       <label v-if="esAdmin || bodegas.length > 1" class="filter">
         Bodega
         <select v-model="bodegaId" data-test="bodega-filter">

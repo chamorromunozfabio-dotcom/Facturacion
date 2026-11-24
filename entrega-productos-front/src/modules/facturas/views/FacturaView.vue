@@ -1,5 +1,5 @@
 <script setup>
-import { IonButton, IonList } from '@ionic/vue'
+import { IonButton, IonList } from "@ionic/vue";
 import {
   Check,
   Eye,
@@ -9,17 +9,18 @@ import {
   Trash2,
   Truck,
   X,
-} from '@lucide/vue'
-import AlertMessage from '../../../shared/ui/AlertMessage.vue'
-import ConfirmDelete from '../../../shared/ui/ConfirmDelete.vue'
-import DataTable from '../../../shared/ui/DataTable.vue'
-import FacturaForm from '../components/FacturaForm.vue'
-import FacturaDetailModal from '../components/FacturaDetailModal.vue'
-import FacturaFiltros from '../components/FacturaFiltros.vue'
-import FacturaFirmaModal from '../components/FacturaFirmaModal.vue'
-import FacturaRechazoModal from '../components/FacturaRechazoModal.vue'
-import StatusBadge from '../../../shared/ui/StatusBadge.vue'
-import { useFacturas } from '../composables/useFacturas'
+} from "@lucide/vue";
+import AlertMessage from "../../../shared/ui/AlertMessage.vue";
+import ConfirmDelete from "../../../shared/ui/ConfirmDelete.vue";
+import DataTable from "../../../shared/ui/DataTable.vue";
+import EmpresaSelect from "../../empresas/components/EmpresaSelect.vue";
+import FacturaForm from "../components/FacturaForm.vue";
+import FacturaDetailModal from "../components/FacturaDetailModal.vue";
+import FacturaFiltros from "../components/FacturaFiltros.vue";
+import FacturaFirmaModal from "../components/FacturaFirmaModal.vue";
+import FacturaRechazoModal from "../components/FacturaRechazoModal.vue";
+import StatusBadge from "../../../shared/ui/StatusBadge.vue";
+import { useFacturas } from "../composables/useFacturas";
 
 /** La vista solo arma la pantalla: la lógica vive en useFacturas. */
 const {
@@ -34,6 +35,10 @@ const {
   descripcion,
   estadoOptions,
   columns,
+  esAdmin,
+  esCliente,
+  empresaId,
+  empresaOpciones,
   filasVisibles,
   total,
   page,
@@ -67,6 +72,7 @@ const {
   closeRechazo,
   descargar,
   catalogos,
+  clienteQuery,
   formOpen,
   editingId,
   formModel,
@@ -82,7 +88,7 @@ const {
   askDelete,
   confirmDelete,
   closeConfirm,
-} = useFacturas()
+} = useFacturas();
 </script>
 
 <template>
@@ -107,7 +113,14 @@ const {
     </div>
 
     <div class="facturas-page__bloque">
-      <FacturaFiltros v-model="estadoFilter" :options="estadoOptions" />
+      <div class="facturas-page__filtros">
+        <EmpresaSelect
+          v-if="esAdmin"
+          v-model="empresaId"
+          :empresas="empresaOpciones"
+        />
+        <FacturaFiltros v-model="estadoFilter" :options="estadoOptions" />
+      </div>
 
       <DataTable
         :columns="columns"
@@ -131,7 +144,12 @@ const {
 
         <template #actions="{ row }">
           <IonList lines="none" class="acciones">
-            <IonButton data-test="ver" type="button" class="btn btn--small" @click="openDetail(row)">
+            <IonButton
+              data-test="ver"
+              type="button"
+              class="btn btn--small"
+              @click="openDetail(row)"
+            >
               <Eye :size="14" aria-hidden="true" /><span>Ver</span>
             </IonButton>
             <IonButton
@@ -140,49 +158,70 @@ const {
               type="button"
               class="btn btn--small"
               @click="openEdit(row)"
-            ><Pencil :size="14" aria-hidden="true" /><span>Editar</span></IonButton>
+              ><Pencil :size="14" aria-hidden="true" /><span
+                >Editar</span
+              ></IonButton
+            >
             <IonButton
               v-if="canDelete && row.estado === 'emitida'"
               data-test="delete"
               type="button"
               class="btn btn--small btn--danger"
               @click="askDelete(row)"
-            ><Trash2 :size="14" aria-hidden="true" /><span>Eliminar</span></IonButton>
+              ><Trash2 :size="14" aria-hidden="true" /><span
+                >Eliminar</span
+              ></IonButton
+            >
             <IonButton
               v-if="canEntregar && row.estado === 'emitida'"
               data-test="entregar"
               type="button"
               class="btn btn--small"
               @click="entregar(row)"
-            ><Truck :size="14" aria-hidden="true" /><span>Entregar</span></IonButton>
+              ><Truck :size="14" aria-hidden="true" /><span
+                >Entregar</span
+              ></IonButton
+            >
             <IonButton
               v-if="canAceptar && row.estado === 'entregada'"
               data-test="aceptar"
               type="button"
               class="btn btn--small btn--primary"
               @click="openAceptar(row)"
-            ><Check :size="14" aria-hidden="true" /><span>Aceptar</span></IonButton>
+              ><Check :size="14" aria-hidden="true" /><span
+                >Aceptar</span
+              ></IonButton
+            >
             <IonButton
               v-if="canRechazar && row.estado === 'entregada'"
               data-test="rechazar"
               type="button"
               class="btn btn--small btn--danger"
               @click="openRechazar(row)"
-            ><X :size="14" aria-hidden="true" /><span>Rechazar</span></IonButton>
+              ><X :size="14" aria-hidden="true" /><span
+                >Rechazar</span
+              ></IonButton
+            >
             <IonButton
               v-if="canRecibir && row.estado === 'firmada'"
               data-test="recibir"
               type="button"
               class="btn btn--small"
               @click="recibir(row)"
-            ><PackageCheck :size="14" aria-hidden="true" /><span>Recibir</span></IonButton>
+              ><PackageCheck :size="14" aria-hidden="true" /><span
+                >Recibir</span
+              ></IonButton
+            >
             <IonButton
               v-if="canPdf"
               data-test="pdf"
               type="button"
               class="btn btn--small"
               @click="descargar(row)"
-            ><FileDown :size="14" aria-hidden="true" /><span>PDF</span></IonButton>
+              ><FileDown :size="14" aria-hidden="true" /><span
+                >PDF</span
+              ></IonButton
+            >
           </IonList>
         </template>
       </DataTable>
@@ -193,6 +232,7 @@ const {
       :titulo="editingId ? 'Editar factura' : 'Nueva factura'"
       :model-value="formModel"
       :clientes="catalogos.clientes"
+      :cliente-query="clienteQuery"
       :bodegas="catalogos.bodegas"
       :tipos="catalogos.tipos"
       :submit-label="editingId ? 'Guardar cambios' : 'Crear factura'"
@@ -200,12 +240,14 @@ const {
       :server-errors="formErrors"
       @submit="save"
       @close="closeForm"
+      @buscar-cliente="clienteQuery = $event"
     />
 
     <FacturaDetailModal
       :open="detailOpen"
       :loading="detailLoading"
       :factura="detalle"
+      :mostrar-empresa="esAdmin || esCliente"
       @close="closeDetail"
     />
 
@@ -242,25 +284,100 @@ const {
 </template>
 
 <style scoped>
-.facturas-page { display: flex; flex-direction: column; gap: 16px; }
-.facturas-page__header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-h1 { margin: 0; font-size: 1.5rem; }
-p { margin: 4px 0 0; color: #6b7280; font-size: 0.9rem; }
-.badge { background: #e0e7ff; color: #3730a3; border-radius: 999px; padding: 4px 10px; font-size: 0.8rem; font-weight: 600; }
+.facturas-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.facturas-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+p {
+  margin: 4px 0 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+.badge {
+  background: #e0e7ff;
+  color: #3730a3;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
 
 /* Sin IonCard: la vista conserva el aspecto del resto de los menús. */
-.facturas-page__bloque { display: flex; flex-direction: column; gap: 16px; }
-.acciones { display: flex; flex-wrap: wrap; gap: 4px; }
+.facturas-page__bloque {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.facturas-page__filtros {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
 
 /* La alerta flota por encima de los modales (z-index 50). */
-.alert-flotante { position: fixed; top: 16px; right: 16px; left: 16px; z-index: 100; max-width: 480px; margin-inline: auto; pointer-events: none; }
-.alert-flotante :deep(.alert) { pointer-events: auto; margin-bottom: 0; box-shadow: 0 10px 30px rgb(0 0 0 / 15%); }
+.alert-flotante {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  left: 16px;
+  z-index: 100;
+  max-width: 480px;
+  margin-inline: auto;
+  pointer-events: none;
+}
+.alert-flotante :deep(.alert) {
+  pointer-events: auto;
+  margin-bottom: 0;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 15%);
+}
 
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #d1d5db; background: #fff; color: #374151; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
-.btn--small { padding: 5px 10px; font-size: 0.85rem; }
-.btn--primary { background: #4f46e5; border-color: #4f46e5; color: #fff; }
-.btn--danger { color: #b91c1c; border-color: #fca5a5; }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.btn--small {
+  padding: 5px 10px;
+  font-size: 0.85rem;
+}
+.btn--primary {
+  background: #4f46e5;
+  border-color: #4f46e5;
+  color: #fff;
+}
+.btn--danger {
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 /* `border: 0` evita el doble marco: Ionic pinta el suyo en shadow DOM. */
 ion-button.btn {
@@ -287,9 +404,16 @@ ion-button.btn--danger {
 }
 
 .alert-enter-active,
-.alert-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.alert-leave-active {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
 .alert-enter-from,
-.alert-leave-to { opacity: 0; transform: translateY(-6px); }
+.alert-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
 
 /* En pantallas chicas el aviso va dentro del flujo y no tapa el menú. */
 @media (max-width: 768px) {
@@ -302,6 +426,8 @@ ion-button.btn--danger {
 
 @media (prefers-reduced-motion: reduce) {
   .alert-enter-active,
-  .alert-leave-active { transition: none; }
+  .alert-leave-active {
+    transition: none;
+  }
 }
 </style>

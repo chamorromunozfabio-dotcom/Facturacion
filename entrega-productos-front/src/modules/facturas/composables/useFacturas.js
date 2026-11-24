@@ -5,6 +5,7 @@ import tiposApi from '../../catalogos/api/tipos'
 import { getErrorMessage, getFieldErrors } from '../../../shared/api/axios'
 import { tienePermiso } from '../../../shared/config/permissions'
 import { useAuthStore } from '../../auth/store/auth'
+import { empresaParams, useEmpresaFiltro } from '../../empresas/composables/useEmpresaFiltro'
 import {
   COLUMNAS,
   aFormModel,
@@ -20,6 +21,7 @@ import { esPlataformaNativa } from '../utils/pdfNativo'
  */
 export function useFacturas() {
   const auth = useAuthStore()
+  const { esAdmin, empresaId, empresaOpciones } = useEmpresaFiltro()
 
   const canCreate = computed(() => tienePermiso(auth.permisos, auth.role, 'facturas', 'create'))
   const canEdit = computed(() => tienePermiso(auth.permisos, auth.role, 'facturas', 'edit'))
@@ -30,9 +32,18 @@ export function useFacturas() {
   const canRechazar = computed(() => tienePermiso(auth.permisos, auth.role, 'facturas', 'rechazar'))
   const canPdf = computed(() => tienePermiso(auth.permisos, auth.role, 'facturas', 'pdf'))
   const esCliente = computed(() => auth.role === 'cliente')
-  const esAdmin = computed(() => auth.role === 'admin')
   const esBodeguero = computed(() => auth.role === 'bodeguero')
   const idUsuario = computed(() => Number(auth.user?.id) || null)
+
+  // El emisor es la empresa: el listado trae `empresa_nombre` y se muestra al
+  // admin y al cliente (los únicos que pueden ver facturas de varias empresas).
+  const columns = computed(() => {
+    const base = [...COLUMNAS]
+    if (esAdmin.value || esCliente.value) {
+      base.splice(1, 0, { key: 'empresa_nombre', label: 'Empresa' })
+    }
+    return base
+  })
 
   const estadoOptions = computed(() => estadosPara(esCliente.value))
   const descripcion = computed(() =>
@@ -69,6 +80,11 @@ export function useFacturas() {
   const saving = ref(false)
   const catalogos = ref({ clientes: [], bodegas: [], tipos: [] })
 
+  // Búsqueda de clientes con GET /clientes/buscar?q= (mínimo 5 caracteres).
+  const clienteQuery = ref('')
+  const buscandoClientes = ref(false)
+  let clienteTimer
+
   const firmaFactura = ref(null)
   const firmaOpen = ref(false)
   const firma = ref('')
@@ -87,13 +103,35 @@ export function useFacturas() {
 
   let searchTimer
 
-  watch([q, estadoFilter], () => {
+  watch([q, estadoFilter, empresaId], () => {
     clearTimeout(searchTimer)
     searchTimer = setTimeout(() => {
       if (page.value !== 1) page.value = 1
       else load()
     }, 300)
   })
+
+  // El buscador de clientes no dispara por cada tecla: 300 ms y mínimo 5 letras.
+  watch(clienteQuery, () => {
+    clearTimeout(clienteTimer)
+    clienteTimer = setTimeout(() => {
+      const texto = clienteQuery.value.trim()
+      if (texto.length >= 5) buscarClientes(texto)
+      else catalogos.value.clientes = []
+    }, 300)
+  })
+
+  async function buscarClientes(texto) {
+    buscandoClientes.value = true
+    try {
+      const result = await facturasApi.buscarClientes(texto)
+      catalogos.value.clientes = result.data ?? []
+    } catch {
+      catalogos.value.clientes = []
+    } finally {
+      buscandoClientes.value = false
+    }
+  }
 
   watch(page, () => load())
 
@@ -106,6 +144,7 @@ export function useFacturas() {
       if (auth.role === 'bodeguero' && auth.user?.bodega_id) {
         params.bodega_id = auth.user.bodega_id
       }
+      Object.assign(params, empresaParams(esAdmin.value, empresaId.value))
       const result = await facturasApi.list(params)
       rows.value = result.data ?? []
       total.value = result.total ?? 0
@@ -213,8 +252,17 @@ export function useFacturas() {
     rechazoOpen.value = true
   }
 
+  /** Contrato: `motivo_rechazo` es obligatorio, de 10 a 255 caracteres. */
+  function validarMotivo() {
+    const largo = motivo.value.trim().length
+    if (!largo) return 'Escribe el motivo del rechazo.'
+    if (largo < 10) return 'El motivo debe tener al menos 10 caracteres.'
+    if (largo > 255) return 'El motivo no puede pasar de 255 caracteres.'
+    return ''
+  }
+
   async function confirmarRechazo() {
-    rechazoError.value = motivo.value.trim() ? '' : 'Escribe el motivo del rechazo.'
+    rechazoError.value = validarMotivo()
     if (rechazoError.value) return
 
     rechazoSaving.value = true
@@ -224,6 +272,8 @@ export function useFacturas() {
       closeRechazo()
       success('Factura rechazada. El motivo quedó registrado.')
     } catch (error) {
+      // Si el backend devuelve un 422 por campo, el aviso queda junto al motivo.
+      rechazoError.value = getFieldErrors(error)?.motivo_rechazo || ''
       failure(error, 'No se pudo rechazar la factura.')
     } finally {
       rechazoSaving.value = false
@@ -240,14 +290,13 @@ export function useFacturas() {
   }
 
   async function loadCatalogos() {
-    // /usuarios ya no está permitido para el bodeguero: el backend ofrece /facturas/clientes.
-    const [clientes, bodegas, tipos] = await Promise.all([
-      facturasApi.listClientes({ page: 1, limit: 100 }),
+    // Los clientes ya no se cargan completos: se buscan con /clientes/buscar.
+    const [bodegas, tipos] = await Promise.all([
       bodegasApi.list({ page: 1, limit: 100 }),
       tiposApi.list({ page: 1, limit: 100, estado: true }),
     ])
     catalogos.value = {
-      clientes: clientes.data ?? [],
+      ...catalogos.value,
       bodegas: bodegas.data ?? [],
       tipos: tipos.data ?? [],
     }
@@ -261,6 +310,8 @@ export function useFacturas() {
     editingId.value = null
     formModel.value = {}
     formErrors.value = {}
+    clienteQuery.value = ''
+    catalogos.value.clientes = []
     formOpen.value = true
     loadCatalogos().catch((error) => failure(error, 'No se pudieron cargar los catálogos.'))
   }
@@ -268,10 +319,18 @@ export function useFacturas() {
   async function openEdit(row) {
     editingId.value = row.id
     formErrors.value = {}
+    clienteQuery.value = ''
     formOpen.value = true
     try {
       const [factura] = await Promise.all([facturasApi.get(row.id), loadCatalogos()])
       formModel.value = aFormModel(factura)
+      // El cliente actual queda visible en el selector; buscar lo reemplaza.
+      catalogos.value.clientes = [
+        {
+          id: factura.cliente_id,
+          nombre: factura.cliente_nombre || `Cliente #${factura.cliente_id}`,
+        },
+      ]
     } catch (error) {
       failure(error, 'No se pudo cargar la factura.')
     }
@@ -342,7 +401,11 @@ export function useFacturas() {
     canPdf,
     descripcion,
     estadoOptions,
-    columns: COLUMNAS,
+    columns,
+    esAdmin,
+    esCliente,
+    empresaId,
+    empresaOpciones,
     rows,
     filasVisibles,
     total,
@@ -377,6 +440,8 @@ export function useFacturas() {
     closeRechazo,
     descargar,
     catalogos,
+    clienteQuery,
+    buscandoClientes,
     formOpen,
     editingId,
     formModel,

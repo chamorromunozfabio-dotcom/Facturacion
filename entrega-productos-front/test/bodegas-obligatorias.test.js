@@ -3,7 +3,9 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 
 const api = vi.hoisted(() => ({ list: vi.fn(), create: vi.fn(), update: vi.fn(), remove: vi.fn() }))
+const empresas = vi.hoisted(() => ({ listActivas: vi.fn() }))
 vi.mock('../src/modules/catalogos/api/bodegas', () => ({ default: api }))
+vi.mock('../src/modules/empresas/api/empresas', () => ({ default: empresas }))
 
 import BodegasView from '../src/modules/catalogos/views/BodegasView.vue'
 import { useAuthStore } from '../src/modules/auth/store/auth'
@@ -16,6 +18,7 @@ const completo = {
   departamento: 'Cundinamarca',
   telefono: '3001234567',
   correo: 'norte@entrega.com',
+  empresa_id: 1,
   recibe_nombre: 'Carlos Pérez',
   recibe_documento: '1020304051',
   recibe_cargo: 'Jefe de bodega',
@@ -45,6 +48,9 @@ describe('Test 39 — Bodegas con todos los datos obligatorios', () => {
     vi.clearAllMocks()
     api.list.mockResolvedValue({ data: [], total: 0, page: 1, limit: 10 })
     api.create.mockResolvedValue({ id: 9, ...completo })
+    empresas.listActivas.mockResolvedValue({
+      data: [{ id: 1, razon_social: 'Distribuidora Andina S.A.S.' }],
+    })
   })
 
   it('muestra un aviso corto por cada dato que falta, sin resumen general', async () => {
@@ -71,7 +77,7 @@ describe('Test 39 — Bodegas con todos los datos obligatorios', () => {
     expect(wrapper.find('[data-test="error-direccion"]').exists()).toBe(true)
   })
 
-  it('acepta los 11 datos y envía el código en mayúsculas', async () => {
+  it('acepta los datos y envía el código en mayúsculas', async () => {
     const wrapper = await abrir()
     await llenar(wrapper, { ...completo, codigo: 'bn-01' })
 

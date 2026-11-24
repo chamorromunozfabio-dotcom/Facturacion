@@ -13,6 +13,10 @@ const props = defineProps({
 })
 const emit = defineEmits(['close', 'update:motivo', 'confirm'])
 useModalA11y(computed(() => props.open), () => emit('close'))
+
+// Contrato: el motivo del rechazo es obligatorio, de 10 a 255 caracteres.
+const largo = computed(() => props.motivo.trim().length)
+const valido = computed(() => largo.value >= 10 && largo.value <= 255)
 </script>
 
 <template>
@@ -34,9 +38,12 @@ useModalA11y(computed(() => props.open), () => emit('close'))
           :value="motivo"
           data-test="motivo"
           rows="3"
+          maxlength="255"
+          placeholder="Explica por qué rechazas la factura (mínimo 10 caracteres)."
           @input="emit('update:motivo', $event.target.value)"
         ></textarea>
       </label>
+      <small class="hint">{{ largo }} caracteres. Mínimo 10 y máximo 255.</small>
       <p v-if="error" data-test="rechazo-error" class="error">{{ error }}</p>
       <footer class="modal__footer">
         <button type="button" class="btn" @click="emit('close')">Cancelar</button>
@@ -44,7 +51,7 @@ useModalA11y(computed(() => props.open), () => emit('close'))
           data-test="rechazo-confirm"
           type="button"
           class="btn btn--danger"
-          :disabled="saving"
+          :disabled="saving || !valido"
           @click="emit('confirm')"
         >
           Rechazar
@@ -63,6 +70,7 @@ h2 { margin: 0; font-size: 1.1rem; }
 label { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; font-weight: 600; color: #374151; }
 textarea { width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px; font: inherit; }
 .error { color: #b91c1c; background: #fef2f2; border-radius: 6px; padding: 8px 10px; font-size: 0.9rem; }
+.hint { color: #6b7280; font-size: 0.75rem; }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #d1d5db; background: #fff; color: #374151; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
 .btn--danger { color: #b91c1c; border-color: #fca5a5; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }

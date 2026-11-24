@@ -9,6 +9,7 @@ const props = defineProps({
   open: { type: Boolean, default: false },
   loading: { type: Boolean, default: false },
   factura: { type: Object, default: null },
+  mostrarEmpresa: { type: Boolean, default: false },
 })
 const emit = defineEmits(['close'])
 useModalA11y(computed(() => props.open), () => emit('close'))
@@ -33,7 +34,7 @@ useModalA11y(computed(() => props.open), () => emit('close'))
     </header>
     <div class="modal__body">
       <p v-if="loading">Cargando detalle...</p>
-      <FacturaDetail v-else-if="factura" :factura="factura" />
+      <FacturaDetail v-else-if="factura" :factura="factura" :mostrar-empresa="mostrarEmpresa" />
     </div>
   </ModalBase>
 </template>

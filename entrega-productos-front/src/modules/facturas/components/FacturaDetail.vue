@@ -4,6 +4,7 @@ import StatusBadge from '../../../shared/ui/StatusBadge.vue'
 
 const props = defineProps({
   factura: { type: Object, required: true },
+  mostrarEmpresa: { type: Boolean, default: false },
 })
 
 const money = (value) =>
@@ -28,6 +29,9 @@ const software = computed(() => props.factura.software ?? {})
       <div>
         <h2 data-test="detail-numero">{{ factura.numero }}</h2>
         <p>Emisión: {{ factura.fecha_emision }}</p>
+        <p v-if="mostrarEmpresa && factura.empresa_nombre" data-test="detail-empresa">
+          Empresa: {{ factura.empresa_nombre }}
+        </p>
       </div>
       <StatusBadge data-test="detail-estado" :estado="factura.estado" />
     </header>

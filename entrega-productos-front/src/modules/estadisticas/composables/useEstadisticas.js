@@ -2,6 +2,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import estadisticasApi from '../api/estadisticas'
 import { getErrorMessage } from '../../../shared/api/axios'
 import { useAuthStore } from '../../auth/store/auth'
+import { empresaParams, useEmpresaFiltro } from '../../empresas/composables/useEmpresaFiltro'
 import {
   esSerieBarras,
   esSerieLinea,
@@ -13,9 +14,11 @@ import {
 /**
  * Estado del panel: rango de fechas, carga y presentación.
  * Qué datos llegan lo decide el backend según el token; acá solo se pintan.
+ * El admin puede además filtrar por empresa con `?empresa_id=`.
  */
 export function useEstadisticas() {
   const auth = useAuthStore()
+  const { esAdmin, empresaId, empresaOpciones } = useEmpresaFiltro()
 
   const descripcion = computed(() => {
     if (auth.role === 'admin') {
@@ -56,7 +59,11 @@ export function useEstadisticas() {
     loading.value = true
     error.value = ''
     try {
-      const data = await estadisticasApi.getResumen({ desde: desde.value, hasta: hasta.value })
+      const data = await estadisticasApi.getResumen({
+        desde: desde.value,
+        hasta: hasta.value,
+        ...empresaParams(esAdmin.value, empresaId.value),
+      })
       resumen.value = normalizarResumen(data)
     } catch (e) {
       error.value = getErrorMessage(e)
@@ -66,10 +73,13 @@ export function useEstadisticas() {
   }
 
   onMounted(cargar)
-  watch([desde, hasta], () => cargar())
+  watch([desde, hasta, empresaId], () => cargar())
 
   return {
     descripcion,
+    esAdmin,
+    empresaId,
+    empresaOpciones,
     desde,
     hasta,
     invalido,

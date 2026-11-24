@@ -6,16 +6,21 @@ import usuariosApi from '../api/usuarios'
 import { quitarVacios } from '../utils/crud'
 import { useAuthStore } from '../../auth/store/auth'
 import { useCrud } from '../composables/useCrud'
+import EmpresaSelect from '../../empresas/components/EmpresaSelect.vue'
+import { campoEmpresa, empresaParams, useEmpresaFiltro } from '../../empresas/composables/useEmpresaFiltro'
 
 const auth = useAuthStore()
 const isBodeguero = computed(() => auth.role === 'bodeguero')
 const isEmpresa = computed(() => auth.role === 'empresa')
+const { esAdmin, empresaId, empresaOpciones } = useEmpresaFiltro()
 const roleFilter = ref('')
 
-// Los roles NO son fijos: el admin puede crear otros y el backend los devuelve en GET /roles.
+// Los roles NO son fijos: el admin puede crear otros y el backend los devuelve en
+// GET /roles. Solo hay respaldo para los tres clásicos; `empresa` se resuelve
+// siempre por nombre desde el backend (su id no es fijo ni conocido).
 const ROLES_POR_DEFECTO = [
   { value: 1, label: 'admin' }, { value: 2, label: 'bodeguero' },
-  { value: 3, label: 'cliente' }, { value: 4, label: 'empresa' },
+  { value: 3, label: 'cliente' },
 ]
 const IDS_POR_DEFECTO = Object.fromEntries(ROLES_POR_DEFECTO.map((rol) => [rol.label, rol.value]))
 const rolesDisponibles = ref([])
@@ -38,12 +43,7 @@ function resolveRolId(row) {
   return roleOptions.value.find((rol) => rol.label === row.rol)?.value ?? IDS_POR_DEFECTO[row.rol] ?? ''
 }
 
-const documentOptions = [
-  { value: 'CC', label: 'CC' },
-  { value: 'NIT', label: 'NIT' },
-  { value: 'CE', label: 'CE' },
-  { value: 'PA', label: 'PA' },
-]
+const documentOptions = ['CC', 'NIT', 'CE', 'PA'].map((value) => ({ value, label: value }))
 // El backend solo acepta dígitos: 7 a 15 para el teléfono del usuario, sin
 // símbolos (RESPUESTA_SOLO_NUMEROS.md). Bodegas sí sigue aceptando texto libre.
 const phonePattern = /^[0-9]{7,15}$/
@@ -51,12 +51,13 @@ const phoneMessage = 'Solo dígitos: entre 7 y 15.'
 
 const documentPatterns = { numerico: /^[0-9]+$/, pasaporte: /^[A-Za-z0-9]+$/ }
 
-const columns = [
+const columns = computed(() => [
   { key: 'nombre', label: 'Nombre' },
   { key: 'correo', label: 'Correo' },
   { key: 'rol', label: 'Rol' },
+  ...(esAdmin.value ? [{ key: 'empresa_nombre', label: 'Empresa' }] : []),
   { key: 'numero_documento', label: 'Documento' },
-]
+])
 
 const baseFields = [
   { key: 'nombre', label: 'Nombre', required: true, maxLength: 100 },
@@ -129,6 +130,11 @@ const fields = computed(() => {
       field.key === 'rol_id' ? { ...field, options: roleOptions.value } : { ...field },
     )
   if (nombreRol(form.value.rol_id) === 'cliente') list.push(...clienteFields.value)
+  // Multiempresa: el admin debe elegir la empresa al crear un bodeguero o un
+  // usuario `empresa`; con otro rol el campo no aplica ni se envía.
+  if (esAdmin.value && ['bodeguero', 'empresa'].includes(nombreRol(form.value.rol_id))) {
+    list.push(campoEmpresa(empresaOpciones.value))
+  }
   if (editing.value) {
     const password = list.find((field) => field.key === 'contrasena')
     password.required = false
@@ -160,34 +166,17 @@ function cleanPayload(payload) {
   } else if (clean.rol_id !== undefined) {
     clean.rol_id = Number(clean.rol_id)
   }
+  if (esAdmin.value && clean.empresa_id !== undefined) {
+    clean.empresa_id = Number(clean.empresa_id)
+  }
   return clean
 }
 
 const {
-  canCreate,
-  canEdit,
-  canDelete,
-  createLabel,
-  confirmacion,
-  rows,
-  total,
-  page,
-  limit,
-  q,
-  loading,
-  alert,
-  modalOpen,
-  editing,
-  form,
-  saving,
-  confirmOpen,
-  deleting,
-  removing,
-  openCreate,
-  openEdit,
-  save,
-  askDelete,
-  confirmDelete,
+  canCreate, canEdit, canDelete, createLabel, confirmacion,
+  rows, total, page, limit, q, loading, alert,
+  modalOpen, editing, form, saving, confirmOpen, deleting, removing,
+  openCreate, openEdit, save, askDelete, confirmDelete,
 } = useCrud({
   modulo: 'usuarios',
   api: usuariosApi,
@@ -204,6 +193,7 @@ const {
     correo: row.correo ?? '',
     contrasena: '',
     rol_id: resolveRolId(row),
+    empresa_id: row.empresa_id ?? '',
     tipo_documento: row.tipo_documento ?? '',
     numero_documento: row.numero_documento ?? '',
     telefono: row.telefono ?? '',
@@ -223,8 +213,11 @@ const {
     titulo: 'Eliminar usuario',
     mensaje: 'El usuario perderá el acceso. Esta acción no se puede deshacer.',
   },
-  paramsExtra: () => (effectiveRole.value ? { rol: effectiveRole.value } : {}),
-  filtros: [roleFilter],
+  paramsExtra: () => ({
+    ...(effectiveRole.value ? { rol: effectiveRole.value } : {}),
+    ...empresaParams(esAdmin.value, empresaId.value),
+  }),
+  filtros: [roleFilter, empresaId],
   antesDeAbrir: cargarRoles,
   alMontar: cargarRoles,
 })
@@ -287,6 +280,7 @@ const {
           </option>
         </select>
       </label>
+      <EmpresaSelect v-if="esAdmin" v-model="empresaId" :empresas="empresaOpciones" />
     </template>
   </CrudPage>
 </template>

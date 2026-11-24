@@ -5,6 +5,7 @@ import { createPinia, setActivePinia } from 'pinia'
 const api = vi.hoisted(() => ({
   list: vi.fn(),
   listClientes: vi.fn(),
+  buscarClientes: vi.fn(),
   create: vi.fn(),
   update: vi.fn(),
   remove: vi.fn(),
@@ -97,13 +98,16 @@ describe('Test 38 — Errores 422 del backend en el formulario', () => {
     setActivePinia(createPinia())
     useAuthStore().saveSession('token-123', { nombre: 'Ana', rol: 'admin' })
     api.list.mockResolvedValue({ data: [], total: 0, page: 1, limit: 10 })
-    api.listClientes.mockResolvedValue({ data: [{ id: 3, nombre: 'Juan Pérez' }] })
+    api.buscarClientes.mockResolvedValue({ data: [{ id: 3, nombre: 'Juan Pérez' }] })
     api.create.mockRejectedValue(error422)
 
     const wrapper = mount(FacturaView)
     await flushPromises()
 
     await wrapper.find('[data-test="create"]').trigger('click')
+    await flushPromises()
+    await wrapper.find('[data-test="cliente-buscar"]').setValue('Juan P')
+    await new Promise((resolve) => setTimeout(resolve, 350))
     await flushPromises()
     await completarFormulario(wrapper)
     await wrapper.find('[data-test="factura-form"] form').trigger('submit')

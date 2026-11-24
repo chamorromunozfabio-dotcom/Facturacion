@@ -9,7 +9,12 @@ const api = vi.hoisted(() => ({
   remove: vi.fn(),
 }))
 
+const empresas = vi.hoisted(() => ({
+  listActivas: vi.fn(),
+}))
+
 vi.mock('../src/modules/catalogos/api/bodegas', () => ({ default: api }))
+vi.mock('../src/modules/empresas/api/empresas', () => ({ default: empresas }))
 
 import BodegasView from '../src/modules/catalogos/views/BodegasView.vue'
 import { useAuthStore } from '../src/modules/auth/store/auth'
@@ -37,6 +42,7 @@ const datos = {
   departamento: 'Cundinamarca',
   telefono: '3001234567',
   correo: 'norte@entrega.com',
+  empresa_id: 1,
   recibe_nombre: 'Carlos Pérez',
   recibe_documento: '1020304051',
   recibe_cargo: 'Jefe de bodega',
@@ -57,6 +63,9 @@ describe('Test 18 — Campos nuevos de Bodega', () => {
     vi.clearAllMocks()
     api.list.mockResolvedValue({ data: [row], total: 1, page: 1, limit: 10 })
     api.create.mockResolvedValue({ id: 2, nombre: 'Bodega Norte' })
+    empresas.listActivas.mockResolvedValue({
+      data: [{ id: 1, razon_social: 'Distribuidora Andina S.A.S.' }],
+    })
   })
 
   it('muestra las columnas sugeridas por el líder', async () => {
@@ -140,7 +149,7 @@ describe('Test 18 — Campos nuevos de Bodega', () => {
     )
   })
 
-  it('envía los 11 datos obligatorios', async () => {
+  it('envía los datos obligatorios', async () => {
     const wrapper = mount(BodegasView)
     await flushPromises()
     await wrapper.find('[data-test="create"]').trigger('click')

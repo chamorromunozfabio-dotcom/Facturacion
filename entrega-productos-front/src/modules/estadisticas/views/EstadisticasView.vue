@@ -5,10 +5,14 @@ import CampoNative from '../../../shared/ui/CampoNative.vue'
 import StatCard from '../components/StatCard.vue'
 import BarrasPorEstado from '../components/BarrasPorEstado.vue'
 import SerieTiempo from '../components/SerieTiempo.vue'
+import EmpresaSelect from '../../empresas/components/EmpresaSelect.vue'
 import { useEstadisticas } from '../composables/useEstadisticas'
 
 const {
   descripcion,
+  esAdmin,
+  empresaId,
+  empresaOpciones,
   desde,
   hasta,
   invalido,
@@ -28,6 +32,7 @@ const {
     <p class="subtitle">{{ descripcion }}</p>
 
     <div class="filtros">
+      <EmpresaSelect v-if="esAdmin" v-model="empresaId" :empresas="empresaOpciones" />
       <label>
         Desde
         <CampoNative v-model="desde" data-test="desde" type="date" />

@@ -88,14 +88,14 @@ describe('Test 21 — API de Facturas', () => {
 
   it('el listado filtra por número, por nombre de cliente y por estado', async () => {
     const porNumero = await facturasApi.list({ q: 'FE-0001', page: 1, limit: 10 })
-    expect(porNumero.total).toBe(1)
+    expect(porNumero.total).toBe(2)
     expect(porNumero.data[0].numero).toBe('FE-0001')
 
     const porCliente = await facturasApi.list({ q: 'juan', page: 1, limit: 10 })
-    expect(porCliente.total).toBe(5)
+    expect(porCliente.total).toBe(6)
 
     const porEstado = await facturasApi.list({ estado: 'emitida', page: 1, limit: 10 })
-    expect(porEstado.total).toBe(1)
+    expect(porEstado.total).toBe(2)
     expect(porEstado.data[0].estado).toBe('emitida')
   })
 

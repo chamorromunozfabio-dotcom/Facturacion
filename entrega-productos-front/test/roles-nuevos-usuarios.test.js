@@ -149,8 +149,10 @@ describe('Test 42 — Roles nuevos del backend disponibles para asignar a usuari
     await flushPromises()
     await abrirNuevoUsuario(wrapper)
 
+    // `empresa` no entra al respaldo: su id no es fijo, siempre se resuelve por
+    // nombre desde GET /roles (cuando el backend lo cree).
     expect(
       wrapper.findAll('[data-test="field-rol_id"] option').map((op) => op.text()),
-    ).toEqual(['admin', 'bodeguero', 'cliente', 'empresa'])
+    ).toEqual(['admin', 'bodeguero', 'cliente'])
   })
 })

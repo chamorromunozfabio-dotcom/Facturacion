@@ -19,6 +19,7 @@ const usuarios = vi.hoisted(() => ({
 const facturas = vi.hoisted(() => ({
   list: vi.fn(),
   listClientes: vi.fn(),
+  buscarClientes: vi.fn(),
   get: vi.fn(),
   create: vi.fn(),
   update: vi.fn(),
@@ -30,9 +31,12 @@ const facturas = vi.hoisted(() => ({
   descargarPdf: vi.fn(),
 }))
 
+const empresas = vi.hoisted(() => ({ listActivas: vi.fn() }))
+
 vi.mock('../src/modules/catalogos/api/bodegas', () => ({ default: bodegas }))
 vi.mock('../src/modules/catalogos/api/usuarios', () => ({ default: usuarios }))
 vi.mock('../src/modules/catalogos/api/tipos', () => ({ default: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
+vi.mock('../src/modules/empresas/api/empresas', () => ({ default: empresas }))
 vi.mock('../src/modules/facturas/api/facturas', async () => {
   const actual = await vi.importActual('../src/modules/facturas/api/facturas')
   return { ...actual, default: facturas }
@@ -68,11 +72,14 @@ describe('Test 35 — Contrato v2: bodegas propias y sin Usuarios', () => {
       limit: 100,
     })
     facturas.list.mockResolvedValue({ data: [], total: 0, page: 1, limit: 10 })
-    facturas.listClientes.mockResolvedValue({
+    facturas.buscarClientes.mockResolvedValue({
       data: [{ id: 5, nombre: 'Cliente Prueba', tipo_documento: 'CC', numero_documento: '1020304050' }],
       total: 1,
       page: 1,
-      limit: 100,
+      limit: 20,
+    })
+    empresas.listActivas.mockResolvedValue({
+      data: [{ id: 1, razon_social: 'Distribuidora Andina S.A.S.' }],
     })
     bodegas.create.mockResolvedValue({ id: 3, nombre: 'Bodega Sur', bodeguero_id: 2 })
   })
@@ -147,6 +154,7 @@ describe('Test 35 — Contrato v2: bodegas propias y sin Usuarios', () => {
     expect(wrapper.find('[data-test="field-bodeguero_id"]').exists()).toBe(true)
 
     const datos = {
+      empresa_id: 1,
       nombre: 'Bodega Sur',
       codigo: 'SUR-01',
       direccion: 'Calle 1 2 3',
@@ -169,7 +177,7 @@ describe('Test 35 — Contrato v2: bodegas propias y sin Usuarios', () => {
     expect(bodegas.create).toHaveBeenCalledWith({ ...datos, bodeguero_id: 2 })
   })
 
-  it('el selector de clientes de facturas usa /facturas/clientes', async () => {
+  it('el selector de clientes de facturas usa /clientes/buscar', async () => {
     useAuthStore().saveSession('token-123', { nombre: 'Luis', rol: 'bodeguero' })
 
     const wrapper = mount(FacturaView)
@@ -177,7 +185,11 @@ describe('Test 35 — Contrato v2: bodegas propias y sin Usuarios', () => {
     await wrapper.find('[data-test="create"]').trigger('click')
     await flushPromises()
 
-    expect(facturas.listClientes).toHaveBeenCalledWith({ page: 1, limit: 100 })
+    await wrapper.find('[data-test="cliente-buscar"]').setValue('Prueba')
+    await new Promise((resolve) => setTimeout(resolve, 350))
+    await flushPromises()
+
+    expect(facturas.buscarClientes).toHaveBeenCalledWith('Prueba')
     expect(usuarios.list).not.toHaveBeenCalledWith(expect.objectContaining({ rol: 'cliente' }))
   })
 })

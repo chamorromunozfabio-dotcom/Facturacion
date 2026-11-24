@@ -12,13 +12,14 @@ const props = defineProps({
   titulo: { type: String, default: 'Nueva factura' },
   modelValue: { type: Object, default: () => ({}) },
   clientes: { type: Array, default: () => [] },
+  clienteQuery: { type: String, default: '' },
   bodegas: { type: Array, default: () => [] },
   tipos: { type: Array, default: () => [] },
   submitLabel: { type: String, default: 'Guardar' },
   loading: { type: Boolean, default: false },
   serverErrors: { type: Object, default: () => ({}) },
 })
-const emit = defineEmits(['update:modelValue', 'submit', 'close'])
+const emit = defineEmits(['update:modelValue', 'submit', 'close', 'buscar-cliente'])
 useModalA11y(computed(() => props.open), () => emit('close'))
 
 const {
@@ -59,9 +60,11 @@ const {
         :form="form"
         :errores="errores"
         :clientes="clientes"
+        :cliente-query="clienteQuery"
         :bodegas="bodegas"
         :es-credito="esCredito"
         @marcar="marca"
+        @buscar-cliente="emit('buscar-cliente', $event)"
       />
 
       <FacturaLineas

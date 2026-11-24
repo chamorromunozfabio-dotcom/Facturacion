@@ -6,17 +6,28 @@ defineProps({
   form: { type: Object, required: true },
   errores: { type: Object, default: () => ({}) },
   clientes: { type: Array, default: () => [] },
+  clienteQuery: { type: String, default: '' },
   bodegas: { type: Array, default: () => [] },
   esCredito: { type: Boolean, default: false },
 })
 
-defineEmits(['marcar'])
+defineEmits(['marcar', 'buscar-cliente'])
 </script>
 
 <template>
   <div class="grid">
     <label>
       Cliente *
+      <input
+        type="search"
+        data-test="cliente-buscar"
+        :value="clienteQuery"
+        placeholder="Busca por nombre, documento o correo…"
+        @input="$emit('buscar-cliente', $event.target.value)"
+      />
+      <small v-if="clienteQuery.trim().length > 0 && clienteQuery.trim().length < 5" class="campo-hint">
+        Escribe al menos 5 caracteres para buscar.
+      </small>
       <select v-model="form.cliente_id" data-test="field-cliente_id" @change="$emit('marcar', 'cliente_id')">
         <option value="">Selecciona el cliente…</option>
         <option v-for="cliente in clientes" :key="cliente.id" :value="cliente.id">
@@ -108,6 +119,12 @@ textarea {
   color: #b91c1c;
   font-size: 0.78rem;
   font-weight: 500;
+  line-height: 1.25;
+}
+
+.campo-hint {
+  color: #6b7280;
+  font-size: 0.75rem;
   line-height: 1.25;
 }
 

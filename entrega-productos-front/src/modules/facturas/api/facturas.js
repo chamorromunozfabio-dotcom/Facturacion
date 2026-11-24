@@ -1,6 +1,6 @@
 import api from '../../../shared/api/axios'
 import { createCrudResource } from '../../catalogos/api/crud'
-import { mockFacturaAction, mockList, wait } from '../../../shared/api/mocks'
+import { mockBuscarClientes, mockFacturaAction, mockList, wait } from '../../../shared/api/mocks'
 import { resolveApiModes } from '../../../shared/config/apiModes'
 import { abrirPdfNativo, esPlataformaNativa } from '../utils/pdfNativo'
 
@@ -20,6 +20,18 @@ export function getFacturaPdf(id) {
 export function listClientes(params = {}) {
   if (USE_MOCKS) return mockList('facturasClientes', params)
   return api.get('/facturas/clientes', { params }).then((response) => response.data)
+}
+
+/**
+ * Búsqueda de clientes para facturar. Contrato acordado:
+ * `GET /clientes/buscar?q=&page=&limit=` con `q` obligatorio (mínimo 5
+ * caracteres); busca por nombre, documento y correo.
+ */
+export function buscarClientes(q, params = {}) {
+  if (USE_MOCKS) return mockBuscarClientes(q)
+  return api
+    .get('/clientes/buscar', { params: { q, page: 1, limit: 20, ...params } })
+    .then((response) => response.data)
 }
 
 /** Valida la firma igual que el backend: prefijo, base64 y tamaño. */
@@ -68,7 +80,10 @@ const PATCHES = {
 async function accion(id, path, body) {
   if (USE_MOCKS) {
     await wait()
-    return mockFacturaAction(id, PATCHES[path])
+    // El demo guarda también el motivo del rechazo para verlo en el detalle.
+    const patch = { ...PATCHES[path] }
+    if (path === 'rechazar') patch.motivo_rechazo = body?.motivo_rechazo
+    return mockFacturaAction(id, patch)
   }
   return postAccion(id, path, body)
 }
@@ -77,6 +92,7 @@ export const facturasApi = {
   ...createCrudResource('facturas', { mocks: USE_MOCKS }),
 
   listClientes,
+  buscarClientes,
 
   entregar(id) {
     return accion(id, 'entregar')
@@ -86,8 +102,9 @@ export const facturasApi = {
     return accion(id, 'aceptar', { firma })
   },
 
+  // Contrato migrado: el rechazo viaja con `motivo_rechazo` (10 a 255).
   rechazar(id, motivo) {
-    return accion(id, 'rechazar', { motivo })
+    return accion(id, 'rechazar', { motivo_rechazo: motivo })
   },
 
   recibir(id) {

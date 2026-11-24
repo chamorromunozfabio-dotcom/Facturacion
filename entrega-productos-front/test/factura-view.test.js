@@ -172,10 +172,13 @@ describe('Test 24 — FacturaView (listado, detalle y acciones)', () => {
 
     await wrapper.findAll('tbody tr')[1].find('[data-test="rechazar"]').trigger('click')
 
-    await wrapper.find('[data-test="rechazo-confirm"]').trigger('click')
-    expect(wrapper.find('[data-test="rechazo-error"]').text()).toBe('Escribe el motivo del rechazo.')
+    expect(wrapper.find('[data-test="rechazo-confirm"]').attributes('disabled')).toBeDefined()
+
+    await wrapper.find('[data-test="motivo"]').setValue('Corto')
+    expect(wrapper.find('[data-test="rechazo-confirm"]').attributes('disabled')).toBeDefined()
 
     await wrapper.find('[data-test="motivo"]').setValue('  Cantidad incorrecta  ')
+    expect(wrapper.find('[data-test="rechazo-confirm"]').attributes('disabled')).toBeUndefined()
     await wrapper.find('[data-test="rechazo-confirm"]').trigger('click')
     await flushPromises()
 

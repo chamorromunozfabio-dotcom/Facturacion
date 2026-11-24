@@ -12,7 +12,8 @@ export const TIPOS_DOCUMENTO = [
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const TELEFONO_RE = /^[0-9]{7,15}$/
 const DOCUMENTO_RE = /^[0-9]+$/
-const NIT_RE = /^[0-9]+(?:-[0-9]+)?$/
+// NIT con dígito de verificación separado por guion, como 900123456-1.
+const NIT_RE = /^[0-9]+-[0-9]$/
 
 const CAMPOS_COMUNES = [
   {
@@ -30,9 +31,9 @@ const CAMPOS_COMUNES = [
     type: 'password',
     required: true,
     minLength: 8,
-    maxLength: 100,
+    maxLength: 72,
     sinTrim: true,
-    hint: 'Mínimo 8 caracteres.',
+    hint: 'De 8 a 72 caracteres.',
   },
   {
     key: 'confirmar',
@@ -40,7 +41,7 @@ const CAMPOS_COMUNES = [
     type: 'password',
     required: true,
     minLength: 8,
-    maxLength: 100,
+    maxLength: 72,
     equals: 'contrasena',
     sinTrim: true,
     mensajeIguales: 'Las contraseñas no coinciden.',
@@ -92,7 +93,7 @@ const CAMPOS_EMPRESA = [
     key: 'razon_social',
     label: 'Razón social',
     required: true,
-    maxLength: 150,
+    maxLength: 100,
     hint: 'Nombre legal de la empresa.',
   },
   {
@@ -102,7 +103,7 @@ const CAMPOS_EMPRESA = [
     nitOnly: true,
     maxLength: 20,
     pattern: NIT_RE,
-    message: 'Solo números y guiones, sin espacios.',
+    message: 'Formato de NIT: 900123456-1 (con dígito de verificación).',
     hint: 'Ej. 900123456-1.',
   },
   {
