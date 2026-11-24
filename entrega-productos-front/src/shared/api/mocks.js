@@ -650,65 +650,112 @@ function seriePorFecha(periodo, valores) {
  * Las claves, etiquetas y tipos son los que devuelve el backend real.
  */
 export async function mockResumenEstadisticas(params = {}) {
-  let rol = 'admin'
+  let sesion = null
   try {
-    rol = JSON.parse(localStorage.getItem('user') || 'null')?.rol ?? 'admin'
+    sesion = JSON.parse(localStorage.getItem('user') || 'null')
   } catch {
-    rol = 'admin'
+    sesion = null
   }
+  const rol = sesion?.rol ?? 'admin'
 
   const fecha_inicio = params.fecha_inicio || params.desde || '2026-11-01'
   const fecha_fin = params.fecha_fin || params.hasta || '2026-11-30'
   const periodo = { fecha_inicio, fecha_fin, desde: fecha_inicio, hasta: fecha_fin }
-  const temporal = [
+
+  // Factor simple por rango de fechas para que Hoy / 7 días / 30 días cambien las cifras.
+  const dias = Math.max(
+    1,
+    Math.round((new Date(fecha_fin) - new Date(fecha_inicio)) / 86400000) + 1 || 30,
+  )
+  const factorRango = dias <= 1 ? 0.15 : dias <= 7 ? 0.45 : 1
+  const escalar = (n) => Math.max(0, Math.round(n * factorRango))
+
+  const temporalBase = [
     { fecha: '2026-11-01', completadas: 4, rechazadas: 0 },
     { fecha: '2026-11-02', completadas: 7, rechazadas: 1 },
     { fecha: '2026-11-03', completadas: 5, rechazadas: 0 },
     { fecha: '2026-11-04', completadas: 9, rechazadas: 1 },
+    { fecha: '2026-11-05', completadas: 6, rechazadas: 0 },
   ]
+  const temporal = dias <= 1 ? temporalBase.slice(-1) : dias <= 7 ? temporalBase.slice(-3) : temporalBase
 
   if (rol === 'cliente') {
+    const proveedores = [
+      { id: 1, empresa: 'Distribuidora Andina S.A.S.', total: 12, aceptadas: 9, pendientes: 2, rechazadas: 1, facturado: 8450000 },
+      { id: 2, empresa: 'Comercializadora del Caribe S.A.S.', total: 5, aceptadas: 4, pendientes: 1, rechazadas: 0, facturado: 3200000 },
+    ]
+    const filtrados = params.empresa_id
+      ? proveedores.filter((p) => String(p.id) === String(params.empresa_id))
+      : proveedores
+
+    const aceptadas = escalar(filtrados.reduce((acc, p) => acc + p.aceptadas, 0))
+    const pendientes = escalar(filtrados.reduce((acc, p) => acc + p.pendientes, 0))
+    const rechazadas = escalar(filtrados.reduce((acc, p) => acc + p.rechazadas, 0))
+    const facturado = escalar(filtrados.reduce((acc, p) => acc + p.facturado, 0))
+
+    const datosEstado = [
+      { etiqueta: 'Entregada', valor: pendientes },
+      { etiqueta: 'Firmada', valor: aceptadas },
+      { etiqueta: 'Rechazada', valor: rechazadas },
+    ].filter((d) => {
+      if (params.estado === 'pendientes') return d.etiqueta === 'Entregada'
+      if (params.estado === 'aceptadas') return d.etiqueta === 'Firmada'
+      if (params.estado === 'rechazadas') return d.etiqueta === 'Rechazada'
+      return true
+    })
+
     return {
       periodo,
       generado_para: 'cliente',
       filtros_disponibles: {
-        empresas: [{ id: 1, razon_social: 'Distribuidora Andina S.A.S.' }],
+        empresas: proveedores.map((p) => ({ id: p.id, razon_social: p.empresa })),
         bodegas: [],
         bodegueros: [],
         tipos: [],
         estados: ['todas', 'pendientes', 'aceptadas', 'rechazadas'],
       },
       kpis: [
-        { clave: 'pendientes_accion', titulo: 'Pendientes por firmar', valor: 1, formato: 'numero', alerta: true },
-        { clave: 'recibidas_total', titulo: 'Facturas aceptadas', valor: 3, formato: 'numero', alerta: false },
-        { clave: 'rechazadas_total', titulo: 'Facturas rechazadas', valor: 0, formato: 'numero', alerta: false },
-        { clave: 'empresas_proveedoras', titulo: 'Empresas proveedoras', valor: 1, formato: 'numero', alerta: false },
+        { clave: 'pendientes_accion', titulo: 'Pendientes por firmar', valor: pendientes, formato: 'numero', alerta: pendientes > 0 },
+        { clave: 'recibidas_total', titulo: 'Facturas aceptadas', valor: aceptadas, formato: 'numero', alerta: false },
+        { clave: 'facturado_cliente', titulo: 'Total comprado', valor: facturado, formato: 'moneda', alerta: false },
+        { clave: 'empresas_proveedoras', titulo: 'Empresas proveedoras', valor: filtrados.length, formato: 'numero', alerta: false },
       ],
       desglose_principal: {
         titulo: 'Resumen por Empresa Proveedora',
-        columnas: ['Empresa', 'Total Facturas', 'Aceptadas', 'Rechazadas'],
-        filas: [
-          { empresa: 'Distribuidora Andina S.A.S.', total: 4, aceptadas: 3, rechazadas: 0 },
-        ],
+        columnas: ['Empresa', 'Facturas', 'Aceptadas', 'Pendientes', 'Rechazadas'],
+        filas: filtrados.map((p) => ({
+          empresa: p.empresa,
+          total: escalar(p.total),
+          aceptadas: escalar(p.aceptadas),
+          pendientes: escalar(p.pendientes),
+          rechazadas: escalar(p.rechazadas),
+        })),
       },
       serie_temporal: temporal.slice(0, 3),
-      alertas_detalle: [],
+      alertas_detalle: rechazadas > 0
+        ? [{ numero_factura: 'FE-0009', motivo_rechazo: 'Producto diferente al solicitado', fecha: '2026-11-20' }]
+        : [],
       series: [
-        {
-          clave: 'por_estado',
-          titulo: 'Mis facturas por estado',
-          tipo: 'barras',
-          datos: [
-            { etiqueta: 'Entregada', valor: 1 },
-            { etiqueta: 'Firmada', valor: 3 },
-          ],
-        },
-        seriePorFecha(periodo, [0, 1, 0, 2, 1, 0]),
+        { clave: 'por_estado', titulo: 'Mis entregas por estado', tipo: 'barras', datos: datosEstado },
       ],
     }
   }
 
   if (rol === 'bodeguero') {
+    const productos = [
+      { id: 1, tipo: 'Alimentos', emitidas: 15, completadas: 10, rechazadas: 1 },
+      { id: 2, tipo: 'Bebidas', emitidas: 9, completadas: 4, rechazadas: 0 },
+      { id: 3, tipo: 'Aseo', emitidas: 6, completadas: 5, rechazadas: 0 },
+    ]
+    const filtrados = params.tipo_id
+      ? productos.filter((p) => String(p.id) === String(params.tipo_id))
+      : productos
+
+    const porDespachar = escalar(filtrados.reduce((acc, p) => acc + Math.max(1, p.emitidas - p.completadas - p.rechazadas), 0))
+    const sinFirma = escalar(params.tipo_id ? 2 : 6)
+    const completadas = escalar(filtrados.reduce((acc, p) => acc + p.completadas, 0))
+    const rechazadas = escalar(filtrados.reduce((acc, p) => acc + p.rechazadas, 0))
+
     return {
       periodo,
       generado_para: 'bodeguero',
@@ -716,135 +763,163 @@ export async function mockResumenEstadisticas(params = {}) {
         empresas: [],
         bodegas: [],
         bodegueros: [],
-        tipos: [{ id: 1, nombre: 'Alimentos' }, { id: 2, nombre: 'Bebidas' }],
+        tipos: productos.map((p) => ({ id: p.id, nombre: p.tipo })),
         estados: ['todas', 'pendientes', 'completadas', 'rechazadas'],
       },
       kpis: [
-        { clave: 'por_despachar', titulo: 'Por despachar', valor: 4, formato: 'numero', alerta: false },
-        { clave: 'sin_firma', titulo: 'Esperando firma', valor: 6, formato: 'numero', alerta: true },
-        { clave: 'completadas', titulo: 'Completadas', valor: 14, formato: 'numero', alerta: false },
-        { clave: 'rechazadas', titulo: 'Rechazadas', valor: 1, formato: 'numero', alerta: false },
+        { clave: 'por_despachar', titulo: 'Por despachar', valor: porDespachar, formato: 'numero', alerta: porDespachar > 5 },
+        { clave: 'sin_firma', titulo: 'Esperando firma', valor: sinFirma, formato: 'numero', alerta: sinFirma > 0 },
+        { clave: 'completadas', titulo: 'Completadas', valor: completadas, formato: 'numero', alerta: false },
+        { clave: 'rechazadas', titulo: 'Rechazadas', valor: rechazadas, formato: 'numero', alerta: rechazadas > 0 },
       ],
       desglose_principal: {
         titulo: 'Actividad por Tipo de Producto',
         columnas: ['Tipo Producto', 'Emitidas', 'Completadas', 'Rechazadas'],
-        filas: [
-          { tipo: 'Alimentos', emitidas: 15, completadas: 10, rechazadas: 1 },
-          { tipo: 'Bebidas', emitidas: 9, completadas: 4, rechazadas: 0 },
-        ],
+        filas: filtrados.map((p) => ({
+          tipo: p.tipo,
+          emitidas: escalar(p.emitidas),
+          completadas: escalar(p.completadas),
+          rechazadas: escalar(p.rechazadas),
+        })),
       },
       serie_temporal: temporal,
-      alertas_detalle: [
-        { numero_factura: 'FE-0018', motivo_rechazo: 'Caja averiada en transporte', fecha: '2026-11-22' },
-      ],
+      alertas_detalle: rechazadas > 0
+        ? [{ numero_factura: 'FE-0018', motivo_rechazo: 'Caja averiada en transporte', fecha: '2026-11-22' }]
+        : [],
       series: [
         {
           clave: 'por_estado',
-          titulo: 'Facturas por estado',
+          titulo: 'Cola operativa de mi bodega',
           tipo: 'barras',
           datos: [
-            { etiqueta: 'Emitida', valor: 4 },
-            { etiqueta: 'Entregada', valor: 6 },
-            { etiqueta: 'Firmada', valor: 11 },
-            { etiqueta: 'Rechazada', valor: 1 },
-            { etiqueta: 'Recibida', valor: 3 },
+            { etiqueta: 'Emitida', valor: porDespachar },
+            { etiqueta: 'Entregada', valor: sinFirma },
+            { etiqueta: 'Completada', valor: completadas },
+            { etiqueta: 'Rechazada', valor: rechazadas },
           ],
         },
-        seriePorFecha(periodo, [0, 2, 4, 3, 7, 5]),
       ],
     }
   }
 
   if (rol === 'empresa') {
+    const bodegas = [
+      { id: 1, bodeguero_id: 2, nombre: 'Bodega Norte', emitidas: 90, completadas: 86, rechazadas: 4, efectividad: '95.5%', facturado: 14250000 },
+      { id: 2, bodeguero_id: 7, nombre: 'Bodega Centro', emitidas: 68, completadas: 54, rechazadas: 4, efectividad: '93.1%', facturado: 8550000 },
+    ]
+    let filtradas = bodegas
+    if (params.bodega_id) filtradas = filtradas.filter((b) => String(b.id) === String(params.bodega_id))
+    if (params.bodeguero_id) filtradas = filtradas.filter((b) => String(b.bodeguero_id) === String(params.bodeguero_id))
+
+    const totalFacturas = escalar(filtradas.reduce((acc, b) => acc + b.emitidas, 0))
+    const completadas = escalar(filtradas.reduce((acc, b) => acc + b.completadas, 0))
+    const rechazadas = escalar(filtradas.reduce((acc, b) => acc + b.rechazadas, 0))
+    const pendientes = Math.max(0, totalFacturas - completadas - rechazadas)
+    const tasaAceptacion = totalFacturas ? Number(((completadas / totalFacturas) * 100).toFixed(1)) : 0
+    const tasaRechazo = totalFacturas ? Number(((rechazadas / totalFacturas) * 100).toFixed(1)) : 0
+    const facturado = escalar(filtradas.reduce((acc, b) => acc + b.facturado, 0))
+
     return {
       periodo,
       generado_para: 'empresa',
       filtros_disponibles: {
         empresas: [],
-        bodegas: [{ id: 1, nombre: 'Bodega Norte' }, { id: 2, nombre: 'Bodega Centro' }],
-        bodegueros: [{ id: 2, nombre: 'Luis Gómez' }],
-        tipos: [{ id: 1, nombre: 'Alimentos' }],
+        bodegas: bodegas.map((b) => ({ id: b.id, nombre: b.nombre })),
+        bodegueros: [{ id: 2, nombre: 'Luis Gómez' }, { id: 7, nombre: 'Carlos Ruiz' }],
+        tipos: [{ id: 1, nombre: 'Alimentos' }, { id: 2, nombre: 'Bebidas' }],
         estados: [],
       },
       kpis: [
-        { clave: 'total_facturas', titulo: 'Facturas del periodo', valor: 148, formato: 'numero', alerta: false },
-        { clave: 'pendientes_cierre', titulo: 'Pendientes de firma', valor: 12, formato: 'numero', alerta: true },
-        { clave: 'tasa_aceptacion', titulo: 'Tasa de aceptación', valor: 94.5, formato: 'porcentaje', alerta: false },
-        { clave: 'tasa_rechazo', titulo: 'Tasa de rechazo', valor: 5.5, formato: 'porcentaje', alerta: false },
+        { clave: 'total_facturas', titulo: 'Facturas del periodo', valor: totalFacturas, formato: 'numero', alerta: false },
+        { clave: 'facturado_empresa', titulo: 'Facturado empresa', valor: facturado, formato: 'moneda', alerta: false },
+        { clave: 'pendientes_cierre', titulo: 'Pendientes de firma', valor: pendientes, formato: 'numero', alerta: pendientes > 0 },
+        { clave: 'tasa_aceptacion', titulo: 'Tasa de aceptación', valor: tasaAceptacion, formato: 'porcentaje', alerta: false },
+        { clave: 'tasa_rechazo', titulo: 'Tasa de rechazo', valor: tasaRechazo, formato: 'porcentaje', alerta: tasaRechazo > 10 },
       ],
       desglose_principal: {
         titulo: 'Rendimiento por Bodega',
         columnas: ['Bodega', 'Emitidas', 'Completadas', 'Rechazadas', 'Efectividad'],
-        filas: [
-          { nombre: 'Bodega Norte', emitidas: 90, completadas: 86, rechazadas: 4, efectividad: '95.5%' },
-          { nombre: 'Bodega Centro', emitidas: 58, completadas: 54, rechazadas: 4, efectividad: '93.1%' },
-        ],
+        filas: filtradas.map((b) => ({
+          nombre: b.nombre,
+          emitidas: escalar(b.emitidas),
+          completadas: escalar(b.completadas),
+          rechazadas: escalar(b.rechazadas),
+          efectividad: b.efectividad,
+        })),
       },
       serie_temporal: temporal,
       alertas_detalle: [
         { numero_factura: 'FE-0042', motivo_rechazo: 'Caja golpeada al momento de la entrega', fecha: '2026-11-23' },
+        { numero_factura: 'FE-0039', motivo_rechazo: 'Faltaron dos unidades en el despacho', fecha: '2026-11-21' },
       ],
       series: [
         {
-          clave: 'por_estado',
-          titulo: 'Facturas de la empresa por estado',
+          clave: 'por_bodega',
+          titulo: 'Facturado por bodega',
           tipo: 'barras',
-          datos: [
-            { etiqueta: 'Emitida', valor: 9 },
-            { etiqueta: 'Entregada', valor: 17 },
-            { etiqueta: 'Firmada', valor: 28 },
-            { etiqueta: 'Rechazada', valor: 1 },
-            { etiqueta: 'Recibida', valor: 9 },
-          ],
+          datos: filtradas.map((b) => ({ etiqueta: b.nombre, valor: escalar(b.facturado) })),
         },
-        seriePorFecha(periodo, [0, 2, 5, 4, 8, 6]),
       ],
     }
   }
+
+  // Rol: admin (visión global de plataforma SaaS)
+  const empresasData = [
+    { id: 1, nombre: 'Distribuidora Andina S.A.S.', estado: 'activa', bodegas: 2, facturas: 148, rechazadas: 8, efectividad: '94.6%', facturado: 27105000 },
+    { id: 2, nombre: 'Comercializadora del Caribe S.A.S.', estado: 'pendiente', bodegas: 1, facturas: 45, rechazadas: 2, efectividad: '95.5%', facturado: 18495000 },
+    { id: 3, nombre: 'Logística Nacional S.A.S.', estado: 'suspendida', bodegas: 1, facturas: 22, rechazadas: 4, efectividad: '81.8%', facturado: 6400000 },
+  ]
+  let empresasFiltradas = empresasData
+  if (params.empresa_id) empresasFiltradas = empresasFiltradas.filter((e) => String(e.id) === String(params.empresa_id))
+  if (params.estado) empresasFiltradas = empresasFiltradas.filter((e) => e.estado === params.estado)
+
+  const activas = empresasFiltradas.filter((e) => e.estado === 'activa').length
+  const pendientesAprobacion = empresasFiltradas.filter((e) => e.estado === 'pendiente').length
+  const facturadoGlobal = escalar(empresasFiltradas.reduce((acc, e) => acc + e.facturado, 0))
 
   return {
     periodo,
     generado_para: 'admin',
     filtros_disponibles: {
-      empresas: [
-        { id: 1, razon_social: 'Distribuidora Andina S.A.S.' },
-        { id: 2, razon_social: 'Comercializadora del Caribe S.A.S.' },
-      ],
+      empresas: empresasData.map((e) => ({ id: e.id, razon_social: e.nombre })),
       bodegas: [],
       bodegueros: [],
       tipos: [],
       estados: ['activa', 'pendiente', 'suspendida'],
     },
     kpis: [
-      { clave: 'empresas_activas', titulo: 'Empresas activas', valor: 1, formato: 'numero', alerta: false },
-      { clave: 'empresas_pendientes', titulo: 'Empresas pendientes', valor: 1, formato: 'numero', alerta: true },
+      { clave: 'empresas_activas', titulo: 'Empresas activas', valor: activas, formato: 'numero', alerta: false },
+      { clave: 'empresas_pendientes', titulo: 'Empresas pendientes', valor: pendientesAprobacion, formato: 'numero', alerta: pendientesAprobacion > 0 },
       { clave: 'clientes_globales', titulo: 'Clientes registrados', valor: 42, formato: 'numero', alerta: false },
+      { clave: 'facturado_global', titulo: 'Facturado global', valor: facturadoGlobal, formato: 'moneda', alerta: false },
       { clave: 'tasa_entrega_global', titulo: 'Tasa de entrega global', valor: 88.4, formato: 'porcentaje', alerta: false },
     ],
     desglose_principal: {
       titulo: 'Top Empresas por Volumen',
       columnas: ['Empresa', 'Bodegas', 'Facturas', 'Rechazadas', 'Efectividad'],
-      filas: [
-        { nombre: 'Distribuidora Andina S.A.S.', bodegas: 2, facturas: 148, rechazadas: 8, efectividad: '94.6%' },
-        { nombre: 'Comercializadora del Caribe S.A.S.', bodegas: 1, facturas: 45, rechazadas: 2, efectividad: '95.5%' },
-      ],
+      filas: empresasFiltradas.map((e) => ({
+        nombre: e.nombre,
+        bodegas: e.bodegas,
+        facturas: escalar(e.facturas),
+        rechazadas: escalar(e.rechazadas),
+        efectividad: e.efectividad,
+      })),
     },
     serie_temporal: temporal,
     alertas_detalle: [],
     series: [
       {
         clave: 'por_estado',
-        titulo: 'Facturas por estado',
+        titulo: 'Facturas globales por estado',
         tipo: 'barras',
         datos: [
-          { etiqueta: 'Emitida', valor: 18 },
-          { etiqueta: 'Entregada', valor: 34 },
-          { etiqueta: 'Firmada', valor: 56 },
-          { etiqueta: 'Rechazada', valor: 2 },
-          { etiqueta: 'Recibida', valor: 20 },
+          { etiqueta: 'Emitida', valor: escalar(18) },
+          { etiqueta: 'Entregada', valor: escalar(34) },
+          { etiqueta: 'Firmada', valor: escalar(56) },
+          { etiqueta: 'Rechazada', valor: escalar(14) },
+          { etiqueta: 'Recibida', valor: escalar(20) },
         ],
       },
-      seriePorFecha(periodo, [0, 3, 6, 4, 9, 7]),
     ],
   }
 }

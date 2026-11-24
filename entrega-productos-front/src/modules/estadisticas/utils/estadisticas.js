@@ -32,6 +32,7 @@ export function formatearValor(valor, sufijo = '', formato = '') {
   const numero = Number(valor)
   const texto = formateador.format(Number.isFinite(numero) ? numero : 0)
   if (formato === 'porcentaje') return `${texto}%`
+  if (formato === 'moneda') return `${texto} $`
   return sufijo ? `${texto} ${sufijo}` : texto
 }
 

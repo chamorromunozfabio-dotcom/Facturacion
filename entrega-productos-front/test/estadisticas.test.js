@@ -128,6 +128,7 @@ describe('Test 59 — Estadísticas por rol: reglas, permiso, API y panel', () =
     expect(empresa.generado_para).toBe('empresa')
     expect(empresa.kpis.map((kpi) => kpi.clave)).toEqual([
       'total_facturas',
+      'facturado_empresa',
       'pendientes_cierre',
       'tasa_aceptacion',
       'tasa_rechazo',
@@ -141,10 +142,14 @@ describe('Test 59 — Estadísticas por rol: reglas, permiso, API y panel', () =
     expect(cliente.kpis.map((kpi) => kpi.clave)).toEqual([
       'pendientes_accion',
       'recibidas_total',
-      'rechazadas_total',
+      'facturado_cliente',
       'empresas_proveedoras',
     ])
     expect(cliente.desglose_principal.titulo).toBe('Resumen por Empresa Proveedora')
+
+    const clienteFiltrado = await getResumen({ empresa_id: 2 })
+    expect(clienteFiltrado.desglose_principal.filas).toHaveLength(1)
+    expect(clienteFiltrado.kpis.find((k) => k.clave === 'empresas_proveedoras').valor).toBe(1)
 
     localStorage.setItem('user', JSON.stringify({ rol: 'admin' }))
     const admin = await getResumen({})
@@ -153,6 +158,7 @@ describe('Test 59 — Estadísticas por rol: reglas, permiso, API y panel', () =
       'empresas_activas',
       'empresas_pendientes',
       'clientes_globales',
+      'facturado_global',
       'tasa_entrega_global',
     ])
     expect(admin.filtros_disponibles.empresas.length).toBeGreaterThan(0)

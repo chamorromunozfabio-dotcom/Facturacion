@@ -18,6 +18,13 @@ const DESCRIPCIONES_ROL = {
   cliente: 'Historial personal de facturas recibidas, pendientes y rechazos.',
 }
 
+const CONTEXTO_ROL = {
+  admin: { badge: 'Visión global SaaS', tendencia: 'Evolución global de entregas' },
+  empresa: { badge: 'Gestión de empresa', tendencia: 'Tendencia de entregas vs. rechazos' },
+  bodeguero: { badge: 'Operación de bodega', tendencia: 'Despachos diarios de tu bodega' },
+  cliente: { badge: 'Mis compras y entregas', tendencia: 'Historial de tus entregas' },
+}
+
 /**
  * Estado del panel: rango de fechas, filtros adaptativos por rol, carga y presentación.
  * Qué datos y opciones llegan lo decide el backend según el token en `GET /estadisticas/resumen`.
@@ -27,6 +34,9 @@ export function useEstadisticas() {
 
   const descripcion = computed(
     () => DESCRIPCIONES_ROL[auth.role] ?? DESCRIPCIONES_ROL.cliente,
+  )
+  const contextoRol = computed(
+    () => CONTEXTO_ROL[auth.role] ?? CONTEXTO_ROL.cliente,
   )
 
   const inicial = rangoPorDefecto()
@@ -118,6 +128,7 @@ export function useEstadisticas() {
 
   return {
     descripcion,
+    contextoRol,
     desde,
     hasta,
     empresaId,
