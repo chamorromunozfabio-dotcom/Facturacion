@@ -45,6 +45,14 @@ describe('Test 52 — FacturaForm modular: encabezado, líneas y validación', (
     expect(campoLineaValido('tipo', { tipo_id: '' })).toBe(false)
     expect(mensajeServidor('detalle[0].tipo_id')).toBe('Elige el producto.')
 
+    // Solo números: el descuento también se limita a 2 decimales.
+    expect(campoLineaValido('descuento_porcentaje', { descuento_porcentaje: '10.55' })).toBe(true)
+    expect(campoLineaValido('descuento_porcentaje', { descuento_porcentaje: '10.555' })).toBe(false)
+    expect(campoLineaValido('iva_porcentaje', { iva_porcentaje: '19' })).toBe(true)
+    expect(campoLineaValido('iva_porcentaje', { iva_porcentaje: '0,5' })).toBe(false)
+    expect(campoLineaValido('cantidad', { cantidad: '1.5' })).toBe(true)
+    expect(campoLineaValido('cantidad', { cantidad: '1.555' })).toBe(false)
+
     const errores = validarFormulario(
       {
         cliente_id: '',
@@ -61,6 +69,33 @@ describe('Test 52 — FacturaForm modular: encabezado, líneas y validación', (
     expect(errores.cliente_id).toBe('Elige el cliente.')
     expect(errores['linea_0_tipo']).toBe('Elige el producto.')
     expect(errores['linea_0_cantidad']).toBe('Escribe la cantidad.')
+
+    const conDescuentoLargo = validarFormulario(
+      {
+        cliente_id: '3',
+        bodega_id: '1',
+        forma_pago: 'contado',
+        medio_pago: 'efectivo',
+        fecha_vencimiento: '',
+        observaciones: '',
+        detalle: [
+          {
+            ...emptyLinea(),
+            tipo_id: '5',
+            descripcion: 'Arroz',
+            unidad_medida: 'kg',
+            cantidad: '1',
+            precio_unitario: '1000',
+            descuento_porcentaje: '10.555',
+            iva_porcentaje: '19',
+          },
+        ],
+      },
+      false,
+    )
+
+    expect(conDescuentoLargo['linea_0_descuento_porcentaje']).toBe('Hasta 2 decimales.')
+    expect(conDescuentoLargo['linea_0_cantidad']).toBeUndefined()
   })
 
   it('el encabezado edita el modelo y avisa de cada campo tocado', async () => {

@@ -93,6 +93,8 @@ Fuera del front:
 
 **Regla de oro del código:** la vista no tiene lógica de negocio → llama a un *composable*; las reglas puras van a `modules/<modulo>/utils/`; las llamadas HTTP van a `modules/<modulo>/api/`. Si algo se repite en 3 pantallas, se extrae a `shared/` ("regla de 3").
 
+**Validaciones de solo números (`ArchivosMD/RESPUESTA_SOLO_NUMEROS.md`):** el backend rechaza con 422 los textos en campos numéricos. El front convierte antes de enviar (`Number(...)`: `rol_id`, `cliente_id`, `bodega_id`, `tipo_id`, `cantidad`, `precio_unitario`, `descuento_porcentaje`, `iva_porcentaje`) y valida: cantidad > 0 con hasta 2 decimales, precio ≥ 0 con hasta 2 decimales, descuento 0–100 con hasta 2 decimales, IVA en {0, 5, 19}. En Usuarios, `numero_documento` solo acepta dígitos (PA acepta también letras, sin símbolos) y `telefono` solo dígitos de 7 a 15. Vacíos: los opcionales se omiten (`quitarVacios`), los obligatorios muestran aviso en el campo. `FormModal` valida `required`, `maxLength`, `minLength`, `pattern`, email y números con `min`/`max`.
+
 ---
 
 ## 3. Login, token y sesión

@@ -44,8 +44,15 @@ const documentOptions = [
   { value: 'CE', label: 'CE' },
   { value: 'PA', label: 'PA' },
 ]
-const phonePattern = /^[0-9+\- ]{7,20}$/
-const phoneMessage = 'Usa entre 7 y 20 caracteres: dígitos, espacios, + o -.'
+// El backend solo acepta dígitos: 7 a 15 para el teléfono del usuario, sin
+// símbolos (RESPUESTA_SOLO_NUMEROS.md). Bodegas sí sigue aceptando texto libre.
+const phonePattern = /^[0-9]{7,15}$/
+const phoneMessage = 'Solo dígitos: entre 7 y 15.'
+
+const documentPatterns = {
+  numerico: /^[0-9]+$/,
+  pasaporte: /^[A-Za-z0-9]+$/,
+}
 
 const columns = [
   { key: 'nombre', label: 'Nombre' },
@@ -61,18 +68,31 @@ const baseFields = [
   { key: 'rol_id', label: 'Rol', type: 'select', required: true },
 ]
 // El backend los acepta como opcionales para todos los roles (PA incluido).
-const clienteFields = [
-  {
-    key: 'tipo_documento',
-    label: 'Tipo de documento',
-    type: 'select',
-    options: documentOptions,
-  },
-  { key: 'numero_documento', label: 'Número de documento', maxLength: 20 },
-  { key: 'telefono', label: 'Teléfono', pattern: phonePattern, message: phoneMessage },
-  { key: 'direccion', label: 'Dirección' },
-  { key: 'ciudad', label: 'Ciudad' },
-]
+// Al editar, el documento se valida con el tipo que va a quedar guardado:
+// solo PA acepta letras, y en ambos casos sin puntos, guiones ni espacios.
+const clienteFields = computed(() => {
+  const esPasaporte = String(form.value.tipo_documento ?? '').toUpperCase() === 'PA'
+  return [
+    {
+      key: 'tipo_documento',
+      label: 'Tipo de documento',
+      type: 'select',
+      options: documentOptions,
+    },
+    {
+      key: 'numero_documento',
+      label: 'Número de documento',
+      maxLength: 20,
+      pattern: esPasaporte ? documentPatterns.pasaporte : documentPatterns.numerico,
+      message: esPasaporte
+        ? 'Solo letras y números, sin símbolos.'
+        : 'Solo números, sin puntos, guiones ni espacios.',
+    },
+    { key: 'telefono', label: 'Teléfono', pattern: phonePattern, message: phoneMessage },
+    { key: 'direccion', label: 'Dirección' },
+    { key: 'ciudad', label: 'Ciudad' },
+  ]
+})
 
 const effectiveRole = computed(() => (isBodeguero.value ? 'cliente' : roleFilter.value))
 
@@ -80,7 +100,7 @@ const fields = computed(() => {
   const list = baseFields.map((field) =>
     field.key === 'rol_id' ? { ...field, options: roleOptions.value } : { ...field },
   )
-  if (nombreRol(form.value.rol_id) === 'cliente') list.push(...clienteFields)
+  if (nombreRol(form.value.rol_id) === 'cliente') list.push(...clienteFields.value)
   if (editing.value) {
     const password = list.find((field) => field.key === 'contrasena')
     password.required = false

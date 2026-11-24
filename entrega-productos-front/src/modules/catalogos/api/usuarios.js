@@ -17,11 +17,12 @@ function listPermisos(usuarioId) {
   return api.get(`/usuarios/${usuarioId}/permisos`).then((response) => response.data)
 }
 
-/** Reemplaza todos los permisos. `[]` quita todos. */
+/** Reemplaza todos los permisos. `[]` quita todos. Los ids van como números. */
 function setPermisos(usuarioId, permisosIds) {
-  if (catalogsMocks) return mockSetPermisosUsuario(usuarioId, permisosIds)
+  const ids = (permisosIds ?? []).map(Number)
+  if (catalogsMocks) return mockSetPermisosUsuario(usuarioId, ids)
   return api
-    .put(`/usuarios/${usuarioId}/permisos`, { permisos_ids: permisosIds })
+    .put(`/usuarios/${usuarioId}/permisos`, { permisos_ids: ids })
     .then((response) => response.data)
 }
 

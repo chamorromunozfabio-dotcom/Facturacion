@@ -150,4 +150,83 @@ describe('Test 19 — UsuariosView (roles y campos condicionales)', () => {
 
     expect(api.update).toHaveBeenCalledWith(3, { nombre: 'Juan Actualizado' })
   })
+
+  it('rechaza documento con guiones y teléfono con letras o símbolos', async () => {
+    useAuthStore().saveSession('token-123', { nombre: 'Ana', rol: 'admin' })
+    const wrapper = mount(UsuariosView)
+    await flushPromises()
+
+    await wrapper.find('[data-test="create"]').trigger('click')
+    await wrapper.find('[data-test="field-nombre"]').setValue('Pedro')
+    await wrapper.find('[data-test="field-correo"]').setValue('pedro@cliente.com')
+    await wrapper.find('[data-test="field-contrasena"]').setValue('Clave123*')
+    await wrapper.find('[data-test="field-rol_id"]').setValue('3')
+    await wrapper.find('[data-test="field-tipo_documento"]').setValue('CC')
+    await wrapper.find('[data-test="field-numero_documento"]').setValue('1020-304050')
+    await wrapper.find('[data-test="field-telefono"]').setValue('300-1234')
+    await wrapper.find('form').trigger('submit')
+
+    expect(wrapper.find('[data-test="error-numero_documento"]').text()).toBe(
+      'Solo números, sin puntos, guiones ni espacios.',
+    )
+    expect(wrapper.find('[data-test="error-telefono"]').text()).toBe('Solo dígitos: entre 7 y 15.')
+    expect(api.create).not.toHaveBeenCalled()
+
+    await wrapper.find('[data-test="field-numero_documento"]').setValue('1020304050')
+    await wrapper.find('[data-test="field-telefono"]').setValue('3001234567')
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(api.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        numero_documento: '1020304050',
+        telefono: '3001234567',
+      }),
+    )
+  })
+
+  it('el pasaporte acepta letras y números, pero sin símbolos', async () => {
+    useAuthStore().saveSession('token-123', { nombre: 'Ana', rol: 'admin' })
+    const wrapper = mount(UsuariosView)
+    await flushPromises()
+
+    await wrapper.find('[data-test="create"]').trigger('click')
+    await wrapper.find('[data-test="field-nombre"]').setValue('Rita')
+    await wrapper.find('[data-test="field-correo"]').setValue('rita@cliente.com')
+    await wrapper.find('[data-test="field-contrasena"]').setValue('Clave123*')
+    await wrapper.find('[data-test="field-rol_id"]').setValue('3')
+    await wrapper.find('[data-test="field-tipo_documento"]').setValue('PA')
+    await wrapper.find('[data-test="field-numero_documento"]').setValue('AB-123')
+    await wrapper.find('form').trigger('submit')
+
+    expect(wrapper.find('[data-test="error-numero_documento"]').text()).toBe(
+      'Solo letras y números, sin símbolos.',
+    )
+    expect(api.create).not.toHaveBeenCalled()
+
+    await wrapper.find('[data-test="field-numero_documento"]').setValue('AB123456')
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(api.create).toHaveBeenCalledWith(
+      expect.objectContaining({ tipo_documento: 'PA', numero_documento: 'AB123456' }),
+    )
+  })
+
+  it('rechaza un teléfono de menos de 7 dígitos', async () => {
+    useAuthStore().saveSession('token-123', { nombre: 'Ana', rol: 'admin' })
+    const wrapper = mount(UsuariosView)
+    await flushPromises()
+
+    await wrapper.find('[data-test="create"]').trigger('click')
+    await wrapper.find('[data-test="field-nombre"]').setValue('Pedro')
+    await wrapper.find('[data-test="field-correo"]').setValue('pedro@cliente.com')
+    await wrapper.find('[data-test="field-contrasena"]').setValue('Clave123*')
+    await wrapper.find('[data-test="field-rol_id"]').setValue('3')
+    await wrapper.find('[data-test="field-telefono"]').setValue('123456')
+    await wrapper.find('form').trigger('submit')
+
+    expect(wrapper.find('[data-test="error-telefono"]').text()).toBe('Solo dígitos: entre 7 y 15.')
+    expect(api.create).not.toHaveBeenCalled()
+  })
 })

@@ -38,6 +38,7 @@ export const MENSAJES_LINEA = {
   precio_decimales: 'Hasta 2 decimales.',
   descuento_porcentaje: 'Escribe el descuento.',
   descuento_valor: 'Descuento 0 a 100.',
+  descuento_decimales: 'Hasta 2 decimales.',
   iva_porcentaje: 'Elige el IVA.',
   iva_valor: 'IVA 0, 5 o 19.',
 }
@@ -146,7 +147,8 @@ export function campoLineaValido(campo, linea) {
       return (
         esNumero(linea.descuento_porcentaje) &&
         Number(linea.descuento_porcentaje) >= 0 &&
-        Number(linea.descuento_porcentaje) <= 100
+        Number(linea.descuento_porcentaje) <= 100 &&
+        !masDeDosDecimales(linea.descuento_porcentaje)
       )
     case 'iva_porcentaje':
       return (
@@ -262,6 +264,8 @@ export function validarFormulario(form, esCredito) {
       nuevos[clave + 'descuento_porcentaje'] = MENSAJES_LINEA.descuento_porcentaje
     } else if (!esNumero(descuento) || Number(descuento) < 0 || Number(descuento) > 100) {
       nuevos[clave + 'descuento_porcentaje'] = MENSAJES_LINEA.descuento_valor
+    } else if (masDeDosDecimales(descuento)) {
+      nuevos[clave + 'descuento_porcentaje'] = MENSAJES_LINEA.descuento_decimales
     }
 
     const iva = String(linea.iva_porcentaje ?? '').trim()
