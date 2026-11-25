@@ -45,6 +45,17 @@ const maxTemporal = computed(() =>
   ),
 );
 
+const esRangoMensual = computed(() => {
+  if (!desde.value || !hasta.value) return false;
+  const dias = Math.round((new Date(hasta.value) - new Date(desde.value)) / 86400000) + 1;
+  return dias > 62;
+});
+
+function etiquetaTemporal(fecha) {
+  const texto = String(fecha ?? "");
+  return esRangoMensual.value ? texto.slice(0, 7) : texto.slice(-2);
+}
+
 const columnasDesglose = computed(() => {
   if (!desglosePrincipal.value) return [];
   const primera = desglosePrincipal.value.filas?.[0];
@@ -298,7 +309,7 @@ const columnasDesglose = computed(() => {
               ></div>
             </div>
             <span class="temporal__fecha">{{
-              String(punto.fecha).slice(-2)
+              etiquetaTemporal(punto.fecha)
             }}</span>
           </div>
         </div>

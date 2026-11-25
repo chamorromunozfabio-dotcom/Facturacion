@@ -253,6 +253,37 @@ describe('Test 59 — Estadísticas por rol: reglas, permiso, API y panel', () =
     await flushPromises()
 
     expect(wrapper.find('[data-test="limpiar-filtros"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="filtro-estado-wrap"]').exists()).toBe(false)
+    spy.mockRestore()
+  })
+
+  it('usa los estados fijos por rol cuando el backend no los manda en filtros_disponibles', async () => {
+    const spy = vi.spyOn(estadisticasApi, 'getResumen').mockResolvedValue({
+      generado_para: 'bodeguero',
+      periodo: { fecha_inicio: '2026-11-01', fecha_fin: '2026-11-30' },
+      filtros_disponibles: { empresas: [], bodegas: [], bodegueros: [], tipos: [] },
+      kpis: [{ clave: 'por_despachar', titulo: 'Por despachar', valor: 2, formato: 'numero', alerta: false }],
+      desglose_principal: null,
+      serie_temporal: [],
+      alertas_detalle: [],
+    })
+
+    localStorage.setItem('user', JSON.stringify({ rol: 'bodeguero' }))
+    const wrapper = mount(EstadisticasView)
+    await flushPromises()
+
+    expect(wrapper.find('[data-test="filtro-estado-wrap"]').exists()).toBe(true)
+    const opciones = wrapper.findAll('[data-test="filtro-estado"] option').map((o) => o.element.value)
+    expect(opciones).toEqual(['', 'pendientes', 'completadas', 'rechazadas'])
+
+    await wrapper.find('[data-test="filtro-estado"]').setValue('completadas')
+    await flushPromises()
+
+    const ultimoParam = spy.mock.calls.at(-1)[0]
+    expect(ultimoParam).toMatchObject({ estado: 'completadas' })
+    expect(ultimoParam).not.toHaveProperty('empresa_id')
+    expect(ultimoParam).not.toHaveProperty('desde')
+    expect(ultimoParam).not.toHaveProperty('hasta')
     spy.mockRestore()
   })
 

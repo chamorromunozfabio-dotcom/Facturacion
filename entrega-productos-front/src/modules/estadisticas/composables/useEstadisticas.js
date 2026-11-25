@@ -25,6 +25,27 @@ const CONTEXTO_ROL = {
   cliente: { badge: 'Mis compras y entregas', tendencia: 'Historial de tus entregas' },
 }
 
+// El backend no devuelve `estados` en `filtros_disponibles`: son fijos por rol.
+const ESTADOS_POR_ROL = {
+  admin: [
+    { value: 'activa', label: 'Activas' },
+    { value: 'pendiente', label: 'Pendientes' },
+    { value: 'suspendida', label: 'Suspendidas' },
+    { value: 'rechazada', label: 'Rechazadas' },
+  ],
+  empresa: [],
+  bodeguero: [
+    { value: 'pendientes', label: 'Pendientes' },
+    { value: 'completadas', label: 'Completadas' },
+    { value: 'rechazadas', label: 'Rechazadas' },
+  ],
+  cliente: [
+    { value: 'pendientes', label: 'Pendientes' },
+    { value: 'aceptadas', label: 'Aceptadas' },
+    { value: 'rechazadas', label: 'Rechazadas' },
+  ],
+}
+
 /**
  * Estado del panel: rango de fechas, filtros adaptativos por rol, carga y presentación.
  * Qué datos y opciones llegan lo decide el backend según el token en `GET /estadisticas/resumen`.
@@ -54,7 +75,11 @@ export function useEstadisticas() {
 
   const invalido = computed(() => rangoInvalido(desde.value, hasta.value))
   const tarjetas = computed(() => resumen.value.tarjetas)
-  const filtrosDisponibles = computed(() => resumen.value.filtros_disponibles)
+  const filtrosDisponibles = computed(() => {
+    const base = resumen.value.filtros_disponibles
+    const estados = base.estados.length ? base.estados : ESTADOS_POR_ROL[auth.role] ?? []
+    return { ...base, estados }
+  })
   const desglosePrincipal = computed(() => resumen.value.desglose_principal)
   const serieTemporal = computed(() => resumen.value.serie_temporal)
   const alertasDetalle = computed(() => resumen.value.alertas_detalle)
@@ -78,12 +103,9 @@ export function useEstadisticas() {
   )
 
   function construirParams() {
-    const params = {
-      fecha_inicio: desde.value,
-      fecha_fin: hasta.value,
-      desde: desde.value,
-      hasta: hasta.value,
-    }
+    const params = {}
+    if (desde.value) params.fecha_inicio = desde.value
+    if (hasta.value) params.fecha_fin = hasta.value
     if (empresaId.value) params.empresa_id = Number(empresaId.value)
     if (bodegaId.value) params.bodega_id = Number(bodegaId.value)
     if (bodegueroId.value) params.bodeguero_id = Number(bodegueroId.value)
