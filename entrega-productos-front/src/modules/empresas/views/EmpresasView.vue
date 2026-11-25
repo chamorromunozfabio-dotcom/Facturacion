@@ -1,8 +1,9 @@
 <script setup>
-import { Check, Pause, Play, ShieldX } from '@lucide/vue'
+import { Check, Eye, Pause, Play, ShieldX } from '@lucide/vue'
 import AlertMessage from '../../../shared/ui/AlertMessage.vue'
 import DataTable from '../../../shared/ui/DataTable.vue'
 import StatusBadge from '../../../shared/ui/StatusBadge.vue'
+import EmpresaDetalleModal from '../components/EmpresaDetalleModal.vue'
 import EmpresaRechazoModal from '../components/EmpresaRechazoModal.vue'
 import { useEmpresas } from '../composables/useEmpresas'
 
@@ -21,9 +22,13 @@ const {
   motivoRechazo,
   rechazoError,
   rechazoSaving,
+  detalleOpen,
+  detalleEmpresa,
   aprobar,
   suspender,
   reactivar,
+  abrirDetalle,
+  closeDetalle,
   abrirRechazo,
   closeRechazo,
   confirmarRechazo,
@@ -103,6 +108,14 @@ function fecha(value) {
 
       <template #actions="{ row }">
         <button
+          type="button"
+          class="btn btn--small"
+          data-test="ver-detalle"
+          @click="abrirDetalle(row)"
+        >
+          <Eye :size="14" aria-hidden="true" /><span>Ver</span>
+        </button>
+        <button
           v-if="row.estado === 'pendiente'"
           type="button"
           class="btn btn--small btn--primary"
@@ -140,6 +153,16 @@ function fecha(value) {
         </button>
       </template>
     </DataTable>
+
+    <EmpresaDetalleModal
+      :open="detalleOpen"
+      :empresa="detalleEmpresa"
+      @close="closeDetalle"
+      @aprobar="aprobar"
+      @rechazar="abrirRechazo"
+      @suspender="suspender"
+      @reactivar="reactivar"
+    />
 
     <EmpresaRechazoModal
       :open="rechazoOpen"

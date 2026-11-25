@@ -216,6 +216,7 @@ function handleSubmit() {
           :type="field.type || 'text'"
           :value="form[field.key] ?? ''"
           :placeholder="field.placeholder || ''"
+          :disabled="Boolean(field.disabled)"
           :inputmode="field.digitsOnly || field.lettersDigitsOnly ? 'numeric' : undefined"
           @keydown="bloquearTecla(field, $event)"
           @input="setValue(field.key, $event.target.value)"
@@ -228,6 +229,8 @@ function handleSubmit() {
           {{ field.hint }}
         </small>
       </div>
+
+      <slot name="extra" :form="form" />
 
       <footer class="modal__footer">
         <small v-if="camposInvalidos && !loading" class="campo-hint form-hint" data-test="form-hint">

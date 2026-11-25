@@ -121,7 +121,11 @@ const tableSlots = computed(() =>
       @update:model-value="emit('update:model-value', $event)"
       @submit="emit('submit', $event)"
       @close="emit('close-modal')"
-    />
+    >
+      <template v-if="slots['form-extra']" #extra="slotProps">
+        <slot name="form-extra" v-bind="slotProps" />
+      </template>
+    </FormModal>
 
     <ConfirmDelete
       :open="confirmOpen"

@@ -30,6 +30,9 @@ export function useEmpresas() {
   const rechazoError = ref('')
   const rechazoSaving = ref(false)
 
+  const detalleOpen = ref(false)
+  const detalleEmpresa = ref(null)
+
   let searchTimer
 
   const estadoOptions = ESTADOS
@@ -75,6 +78,9 @@ export function useEmpresas() {
         ...extra,
       })
       patchEmpresa(row.id, { estado: nuevoEstado, ...extra, ...actualizada })
+      if (detalleEmpresa.value?.id === row.id) {
+        detalleEmpresa.value = { ...detalleEmpresa.value, estado: nuevoEstado, ...extra, ...actualizada }
+      }
       alert.value = { type: 'success', message: mensaje }
       return true
     } catch (error) {
@@ -99,7 +105,17 @@ export function useEmpresas() {
     return cambiarEstado(row, 'activa', `"${row.razon_social}" fue reactivada.`)
   }
 
+  function abrirDetalle(row) {
+    detalleEmpresa.value = row
+    detalleOpen.value = true
+  }
+
+  function closeDetalle() {
+    detalleOpen.value = false
+  }
+
   function abrirRechazo(row) {
+    detalleOpen.value = false
     rechazoEmpresa.value = row
     motivoRechazo.value = ''
     rechazoError.value = ''
@@ -150,10 +166,14 @@ export function useEmpresas() {
     rechazoError,
     rechazoSaving,
     rechazoValido,
+    detalleOpen,
+    detalleEmpresa,
     load,
     aprobar,
     suspender,
     reactivar,
+    abrirDetalle,
+    closeDetalle,
     abrirRechazo,
     closeRechazo,
     confirmarRechazo,

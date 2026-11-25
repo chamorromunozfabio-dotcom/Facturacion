@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import {
+  ChartColumn,
   Check,
   KeyRound,
   ReceiptText,
@@ -24,6 +25,7 @@ const ICONOS_MODULO = {
   tipos: Tags,
   roles: ShieldCheck,
   permisos: KeyRound,
+  estadisticas: ChartColumn,
 }
 
 /** La vista es el director: trae los datos y conecta las cuatro piezas. */

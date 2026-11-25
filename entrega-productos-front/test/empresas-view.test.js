@@ -15,9 +15,15 @@ const pendiente = {
   razon_social: 'Comercializadora del Caribe S.A.S.',
   nit: '900987654-2',
   correo: 'contacto@caribe.com',
+  telefono: '3009998877',
+  direccion: 'Calle 84 # 45-20',
+  representante: 'Carlos Mendoza',
   estado: 'pendiente',
   motivo_rechazo: null,
   fecha_registro: '2026-11-20T14:30:00',
+  total_bodegueros: 0,
+  total_bodegas: 0,
+  total_facturas: 0,
 }
 const activa = {
   id: 1,
@@ -159,5 +165,24 @@ describe('Test 70 — Módulo Empresas (solo admin)', () => {
 
     expect(api.cambiarEstado).toHaveBeenCalledWith(4, { estado: 'activa' })
     expect(wrapper.text()).toContain('fue reactivada')
+  })
+
+  it('muestra la ficha completa de la empresa antes de aprobarla', async () => {
+    const wrapper = mount(EmpresasView)
+    await flushPromises()
+
+    await wrapper.find('[data-test="ver-detalle"]').trigger('click')
+
+    const detalle = wrapper.find('[data-test="empresa-detalle-modal"]')
+    expect(detalle.exists()).toBe(true)
+    expect(detalle.text()).toContain('Carlos Mendoza')
+    expect(detalle.text()).toContain('3009998877')
+    expect(detalle.text()).toContain('Calle 84 # 45-20')
+    expect(detalle.text()).toContain('900987654-2')
+
+    await detalle.find('[data-test="detalle-aprobar"]').trigger('click')
+    await flushPromises()
+
+    expect(api.cambiarEstado).toHaveBeenCalledWith(2, { estado: 'activa' })
   })
 })
