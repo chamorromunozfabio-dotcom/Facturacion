@@ -33,7 +33,17 @@ export function usePermisos() {
   const rolDelUsuario = computed(
     () => roles.value.find((rol) => rol.id === usuarioSeleccionado.value?.rol_id) ?? null,
   )
-  const plantillaSeleccionada = computed(() => plantillaDelRol(usuarioSeleccionado.value?.rol))
+  const plantillaSeleccionada = computed(() => {
+    const delBackend = rolDelUsuario.value?.permisos
+    if (Array.isArray(delBackend)) {
+      return delBackend
+        .map((permiso) =>
+          claveDelNombreBackend(typeof permiso === 'string' ? permiso : permiso?.nombre),
+        )
+        .filter(Boolean)
+    }
+    return plantillaDelRol(usuarioSeleccionado.value?.rol)
+  })
 
   const coincidencias = computed(() => {
     const texto = normalizarTexto(busqueda.value).trim()

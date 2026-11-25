@@ -325,6 +325,37 @@ describe('Test 40 — Permisos por usuario con buscador y tarjetas de funciones'
     expect(wrapper.find('[data-test="confirmar-bar"]').exists()).toBe(false)
   })
 
+  it('Por defecto del rol usa los permisos guardados en el rol del backend (roles nuevos)', async () => {
+    roles.list.mockResolvedValueOnce({
+      data: [
+        {
+          id: 9,
+          nombre: 'supervisor',
+          permisos: [{ id: 1, nombre: 'facturas_view' }, { id: 2, nombre: 'bodegas_view' }],
+        },
+      ],
+    })
+    usuarios.list.mockResolvedValueOnce({
+      data: [
+        { id: 99, nombre: 'Sofía Supervisora', correo: 'sofia@entrega.com', rol_id: 9, rol: 'supervisor' },
+      ],
+    })
+
+    const wrapper = mount(PermisosView)
+    await flushPromises()
+    await buscar(wrapper, 'Sofía')
+    await wrapper.find('[data-test="usuario-99"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('[data-test="plantilla-rol"]').text()).toContain('2 permisos predefinidos')
+    await wrapper.find('[data-test="aplicar-rol"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('[data-test="check-facturas:view"]').element.checked).toBe(true)
+    expect(wrapper.find('[data-test="check-bodegas:view"]').element.checked).toBe(true)
+    expect(wrapper.find('[data-test="check-facturas:create"]').element.checked).toBe(false)
+  })
+
   it('el mismo check prepara el alta y la baja, y cada Confirmar la aplica', async () => {
     permisosPorUsuario.set(1, [{ id: 1, nombre: 'facturas_view' }])
     const wrapper = mount(PermisosView)
