@@ -157,4 +157,27 @@ describe('Test 14 — BodegasView (CRUD con componentes)', () => {
     })
     spyUsuarios.mockRestore()
   })
+
+  it('el rol empresa puede elegir bodeguero dueño sin mostrar selector de empresa', async () => {
+    useAuthStore().saveSession('token-emp', {
+      nombre: 'Distribuidora Andina',
+      rol: 'empresa',
+      empresa: { id: 1, razon_social: 'Distribuidora Andina S.A.S.', estado: 'activa' },
+    })
+    const usuarios = await import('../src/modules/catalogos/api/usuarios')
+    const spyUsuarios = vi.spyOn(usuarios.default, 'list').mockResolvedValue({
+      data: [{ id: 10, nombre: 'Pedro Bodeguero' }],
+    })
+
+    const wrapper = mount(BodegasView)
+    await flushPromises()
+
+    await wrapper.find('[data-test="create"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('[data-test="field-empresa_id"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="field-bodeguero_id"]').exists()).toBe(true)
+    expect(spyUsuarios).toHaveBeenCalledWith({ rol: 'bodeguero', page: 1, limit: 100 })
+    spyUsuarios.mockRestore()
+  })
 })

@@ -8,15 +8,17 @@ import { useCrud } from '../composables/useCrud'
 import EmpresaSelect from '../../empresas/components/EmpresaSelect.vue'
 import { campoEmpresa, empresaParams, useEmpresaFiltro } from '../../empresas/composables/useEmpresaFiltro'
 
-// Solo el admin asigna la empresa y el dueño; el backend filtra y asigna al resto.
+// El admin asigna empresa y dueño; la empresa asigna dueño entre sus bodegueros.
+const auth = useAuthStore()
 const { esAdmin, empresaId, empresaOpciones } = useEmpresaFiltro()
+const esEmpresa = computed(() => auth.role === 'empresa')
+const puedeElegirDueno = computed(() => esAdmin.value || esEmpresa.value)
 const bodegueroOptions = ref([])
 
-// El admin ve todas las bodegas, su empresa y su dueño; los demás solo las suyas.
 const columns = computed(() => [
   { key: 'nombre', label: 'Nombre' },
   ...(esAdmin.value ? [{ key: 'empresa_nombre', label: 'Empresa' }] : []),
-  ...(esAdmin.value ? [{ key: 'bodeguero_nombre', label: 'Bodeguero' }] : []),
+  ...(puedeElegirDueno.value ? [{ key: 'bodeguero_nombre', label: 'Bodeguero' }] : []),
   { key: 'ciudad', label: 'Ciudad' },
   { key: 'recibe_nombre', label: 'Responsable' },
   { key: 'telefono', label: 'Teléfono' },
@@ -74,12 +76,11 @@ const fields = [
   },
 ]
 
-// Solo el admin elige empresa y dueño; el backend asigna la empresa al resto.
-const formFields = computed(() =>
-  esAdmin.value
+const formFields = computed(() => [
+  ...(esAdmin.value ? [campoEmpresa(empresaOpciones.value)] : []),
+  ...fields,
+  ...(puedeElegirDueno.value
     ? [
-        campoEmpresa(empresaOpciones.value),
-        ...fields,
         {
           key: 'bodeguero_id',
           label: 'Bodeguero dueño',
@@ -87,8 +88,8 @@ const formFields = computed(() =>
           options: [{ value: '', label: 'Sin asignar' }, ...bodegueroOptions.value],
         },
       ]
-    : fields,
-)
+    : []),
+])
 
 const emptyForm = () => Object.fromEntries(formFields.value.map((field) => [field.key, '']))
 const formFromRow = (row) =>
@@ -100,11 +101,11 @@ const formFromRow = (row) =>
   )
 
 async function loadBodegueros(empresaObjetivo = empresaId.value) {
-  if (!esAdmin.value) return
+  if (!puedeElegirDueno.value) return
   try {
     // El dueño debe ser de la misma empresa que la bodega (400 si no).
     const params = { rol: 'bodeguero', page: 1, limit: 100 }
-    if (empresaObjetivo) params.empresa_id = empresaObjetivo
+    if (esAdmin.value && empresaObjetivo) params.empresa_id = empresaObjetivo
     const result = await usuariosApi.list(params)
     bodegueroOptions.value = (result.data ?? []).map((user) => ({
       value: user.id,
@@ -130,9 +131,9 @@ function cleanPayload(payload) {
   if (esAdmin.value && limpio.empresa_id !== undefined) {
     limpio.empresa_id = Number(limpio.empresa_id)
   }
-  if (esAdmin.value && payload.bodeguero_id) {
+  if (puedeElegirDueno.value && payload.bodeguero_id) {
     limpio.bodeguero_id = Number(payload.bodeguero_id)
-  } else if (esAdmin.value && editing.value?.bodeguero_id != null) {
+  } else if (puedeElegirDueno.value && editing.value?.bodeguero_id != null) {
     // Al dejar "Sin asignar" en una edición, quitamos el dueño actual.
     limpio.bodeguero_id = null
   }

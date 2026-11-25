@@ -1,15 +1,17 @@
 <script setup>
 import CrudPage from '../../../shared/ui/CrudPage.vue'
 import { computed, ref, watch } from 'vue'
+import { useAuthStore } from '../../auth/store/auth'
 import bodegasApi from '../api/bodegas'
 import tiposApi from '../api/tipos'
 import { useCrud } from '../composables/useCrud'
 import EmpresaSelect from '../../empresas/components/EmpresaSelect.vue'
 import { empresaParams, useEmpresaFiltro } from '../../empresas/composables/useEmpresaFiltro'
 
-// El admin elige empresa y bodega; el bodeguero queda atado a la suya (la lista
-// que devuelve el backend ya viene filtrada por dueño).
+// Admin y empresa pueden elegir bodega; el bodeguero queda atado a la suya.
+const auth = useAuthStore()
 const { esAdmin, empresaId, empresaOpciones } = useEmpresaFiltro()
+const puedeElegirBodega = computed(() => esAdmin.value || auth.role === 'empresa')
 const bodegas = ref([])
 const bodegaId = ref('')
 
@@ -21,12 +23,12 @@ const nombreBodega = (id) =>
 
 const columns = computed(() => [
   { key: 'nombre', label: 'Nombre' },
-  ...(esAdmin.value ? [{ key: 'bodega_nombre', label: 'Bodega' }] : []),
+  ...(puedeElegirBodega.value ? [{ key: 'bodega_nombre', label: 'Bodega' }] : []),
 ])
 
 const fields = computed(() => {
   const base = [{ key: 'nombre', label: 'Nombre', required: true, maxLength: 100 }]
-  if (!esAdmin.value || !bodegasOpciones.value.length) return base
+  if (!puedeElegirBodega.value || !bodegasOpciones.value.length) return base
   return [
     ...base,
     {
@@ -59,11 +61,11 @@ watch(empresaId, () => {
 
 function cleanPayload(payload) {
   const clean = { nombre: String(payload.nombre ?? '').trim() }
-  const bodegaElegida = esAdmin.value ? payload.bodega_id : bodegaId.value
+  const bodegaElegida = puedeElegirBodega.value ? payload.bodega_id : bodegaId.value
   const sinBodega = bodegaElegida === '' || bodegaElegida === null || bodegaElegida === undefined
   if (!sinBodega) clean.bodega_id = Number(bodegaElegida)
-  // En edición, el admin también puede devolver un tipo a "general" (null).
-  if (editing.value && esAdmin.value && sinBodega) clean.bodega_id = null
+  // En edición, admin o empresa también pueden devolver un tipo a "general" (null).
+  if (editing.value && puedeElegirBodega.value && sinBodega) clean.bodega_id = null
   return clean
 }
 
@@ -139,14 +141,14 @@ const {
     mensaje: 'El tipo se eliminará de forma permanente. Esta acción no se puede deshacer.',
   },
   despuesDeGuardar: (clean) => {
-    if (!esAdmin.value) return
+    if (!puedeElegirBodega.value) return
     const vista = clean.bodega_id ?? ''
     if (String(vista) !== String(bodegaId.value)) bodegaId.value = vista
   },
   alMontar: () =>
     cargarBodegas().then(() => {
-      // El admin arranca en "Todas" para ver también los tipos generales.
-      if (!esAdmin.value && !bodegaId.value && bodegas.value.length) {
+      // Admin y empresa arrancan en "Todas" para ver también los tipos generales.
+      if (!puedeElegirBodega.value && !bodegaId.value && bodegas.value.length) {
         bodegaId.value = bodegas.value[0].id
       }
     }),
@@ -203,10 +205,10 @@ watch(bodegaId, () => {
   >
     <template #filter>
       <EmpresaSelect v-if="esAdmin" v-model="empresaId" :empresas="empresaOpciones" />
-      <label v-if="esAdmin || bodegas.length > 1" class="filter">
+      <label v-if="puedeElegirBodega || bodegas.length > 1" class="filter">
         Bodega
         <select v-model="bodegaId" data-test="bodega-filter">
-          <option v-if="esAdmin" value="">Todas las bodegas</option>
+          <option v-if="puedeElegirBodega" value="">Todas las bodegas</option>
           <option v-for="bodega in bodegas" :key="bodega.id" :value="bodega.id">
             {{ bodega.nombre }}
           </option>
