@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from "vue";
+import * as vueRouter from "vue-router";
 import { AlertCircle, RotateCcw } from "@lucide/vue";
 import AlertMessage from "../../../shared/ui/AlertMessage.vue";
 import BotonBase from "../../../shared/ui/BotonBase.vue";
@@ -35,6 +36,12 @@ const {
   aplicarPreset,
   limpiarFiltros,
 } = useEstadisticas();
+
+const router = typeof vueRouter.useRouter === "function" ? vueRouter.useRouter() : null;
+
+function abrirFactura(id) {
+  if (id && router) router.push({ name: "facturas", query: { id } });
+}
 
 const maxTemporal = computed(() =>
   Math.max(
@@ -326,7 +333,16 @@ const columnasDesglose = computed(() => {
         </h2>
         <ul class="alertas-lista">
           <li v-for="(alerta, idx) in alertasDetalle" :key="idx">
-            <strong>{{ alerta.numero_factura }}</strong>
+            <button
+              v-if="alerta.factura_id"
+              type="button"
+              class="alerta-link"
+              data-test="alerta-factura"
+              @click="abrirFactura(alerta.factura_id)"
+            >
+              {{ alerta.numero_factura }}
+            </button>
+            <strong v-else>{{ alerta.numero_factura }}</strong>
             <span>{{ alerta.motivo_rechazo }}</span>
             <small>{{ alerta.fecha }}</small>
           </li>
@@ -560,6 +576,15 @@ button:disabled {
 .alertas-lista small {
   color: #6b7280;
   margin-left: auto;
+}
+.alerta-link {
+  border: 0;
+  background: transparent;
+  color: #b91c1c;
+  font-weight: 700;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
 }
 .series {
   display: grid;

@@ -388,7 +388,11 @@ export function useFacturas() {
     }
   }
 
-  onMounted(load)
+  onMounted(() => {
+    load()
+    const idQuery = new URLSearchParams(window.location.search).get('id')
+    if (idQuery) openDetail({ id: Number(idQuery) })
+  })
 
   return {
     canCreate,

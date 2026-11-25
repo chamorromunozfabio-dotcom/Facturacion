@@ -140,7 +140,6 @@ describe('Test 68 — Rol empresa: permisos, navegación y usuarios', () => {
       nombre: 'Nuevo bodeguero',
       correo: 'nuevo@entrega.com',
       contrasena: 'Bodega123*',
-      rol_id: 2,
     })
   })
 

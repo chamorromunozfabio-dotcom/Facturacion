@@ -160,9 +160,9 @@ function rolBodegueroId() {
 function cleanPayload(payload) {
   const clean = quitarVacios(payload)
   if (isEmpresa.value) {
-    // La empresa nunca crea admins ni clientes: el backend además asigna la
-    // empresa del token, así que el rol viaja fijo como bodeguero.
-    clean.rol_id = rolBodegueroId()
+    // La empresa solo crea bodegueros de su equipo: el backend asigna rol y empresa por token.
+    delete clean.rol_id
+    delete clean.empresa_id
   } else if (clean.rol_id !== undefined) {
     clean.rol_id = Number(clean.rol_id)
   }
