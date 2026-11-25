@@ -34,7 +34,10 @@ export function useEmpresas() {
 
   const estadoOptions = ESTADOS
 
-  const rechazoValido = computed(() => motivoRechazo.value.trim().length >= 10)
+  const rechazoValido = computed(() => {
+    const len = motivoRechazo.value.trim().length
+    return len >= 10 && len <= 255
+  })
 
   watch([q, estado], () => {
     clearTimeout(searchTimer)
@@ -109,8 +112,13 @@ export function useEmpresas() {
 
   async function confirmarRechazo() {
     const motivo = motivoRechazo.value.trim()
-    rechazoError.value =
-      motivo.length >= 10 ? '' : 'Escribe un motivo de al menos 10 caracteres.'
+    if (motivo.length < 10) {
+      rechazoError.value = 'Escribe un motivo de al menos 10 caracteres.'
+    } else if (motivo.length > 255) {
+      rechazoError.value = 'El motivo no puede superar los 255 caracteres.'
+    } else {
+      rechazoError.value = ''
+    }
     if (rechazoError.value) return
 
     rechazoSaving.value = true

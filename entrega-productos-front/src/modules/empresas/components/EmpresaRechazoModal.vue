@@ -14,7 +14,10 @@ const props = defineProps({
 const emit = defineEmits(['close', 'update:motivo', 'confirm'])
 useModalA11y(computed(() => props.open), () => emit('close'))
 
-const valido = computed(() => props.motivo.trim().length >= 10)
+const valido = computed(() => {
+  const len = props.motivo.trim().length
+  return len >= 10 && len <= 255
+})
 </script>
 
 <template>
@@ -38,12 +41,12 @@ const valido = computed(() => props.motivo.trim().length >= 10)
           :value="motivo"
           data-test="motivo-rechazo"
           rows="4"
-          maxlength="500"
+          maxlength="255"
           placeholder="Explica por qué no se aprueba la empresa."
           @input="emit('update:motivo', $event.target.value)"
         ></textarea>
       </label>
-      <small class="hint">Mínimo 10 caracteres.</small>
+      <small class="hint">Entre 10 y 255 caracteres.</small>
       <p v-if="error" data-test="rechazo-error" class="error">{{ error }}</p>
       <footer class="modal__footer">
         <button type="button" class="btn" @click="emit('close')">Cancelar</button>

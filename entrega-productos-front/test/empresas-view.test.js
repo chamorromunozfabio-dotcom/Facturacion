@@ -118,11 +118,15 @@ describe('Test 70 — Módulo Empresas (solo admin)', () => {
 
     const modal = wrapper.find('[data-test="empresa-rechazo-modal"]')
     expect(modal.exists()).toBe(true)
+    expect(wrapper.find('[data-test="motivo-rechazo"]').attributes('maxlength')).toBe('255')
 
     const confirmar = wrapper.find('[data-test="rechazo-confirm"]')
     expect(confirmar.attributes('disabled')).toBeDefined()
 
     await wrapper.find('[data-test="motivo-rechazo"]').setValue('corto')
+    expect(confirmar.attributes('disabled')).toBeDefined()
+
+    await wrapper.find('[data-test="motivo-rechazo"]').setValue('a'.repeat(256))
     expect(confirmar.attributes('disabled')).toBeDefined()
 
     await wrapper.find('[data-test="motivo-rechazo"]').setValue('El NIT no coincide.')

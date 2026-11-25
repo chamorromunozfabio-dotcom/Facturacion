@@ -127,4 +127,34 @@ describe('Test 14 — BodegasView (CRUD con componentes)', () => {
 
     expect(api.remove).toHaveBeenCalledWith(1)
   })
+
+  it('recarga los bodegueros al cambiar la empresa dentro del formulario', async () => {
+    const usuarios = await import('../src/modules/catalogos/api/usuarios')
+    const spyUsuarios = vi.spyOn(usuarios.default, 'list').mockResolvedValue({
+      data: [{ id: 10, nombre: 'Pedro Bodeguero' }],
+    })
+    empresas.listActivas.mockResolvedValue({
+      data: [
+        { id: 1, razon_social: 'Distribuidora Andina S.A.S.' },
+        { id: 2, razon_social: 'Comercializadora Caribe' },
+      ],
+    })
+
+    const wrapper = mount(BodegasView)
+    await flushPromises()
+
+    await wrapper.find('[data-test="create"]').trigger('click')
+    await flushPromises()
+
+    await wrapper.find('[data-test="field-empresa_id"]').setValue('2')
+    await flushPromises()
+
+    expect(spyUsuarios).toHaveBeenLastCalledWith({
+      rol: 'bodeguero',
+      page: 1,
+      limit: 100,
+      empresa_id: '2',
+    })
+    spyUsuarios.mockRestore()
+  })
 })

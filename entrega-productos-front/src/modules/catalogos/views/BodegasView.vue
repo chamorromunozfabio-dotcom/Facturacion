@@ -99,12 +99,12 @@ const formFromRow = (row) =>
     ]),
   )
 
-async function loadBodegueros() {
+async function loadBodegueros(empresaObjetivo = empresaId.value) {
   if (!esAdmin.value) return
   try {
     // El dueño debe ser de la misma empresa que la bodega (400 si no).
     const params = { rol: 'bodeguero', page: 1, limit: 100 }
-    if (empresaId.value) params.empresa_id = empresaId.value
+    if (empresaObjetivo) params.empresa_id = empresaObjetivo
     const result = await usuariosApi.list(params)
     bodegueroOptions.value = (result.data ?? []).map((user) => ({
       value: user.id,
@@ -116,7 +116,9 @@ async function loadBodegueros() {
 }
 
 // Al cambiar de empresa, los bodegueros disponibles deben ser solo los de ella.
-watch(empresaId, loadBodegueros)
+watch(empresaId, (nueva) => {
+  if (!modalOpen.value) loadBodegueros(nueva)
+})
 
 // Todos los datos son obligatorios: no filtramos vacíos para que el usuario
 // vea el aviso en el campo en vez de un error raro del backend.
@@ -188,8 +190,25 @@ const {
   },
   paramsExtra: () => empresaParams(esAdmin.value, empresaId.value),
   filtros: [empresaId],
-  alMontar: loadBodegueros,
+  alMontar: () => loadBodegueros(),
 })
+
+watch(
+  () => [modalOpen.value, form.value?.empresa_id],
+  async ([abierto, empForm], [estabaAbierto, empAnterior]) => {
+    if (!esAdmin.value || !abierto) return
+    const empresaObjetivo = empForm || empresaId.value || ''
+    await loadBodegueros(empresaObjetivo)
+    if (
+      estabaAbierto &&
+      empForm !== empAnterior &&
+      form.value?.bodeguero_id &&
+      !bodegueroOptions.value.some((opt) => String(opt.value) === String(form.value.bodeguero_id))
+    ) {
+      form.value = { ...form.value, bodeguero_id: '' }
+    }
+  },
+)
 </script>
 
 <template>
