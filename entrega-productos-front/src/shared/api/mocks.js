@@ -529,7 +529,7 @@ export async function mockRegister(payload = {}) {
 export async function mockBuscarClientes(q = '') {
   await wait(250)
   const texto = String(q ?? '').trim().toLowerCase()
-  if (texto.length < 5) return { data: [], total: 0, page: 1, limit: 20 }
+  if (texto.length < 3) return { data: [], total: 0, page: 1, limit: 20 }
 
   const data = rowsByResource.facturasClientes.filter((cliente) =>
     [cliente.nombre, cliente.numero_documento, cliente.correo]

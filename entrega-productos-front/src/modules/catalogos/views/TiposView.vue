@@ -50,7 +50,8 @@ const fields = computed(() => {
         key: 'bodega_id',
         label: 'Bodega',
         type: 'select',
-        options: [{ value: '', label: 'General (todas las bodegas)' }, ...bodegasModalOpciones.value],
+        required: true,
+        options: [{ value: '', label: 'Selecciona la bodega…' }, ...bodegasModalOpciones.value],
       })
     }
     return list
@@ -60,7 +61,11 @@ const fields = computed(() => {
     key: 'bodega_id',
     label: 'Bodega',
     type: 'select',
-    options: [{ value: '', label: 'Tipo general (sin bodega)' }, ...bodegasOpciones.value],
+    required: auth.role === 'empresa',
+    options: [
+      { value: '', label: auth.role === 'empresa' ? 'Selecciona la bodega…' : 'Tipo general (sin bodega)' },
+      ...bodegasOpciones.value,
+    ],
   })
   return list
 })
@@ -174,10 +179,7 @@ const {
     sinCambios: 'No hay cambios: el tipo ya estaba guardado.',
     fallbackGuardar: 'No se pudo guardar el tipo.',
   },
-  confirmacion: {
-    titulo: 'Eliminar tipo',
-    mensaje: 'El tipo se eliminará de forma permanente. Esta acción no se puede deshacer.',
-  },
+  confirmacion: { titulo: 'Eliminar tipo', mensaje: 'El tipo se eliminará de forma permanente. Esta acción no se puede deshacer.' },
   despuesDeGuardar: (clean) => {
     if (!puedeElegirBodega.value) return
     const vista = clean.bodega_id ?? ''
@@ -210,6 +212,18 @@ watch(
     }
   },
 )
+function empresaDeTipo(row) {
+  if (row.bodega_id == null && !row.empresa_id) return 'General (todas)'
+  const bodega = bodegas.value.find((b) => String(b.id) === String(row.bodega_id))
+  const empId = row.empresa_id ?? bodega?.empresa_id
+  return (
+    (row.empresa_nombre && row.empresa_nombre !== 'General (todas)' ? row.empresa_nombre : '') ||
+    row.empresa?.razon_social ||
+    bodega?.empresa_nombre ||
+    nombreEmpresaDe(empresaOpciones.value, empId) ||
+    (empId ? `Empresa #${empId}` : '—')
+  )
+}
 </script>
 
 <template>
@@ -260,18 +274,7 @@ watch(
       <span>{{ value === false ? 'Inactivo' : 'Activo' }}</span>
     </template>
     <template #cell-empresa_nombre="{ row }">
-      <span>
-        {{
-          row.empresa_nombre && row.empresa_nombre !== 'General (todas)'
-            ? row.empresa_nombre
-            : row.empresa?.razon_social ||
-              nombreEmpresaDe(
-                empresaOpciones,
-                row.empresa_id ?? bodegas.find((b) => String(b.id) === String(row.bodega_id))?.empresa_id,
-              ) ||
-              'General (todas)'
-        }}
-      </span>
+      <span>{{ empresaDeTipo(row) }}</span>
     </template>
     <template #filter>
       <EmpresaSelect v-if="esAdmin" v-model="empresaId" :empresas="empresaOpciones" />

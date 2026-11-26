@@ -1,15 +1,18 @@
 <script setup>
 import { computed } from 'vue'
 import CrudPage from '../../../shared/ui/CrudPage.vue'
+import { useAuthStore } from '../../auth/store/auth'
 import usuariosApi from '../api/usuarios'
 import { useCrud } from '../composables/useCrud'
 import { quitarVacios } from '../utils/crud'
 
 const emit = defineEmits(['changed'])
+const auth = useAuthStore()
 
 const columns = [
   { key: 'nombre', label: 'Nombre' },
   { key: 'correo', label: 'Correo' },
+  { key: 'empresa_nombre', label: 'Empresa' },
   { key: 'numero_documento', label: 'Documento' },
   { key: 'telefono', label: 'Teléfono' },
   { key: 'estado', label: 'Estado' },
@@ -175,6 +178,9 @@ async function confirmarEliminar() {
   >
     <template #cell-estado="{ value }">
       <span>{{ value === false ? 'Inactivo' : 'Activo' }}</span>
+    </template>
+    <template #cell-empresa_nombre="{ row }">
+      <span>{{ row.empresa_nombre || row.empresa?.razon_social || auth.empresaNombre || 'Mi empresa' }}</span>
     </template>
   </CrudPage>
 </template>

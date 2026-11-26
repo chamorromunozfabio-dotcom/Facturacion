@@ -5,8 +5,8 @@ import usuariosApi from '../../catalogos/api/usuarios'
 import { getErrorMessage } from '../../../shared/api/axios'
 import {
   CATALOGO_PERMISOS,
-  MODULOS_PERMISO,
   claveDelNombreBackend,
+  construirModulosDesdeBackend,
   plantillaDelRol,
 } from '../../../shared/config/permissions'
 import { normalizarTexto } from '../utils/permisos'
@@ -66,10 +66,14 @@ export function usePermisos() {
     return map
   })
 
+  const modulosDinamicos = computed(() => construirModulosDesdeBackend(permisosBackend.value))
+
+  const opcionesPlanas = computed(() => modulosDinamicos.value.flatMap((m) => m.opciones))
+
   const permisosAsignados = computed(() =>
     permisosDelUsuario.value.map((permiso) => {
-      const clave = claveDelNombreBackend(permiso.nombre)
-      const item = CATALOGO_PERMISOS.find((opcion) => opcion.clave === clave)
+      const item = opcionesPlanas.value.find((opcion) => opcion.nombre === permiso.nombre)
+      const clave = item?.clave ?? claveDelNombreBackend(permiso.nombre) ?? permiso.nombre
       return {
         ...permiso,
         clave,
@@ -90,13 +94,12 @@ export function usePermisos() {
 
   /** Tarjetas por módulo: `asignado` es lo guardado y `visible` lo que se muestra. */
   const modulosConPermisos = computed(() =>
-    MODULOS_PERMISO.map((modulo) => ({
+    modulosDinamicos.value.map((modulo) => ({
       ...modulo,
-      opciones: CATALOGO_PERMISOS.filter((item) => item.modulo === modulo.clave).map((item) => {
+      opciones: modulo.opciones.map((item) => {
         const asignado = tieneClave(item.clave)
         return {
           ...item,
-          idBackend: idPorClave.value[item.clave] ?? null,
           asignado,
           visible: cambiosPendientes.value.get(item.clave)?.asignado ?? asignado,
         }

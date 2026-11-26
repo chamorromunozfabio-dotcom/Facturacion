@@ -45,7 +45,8 @@ const mountForm = () =>
   })
 
 async function completarFormulario(wrapper) {
-  await wrapper.find('[data-test="field-cliente_id"]').setValue('3')
+  await wrapper.find('[data-test="field-cliente_id"]').trigger('focus')
+  await wrapper.find('[data-test="cliente-opcion-0"]').trigger('mousedown')
   await wrapper.find('[data-test="field-bodega_id"]').setValue('1')
   await wrapper.find('[data-test="field-forma_pago"]').setValue('credito')
   await wrapper.find('[data-test="field-medio_pago"]').setValue('efectivo')
@@ -115,7 +116,8 @@ describe('Test 37 — Facturas: mensajes descriptivos y alerta visible', () => {
     await wrapper.find('form').trigger('submit')
     expect(wrapper.find('[data-test="error-cliente_id"]').exists()).toBe(true)
 
-    await wrapper.find('[data-test="field-cliente_id"]').setValue('3')
+    await wrapper.find('[data-test="field-cliente_id"]').trigger('focus')
+    await wrapper.find('[data-test="cliente-opcion-0"]').trigger('mousedown')
     expect(wrapper.find('[data-test="error-cliente_id"]').exists()).toBe(false)
   })
 

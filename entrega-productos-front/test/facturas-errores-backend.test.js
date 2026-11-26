@@ -55,7 +55,8 @@ const mountForm = (serverErrors = {}) =>
   })
 
 async function completarFormulario(wrapper) {
-  await wrapper.find('[data-test="field-cliente_id"]').setValue('3')
+  await wrapper.find('[data-test="field-cliente_id"]').trigger('focus')
+  await wrapper.find('[data-test="cliente-opcion-0"]').trigger('mousedown')
   await wrapper.find('[data-test="field-bodega_id"]').setValue('1')
   await wrapper.find('[data-test="field-forma_pago"]').setValue('credito')
   await wrapper.find('[data-test="field-medio_pago"]').setValue('transferencia')
@@ -106,7 +107,7 @@ describe('Test 38 — Errores 422 del backend en el formulario', () => {
 
     await wrapper.find('[data-test="create"]').trigger('click')
     await flushPromises()
-    await wrapper.find('[data-test="cliente-buscar"]').setValue('Juan P')
+    await wrapper.find('[data-test="field-cliente_id"]').setValue('Juan P')
     await new Promise((resolve) => setTimeout(resolve, 350))
     await flushPromises()
     await completarFormulario(wrapper)

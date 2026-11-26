@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { CATALOGO_PERMISOS, MODULOS_PERMISO } from '../../../shared/config/permissions'
+import { construirModulosDesdeBackend } from '../../../shared/config/permissions'
 
 /** Matriz de permisos plantilla para crear o editar un rol. */
 const props = defineProps({
@@ -10,19 +10,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const idPorNombre = computed(() =>
-  Object.fromEntries(props.permisosBackend.map((permiso) => [permiso.nombre, Number(permiso.id)])),
-)
-
-const modulosPermisos = computed(() =>
-  MODULOS_PERMISO.map((modulo) => ({
-    ...modulo,
-    opciones: CATALOGO_PERMISOS.filter((item) => item.modulo === modulo.clave).map((item) => ({
-      ...item,
-      idBackend: idPorNombre.value[item.nombre] ?? null,
-    })),
-  })),
-)
+const modulosPermisos = computed(() => construirModulosDesdeBackend(props.permisosBackend))
 
 function togglePermiso(id) {
   if (!id) return

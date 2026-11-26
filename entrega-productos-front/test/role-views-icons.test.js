@@ -71,14 +71,15 @@ describe('Test 25 — Vistas por rol con iconos Lucide y transiciones', () => {
     expect(wrapper.text()).not.toContain('Roles')
   })
 
-  it('bodeguero ve Inicio, Tipos, Bodegas, Facturas y Estadísticas', () => {
+  it('bodeguero ve Inicio, Tipos, Facturas y Estadísticas (sin Bodegas)', () => {
     login('bodeguero')
 
     const wrapper = mount(MainLayout, { global: globalOptions })
     const labels = wrapper.findAll('.menu__item').map((item) => item.text())
 
-    expect(labels).toEqual(['Inicio', 'Tipos', 'Bodegas', 'Facturas', 'Estadísticas'])
-    expect(wrapper.findAll('.menu__item svg')).toHaveLength(5)
+    expect(labels).toEqual(['Inicio', 'Tipos', 'Facturas', 'Estadísticas'])
+    expect(wrapper.findAll('.menu__item svg')).toHaveLength(4)
+    expect(wrapper.text()).not.toContain('Bodegas')
     expect(wrapper.text()).not.toContain('Permisos')
     expect(wrapper.text()).not.toContain('Roles')
   })

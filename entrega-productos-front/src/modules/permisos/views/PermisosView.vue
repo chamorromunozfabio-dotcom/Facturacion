@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import {
+  Building2,
   ChartColumn,
   Check,
   KeyRound,
@@ -26,6 +27,7 @@ const ICONOS_MODULO = {
   roles: ShieldCheck,
   permisos: KeyRound,
   estadisticas: ChartColumn,
+  empresas: Building2,
 }
 
 /** La vista es el director: trae los datos y conecta las cuatro piezas. */
@@ -61,7 +63,7 @@ const {
 const modulos = computed(() =>
   modulosConPermisos.value.map((modulo) => ({
     ...modulo,
-    icono: ICONOS_MODULO[modulo.clave],
+    icono: ICONOS_MODULO[modulo.clave] ?? KeyRound,
   })),
 )
 </script>

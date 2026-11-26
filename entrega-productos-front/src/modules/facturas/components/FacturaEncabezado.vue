@@ -1,4 +1,5 @@
 <script setup>
+import ClienteSearch from './ClienteSearch.vue'
 import { formaPagoOptions, medioPagoOptions } from '../utils/facturaCampos'
 
 /** Datos generales de la factura: cliente, bodega, pagos, fecha y notas. */
@@ -20,22 +21,13 @@ defineEmits(['marcar', 'buscar-cliente', 'update:empresaId'])
   <div class="grid">
     <label>
       Cliente *
-      <input
-        type="search"
-        data-test="cliente-buscar"
-        :value="clienteQuery"
-        placeholder="Busca por nombre, documento o correo…"
-        @input="$emit('buscar-cliente', $event.target.value)"
+      <ClienteSearch
+        v-model="form.cliente_id"
+        :clientes="clientes"
+        :query="clienteQuery"
+        @update:model-value="$emit('marcar', 'cliente_id')"
+        @buscar="$emit('buscar-cliente', $event)"
       />
-      <small v-if="clienteQuery.trim().length > 0 && clienteQuery.trim().length < 5" class="campo-hint">
-        Escribe al menos 5 caracteres para buscar.
-      </small>
-      <select v-model="form.cliente_id" data-test="field-cliente_id" @change="$emit('marcar', 'cliente_id')">
-        <option value="">Selecciona el cliente…</option>
-        <option v-for="cliente in clientes" :key="cliente.id" :value="cliente.id">
-          {{ cliente.nombre }}
-        </option>
-      </select>
       <small v-if="errores.cliente_id" data-test="error-cliente_id" class="campo-error">{{ errores.cliente_id }}</small>
     </label>
 

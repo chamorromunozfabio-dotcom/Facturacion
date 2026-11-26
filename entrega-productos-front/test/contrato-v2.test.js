@@ -84,17 +84,18 @@ describe('Test 35 — Contrato v2: bodegas propias y sin Usuarios', () => {
     bodegas.create.mockResolvedValue({ id: 3, nombre: 'Bodega Sur', bodeguero_id: 2 })
   })
 
-  it('el bodeguero administra sus bodegas (sin crear ni eliminar) y ya no ve Usuarios', () => {
-    expect(hasPermission('bodeguero', 'bodegas', 'view')).toBe(true)
-    expect(hasPermission('bodeguero', 'bodegas', 'edit')).toBe(true)
-    expect(hasPermission('bodeguero', 'bodegas', 'create')).toBe(false)
-    expect(hasPermission('bodeguero', 'bodegas', 'delete')).toBe(false)
+  it('el bodeguero ya no ve Bodegas ni Usuarios', () => {
+    for (const action of ['view', 'create', 'edit', 'delete']) {
+      expect(hasPermission('bodeguero', 'bodegas', action)).toBe(false)
+    }
     expect(hasPermission('bodeguero', 'usuarios', 'view')).toBe(false)
     expect(hasPermission('admin', 'usuarios', 'delete')).toBe(true)
     expect(hasPermission('cliente', 'facturas', 'aceptar')).toBe(true)
 
     const menu = visibleMenuFor('bodeguero').map((item) => item.label)
-    expect(menu).toContain('Bodegas')
+    expect(menu).toContain('Tipos')
+    expect(menu).toContain('Facturas')
+    expect(menu).not.toContain('Bodegas')
     expect(menu).not.toContain('Usuarios')
   })
 
@@ -110,17 +111,12 @@ describe('Test 35 — Contrato v2: bodegas propias y sin Usuarios', () => {
     expect(router.currentRoute.value.name).toBe('inicio')
   })
 
-  it('el bodeguero administra sus bodegas asignadas sin poder crear ni eliminar', async () => {
+  it('el bodeguero es redirigido si intenta entrar directamente a /bodegas', async () => {
+    await router.push({ name: 'login', query: { reset: String(Math.random()) } })
     useAuthStore().saveSession('token-123', { nombre: 'Luis', rol: 'bodeguero' })
+    await router.push('/bodegas')
 
-    const wrapper = mount(BodegasView)
-    await flushPromises()
-
-    expect(wrapper.find('[data-test="create"]').exists()).toBe(false)
-    expect(wrapper.find('[data-test="delete"]').exists()).toBe(false)
-    expect(wrapper.find('[data-test="edit"]').exists()).toBe(true)
-    expect(wrapper.find('[data-test="toggle-estado"]').exists()).toBe(true)
-    expect(usuarios.list).not.toHaveBeenCalled()
+    expect(router.currentRoute.value.name).toBe('inicio')
   })
 
   it('el admin asigna dueño desde el listado de bodegueros', async () => {
@@ -170,7 +166,7 @@ describe('Test 35 — Contrato v2: bodegas propias y sin Usuarios', () => {
     await wrapper.find('[data-test="create"]').trigger('click')
     await flushPromises()
 
-    await wrapper.find('[data-test="cliente-buscar"]').setValue('Prueba')
+    await wrapper.find('[data-test="field-cliente_id"]').setValue('Prueba')
     await new Promise((resolve) => setTimeout(resolve, 350))
     await flushPromises()
 

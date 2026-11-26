@@ -24,7 +24,7 @@ export function listClientes(params = {}) {
 
 /**
  * Búsqueda de clientes para facturar. Contrato acordado:
- * `GET /clientes/buscar?q=&page=&limit=` con `q` obligatorio (mínimo 5
+ * `GET /clientes/buscar?q=&page=&limit=` con `q` obligatorio (mínimo 3
  * caracteres); busca por nombre, documento y correo.
  */
 export function buscarClientes(q, params = {}) {

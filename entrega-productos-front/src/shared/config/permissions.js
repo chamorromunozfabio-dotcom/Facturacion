@@ -35,9 +35,8 @@ const RULES = {
   bodeguero: {
     // Los Tipos son los productos de su bodega: los gestiona completos.
     tipos: ['view', 'create', 'edit', 'delete'],
-    // El bodeguero solo administra las bodegas que le asigna su empresa (no crea ni elimina).
-    bodegas: ['view', 'edit'],
-    // Sin clave 'usuarios': /usuarios es solo del admin (backend responde 403).
+    // El bodeguero no accede al módulo Bodegas ni Usuarios; la empresa gestiona las bodegas.
+    bodegas: [],
     facturas: ['view', 'create', 'edit', 'delete', 'entregar', 'recibir', 'pdf'],
     estadisticas: ['view'],
   },
@@ -108,6 +107,61 @@ export function claveDelNombreBackend(nombre) {
   return CATALOGO_PERMISOS.find((permiso) => permiso.nombre === texto)?.clave ?? null
 }
 
+function capitalizar(texto) {
+  const limpio = String(texto ?? '').replace(/[_-]+/g, ' ').trim()
+  return limpio ? limpio.charAt(0).toUpperCase() + limpio.slice(1) : 'Otros'
+}
+
+/**
+ * Combina el catálogo base con cualquier módulo o permiso nuevo que devuelva
+ * `GET /permisos`, para que aparezcan disponibles sin editar el frontend.
+ */
+export function construirModulosDesdeBackend(permisosBackend = []) {
+  const idPorNombre = Object.fromEntries(
+    (permisosBackend ?? []).map((permiso) => [String(permiso.nombre ?? '').trim(), permiso.id]),
+  )
+
+  const grupos = new Map(
+    MODULOS_PERMISO.map((modulo) => [
+      modulo.clave,
+      {
+        ...modulo,
+        opciones: CATALOGO_PERMISOS.filter((item) => item.modulo === modulo.clave).map((item) => ({
+          ...item,
+          idBackend: idPorNombre[item.nombre] ?? null,
+        })),
+      },
+    ]),
+  )
+
+  for (const permiso of permisosBackend ?? []) {
+    const nombre = String(permiso?.nombre ?? '').trim()
+    if (!nombre || CATALOGO_PERMISOS.some((item) => item.nombre === nombre)) continue
+
+    const sep = nombre.indexOf('_')
+    const modulo = sep > 0 ? nombre.slice(0, sep) : 'otros'
+    const accion = sep > 0 ? nombre.slice(sep + 1) : nombre
+    const moduloEtiqueta = MODULOS_PERMISO.find((m) => m.clave === modulo)?.etiqueta ?? capitalizar(modulo)
+    const accionEtiqueta = ETIQUETAS_ACCION[accion] ?? capitalizar(accion)
+
+    if (!grupos.has(modulo)) {
+      grupos.set(modulo, { clave: modulo, etiqueta: moduloEtiqueta, opciones: [] })
+    }
+    grupos.get(modulo).opciones.push({
+      clave: `${modulo}:${accion}`,
+      modulo,
+      moduloEtiqueta,
+      accion,
+      accionEtiqueta,
+      nombre,
+      etiqueta: `${moduloEtiqueta} — ${accionEtiqueta}`,
+      idBackend: permiso.id ?? null,
+    })
+  }
+
+  return [...grupos.values()]
+}
+
 /**
  * Dice si la sesión tiene una función concreta.
  *
@@ -123,8 +177,8 @@ export function tienePermiso(permisos, role, modulo, accion) {
   // pueden abrir esta ruta a otro rol.
   if (modulo === 'empresas') return role === 'admin'
 
-  // El bodeguero solo administra las bodegas asignadas: nunca crea ni elimina bodegas.
-  if (role === 'bodeguero' && modulo === 'bodegas' && (accion === 'create' || accion === 'delete')) {
+  // El bodeguero no accede al módulo Bodegas (solo opera productos y facturas en la bodega asignada).
+  if (role === 'bodeguero' && modulo === 'bodegas') {
     return false
   }
   // La empresa no accede a la vista Usuarios ni acepta/rechaza facturas, aunque

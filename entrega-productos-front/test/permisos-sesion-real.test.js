@@ -97,18 +97,18 @@ describe('Test 41 — Menú, botones y rutas con los permisos reales de la sesi�
     auth.saveSession('token-123', {
       nombre: 'Luis',
       rol: 'bodeguero',
-      permisos: [{ nombre: 'tipos_view' }],
+      permisos: [{ nombre: 'facturas_view' }],
     })
-    await router.push('/bodegas')
+    await router.push('/tipos')
     expect(router.currentRoute.value.name).toBe('inicio')
 
     auth.saveSession('token-123', {
       nombre: 'Luis',
       rol: 'bodeguero',
-      permisos: [{ nombre: 'tipos_view' }, { nombre: 'bodegas_view' }],
+      permisos: [{ nombre: 'facturas_view' }, { nombre: 'tipos_view' }],
     })
-    await router.push('/bodegas')
-    expect(router.currentRoute.value.name).toBe('bodegas')
+    await router.push('/tipos')
+    expect(router.currentRoute.value.name).toBe('tipos')
   })
 
   it('el catálogo coincide con los nombres del backend y no tiene alias', () => {

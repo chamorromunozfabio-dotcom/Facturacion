@@ -111,12 +111,12 @@ export function useFacturas() {
     }, 300)
   })
 
-  // El buscador de clientes no dispara por cada tecla: 300 ms y mínimo 5 letras.
+  // El buscador de clientes no dispara por cada tecla: 300 ms y mínimo 3 caracteres.
   watch(clienteQuery, () => {
     clearTimeout(clienteTimer)
     clienteTimer = setTimeout(() => {
       const texto = clienteQuery.value.trim()
-      if (texto.length >= 5) buscarClientes(texto)
+      if (texto.length >= 3) buscarClientes(texto)
       else catalogos.value.clientes = []
     }, 300)
   })

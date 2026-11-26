@@ -11,14 +11,14 @@ describe('Test 16 — Permisos y menú definitivos del líder', () => {
     expect(hasPermission('admin', 'facturas', 'entregar')).toBe(true)
   })
 
-  it('bodeguero gestiona Tipos y solo sus Bodegas, sin Usuarios', () => {
+  it('bodeguero gestiona Tipos y Facturas, sin Bodegas ni Usuarios', () => {
     expect(hasPermission('bodeguero', 'tipos', 'view')).toBe(true)
     expect(hasPermission('bodeguero', 'tipos', 'create')).toBe(true)
     expect(hasPermission('bodeguero', 'tipos', 'edit')).toBe(true)
     expect(hasPermission('bodeguero', 'tipos', 'delete')).toBe(true)
-    expect(hasPermission('bodeguero', 'bodegas', 'view')).toBe(true)
+    expect(hasPermission('bodeguero', 'bodegas', 'view')).toBe(false)
     expect(hasPermission('bodeguero', 'bodegas', 'create')).toBe(false)
-    expect(hasPermission('bodeguero', 'bodegas', 'edit')).toBe(true)
+    expect(hasPermission('bodeguero', 'bodegas', 'edit')).toBe(false)
     expect(hasPermission('bodeguero', 'bodegas', 'delete')).toBe(false)
     expect(hasPermission('bodeguero', 'usuarios', 'view')).toBe(false)
     expect(hasPermission('bodeguero', 'roles', 'view')).toBe(false)

@@ -55,6 +55,8 @@ const software = computed(() => props.factura.software ?? {})
       <section>
         <h3>Bodega</h3>
         <p>{{ bodega.nombre }}</p>
+        <p v-if="bodega.direccion">{{ bodega.direccion }}</p>
+        <p v-if="bodega.correo">{{ bodega.correo }}</p>
         <p>Responsable: {{ bodega.recibe_nombre }}</p>
       </section>
 

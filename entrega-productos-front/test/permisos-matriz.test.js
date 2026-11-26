@@ -455,4 +455,28 @@ describe('Test 40 — Permisos por usuario con buscador y tarjetas de funciones'
 
     expect(wrapper.find('[data-test="permisos-actuales"]').text()).toContain('Usuarios — Ver')
   })
+
+  it('muestra automáticamente módulos y permisos nuevos que lleguen de GET /permisos', async () => {
+    permisos.list.mockResolvedValueOnce({
+      data: [{ id: 99, nombre: 'inventario_create' }],
+      total: 1,
+      page: 1,
+      limit: 100,
+    })
+
+    const wrapper = mount(PermisosView)
+    await flushPromises()
+    await consultar(wrapper, 1)
+
+    expect(wrapper.text()).toContain('Inventario')
+    const check = wrapper.find('[data-test="check-inventario:create"]')
+    expect(check.exists()).toBe(true)
+    await check.setValue(true)
+    await flushPromises()
+
+    await wrapper.find('[data-test="confirmar-permisos"]').trigger('click')
+    await flushPromises()
+
+    expect(usuarios.addPermiso).toHaveBeenCalledWith(1, 99)
+  })
 })

@@ -128,7 +128,8 @@ describe('Test 52 — FacturaForm modular: encabezado, líneas y validación', (
     expect(wrapper.find('[data-test="field-cliente_id"]').exists()).toBe(true)
     expect(wrapper.find('[data-test="field-fecha_vencimiento"]').exists()).toBe(false)
 
-    await wrapper.find('[data-test="field-cliente_id"]').setValue('3')
+    await wrapper.find('[data-test="field-cliente_id"]').trigger('focus')
+    await wrapper.find('[data-test="cliente-opcion-0"]').trigger('mousedown')
 
     expect(form.cliente_id).toBe(3)
     expect(wrapper.emitted('marcar')).toContainEqual(['cliente_id'])

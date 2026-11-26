@@ -13,7 +13,8 @@ const mountForm = (props = {}) =>
   mount(FacturaForm, { props: { open: true, clientes, bodegas, tipos, ...props } })
 
 async function llenarEncabezado(wrapper, formaPago = 'contado') {
-  await wrapper.find('[data-test="field-cliente_id"]').setValue('3')
+  await wrapper.find('[data-test="field-cliente_id"]').trigger('focus')
+  await wrapper.find('[data-test="cliente-opcion-0"]').trigger('mousedown')
   await wrapper.find('[data-test="field-bodega_id"]').setValue('1')
   await wrapper.find('[data-test="field-forma_pago"]').setValue(formaPago)
   await wrapper.find('[data-test="field-medio_pago"]').setValue('transferencia')
