@@ -53,3 +53,9 @@ export function campoEmpresa(empresaOpciones) {
 export function empresaParams(esAdmin, empresaId) {
   return esAdmin && empresaId ? { empresa_id: empresaId } : {}
 }
+
+/** Resuelve el nombre de una empresa por id usando las opciones ya cargadas. */
+export function nombreEmpresaDe(empresaOpciones, id) {
+  if (!id) return ''
+  return empresaOpciones.find((item) => String(item.value) === String(id))?.label ?? ''
+}

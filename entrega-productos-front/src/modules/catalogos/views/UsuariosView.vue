@@ -36,7 +36,11 @@ const visibleRoleOptions = computed(() =>
   roleOptions.value.filter((rol) => rol.label !== 'empresa'),
 )
 
-const rowsVisibles = computed(() => rows.value.filter((usuario) => usuario.rol !== 'empresa'))
+const rowsVisibles = computed(() =>
+  rows.value
+    .filter((usuario) => usuario.rol !== 'empresa')
+    .map((usuario) => normalizarUsuarioFila(usuario, roleOptions.value, empresaOpciones.value)),
+)
 
 function nombreRol(id) {
   return roleOptions.value.find((rol) => rol.value === Number(id))?.label ?? ''
@@ -154,14 +158,14 @@ const {
     direccion: row.direccion ?? '',
     ciudad: row.ciudad ?? '',
   }),
-  actualParaCambios: (row) => normalizarUsuarioFila(row, roleOptions.value),
+  actualParaCambios: (row) => normalizarUsuarioFila(row, roleOptions.value, empresaOpciones.value),
   normalizarCambio: (key, valor) =>
     key === 'rol_id' || key === 'empresa_id'
       ? valor === '' || valor == null
         ? ''
         : String(valor)
       : valor,
-  transformarFila: (usuario) => normalizarUsuarioFila(usuario, roleOptions.value),
+  transformarFila: (usuario) => normalizarUsuarioFila(usuario, roleOptions.value, empresaOpciones.value),
   cleanPayload,
   duplicateMessage: 'Ya existe un usuario con ese correo. Probá con otro.',
   mensajes: {

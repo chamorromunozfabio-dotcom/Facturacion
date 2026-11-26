@@ -35,8 +35,8 @@ const RULES = {
   bodeguero: {
     // Los Tipos son los productos de su bodega: los gestiona completos.
     tipos: ['view', 'create', 'edit', 'delete'],
-    // El backend solo le permite ver, crear, editar y borrar SUS bodegas.
-    bodegas: ['view', 'create', 'edit', 'delete'],
+    // El bodeguero solo administra las bodegas que le asigna su empresa (no crea ni elimina).
+    bodegas: ['view', 'edit'],
     // Sin clave 'usuarios': /usuarios es solo del admin (backend responde 403).
     facturas: ['view', 'create', 'edit', 'delete', 'entregar', 'recibir', 'pdf'],
     estadisticas: ['view'],
@@ -123,6 +123,10 @@ export function tienePermiso(permisos, role, modulo, accion) {
   // pueden abrir esta ruta a otro rol.
   if (modulo === 'empresas') return role === 'admin'
 
+  // El bodeguero solo administra las bodegas asignadas: nunca crea ni elimina bodegas.
+  if (role === 'bodeguero' && modulo === 'bodegas' && (accion === 'create' || accion === 'delete')) {
+    return false
+  }
   // La empresa no accede a la vista Usuarios ni acepta/rechaza facturas, aunque
   // el backend incluya esos permisos en su plantilla.
   if (role === 'empresa' && modulo === 'usuarios' && accion === 'view') {

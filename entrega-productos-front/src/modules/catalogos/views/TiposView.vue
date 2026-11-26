@@ -6,7 +6,7 @@ import bodegasApi from '../api/bodegas'
 import tiposApi from '../api/tipos'
 import { useCrud } from '../composables/useCrud'
 import EmpresaSelect from '../../empresas/components/EmpresaSelect.vue'
-import { empresaParams, useEmpresaFiltro } from '../../empresas/composables/useEmpresaFiltro'
+import { empresaParams, nombreEmpresaDe, useEmpresaFiltro } from '../../empresas/composables/useEmpresaFiltro'
 
 // Admin y empresa pueden elegir bodega; el bodeguero queda atado a la suya.
 const auth = useAuthStore()
@@ -30,6 +30,7 @@ const nombreBodega = (id) =>
 
 const columns = computed(() => [
   { key: 'nombre', label: 'Nombre' },
+  ...(esAdmin.value ? [{ key: 'empresa_nombre', label: 'Empresa' }] : []),
   ...(puedeElegirBodega.value ? [{ key: 'bodega_nombre', label: 'Bodega' }] : []),
   { key: 'estado', label: 'Estado' },
 ])
@@ -115,32 +116,10 @@ function cleanPayload(payload) {
 }
 
 const {
-  canCreate,
-  canEdit,
-  canDelete,
-  createLabel,
-  confirmacion,
-  rows,
-  total,
-  page,
-  limit,
-  q,
-  loading,
-  alert,
-  modalOpen,
-  editing,
-  form,
-  saving,
-  confirmOpen,
-  deleting,
-  removing,
-  load,
-  openCreate,
-  openEdit,
-  save,
-  askDelete,
-  confirmDelete,
-  toggleEstado,
+  canCreate, canEdit, canDelete, createLabel, confirmacion,
+  rows, total, page, limit, q, loading, alert,
+  modalOpen, editing, form, saving, confirmOpen, deleting, removing,
+  load, openCreate, openEdit, save, askDelete, confirmDelete, toggleEstado,
 } = useCrud({
   modulo: 'tipos',
   api: tiposApi,
@@ -172,10 +151,16 @@ const {
         ? null
         : String(valor)
       : String(valor ?? ''),
-  transformarFila: (tipo) => ({
-    ...tipo,
-    bodega_nombre: tipo.bodega_nombre || nombreBodega(tipo.bodega_id) || 'General',
-  }),
+  transformarFila: (tipo) => {
+    const bodega = bodegas.value.find((b) => String(b.id) === String(tipo.bodega_id))
+    const empId = tipo.empresa_id ?? bodega?.empresa_id
+    return {
+      ...tipo,
+      bodega_nombre: tipo.bodega_nombre || nombreBodega(tipo.bodega_id) || 'General',
+      empresa_nombre:
+        tipo.empresa_nombre || tipo.empresa?.razon_social || bodega?.empresa_nombre || nombreEmpresaDe(empresaOpciones.value, empId) || 'General (todas)',
+    }
+  },
   paramsExtra: () => ({
     ...(bodegaId.value ? { bodega_id: bodegaId.value } : {}),
     ...empresaParams(esAdmin.value, empresaId.value),
@@ -273,6 +258,20 @@ watch(
   >
     <template #cell-estado="{ value }">
       <span>{{ value === false ? 'Inactivo' : 'Activo' }}</span>
+    </template>
+    <template #cell-empresa_nombre="{ row }">
+      <span>
+        {{
+          row.empresa_nombre && row.empresa_nombre !== 'General (todas)'
+            ? row.empresa_nombre
+            : row.empresa?.razon_social ||
+              nombreEmpresaDe(
+                empresaOpciones,
+                row.empresa_id ?? bodegas.find((b) => String(b.id) === String(row.bodega_id))?.empresa_id,
+              ) ||
+              'General (todas)'
+        }}
+      </span>
     </template>
     <template #filter>
       <EmpresaSelect v-if="esAdmin" v-model="empresaId" :empresas="empresaOpciones" />

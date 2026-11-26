@@ -29,13 +29,19 @@ export function resolveRolId(row, roleOptions = []) {
   return roleOptions.find((rol) => rol.label === nombre)?.value ?? IDS_POR_DEFECTO[nombre] ?? ''
 }
 
-export function normalizarUsuarioFila(usuario, roleOptions = []) {
+export function normalizarUsuarioFila(usuario, roleOptions = [], empresaOpciones = []) {
+  const empresaId = usuario.empresa_id ?? usuario.empresa?.id ?? ''
+  const empresaNombre =
+    usuario.empresa_nombre ||
+    usuario.empresa?.razon_social ||
+    empresaOpciones.find((item) => String(item.value) === String(empresaId))?.label ||
+    ''
   return {
     ...usuario,
     rol: rolNombreDe(usuario),
     rol_id: resolveRolId(usuario, roleOptions),
-    empresa_id: usuario.empresa_id ?? usuario.empresa?.id ?? '',
-    empresa_nombre: usuario.empresa_nombre ?? usuario.empresa?.razon_social ?? '',
+    empresa_id: empresaId,
+    empresa_nombre: empresaNombre || (empresaId ? `Empresa #${empresaId}` : 'Sin empresa'),
   }
 }
 

@@ -84,10 +84,11 @@ describe('Test 35 — Contrato v2: bodegas propias y sin Usuarios', () => {
     bodegas.create.mockResolvedValue({ id: 3, nombre: 'Bodega Sur', bodeguero_id: 2 })
   })
 
-  it('el bodeguero gestiona bodegas pero ya no ve Usuarios', () => {
-    for (const action of ['view', 'create', 'edit', 'delete']) {
-      expect(hasPermission('bodeguero', 'bodegas', action)).toBe(true)
-    }
+  it('el bodeguero administra sus bodegas (sin crear ni eliminar) y ya no ve Usuarios', () => {
+    expect(hasPermission('bodeguero', 'bodegas', 'view')).toBe(true)
+    expect(hasPermission('bodeguero', 'bodegas', 'edit')).toBe(true)
+    expect(hasPermission('bodeguero', 'bodegas', 'create')).toBe(false)
+    expect(hasPermission('bodeguero', 'bodegas', 'delete')).toBe(false)
     expect(hasPermission('bodeguero', 'usuarios', 'view')).toBe(false)
     expect(hasPermission('admin', 'usuarios', 'delete')).toBe(true)
     expect(hasPermission('cliente', 'facturas', 'aceptar')).toBe(true)
@@ -109,38 +110,17 @@ describe('Test 35 — Contrato v2: bodegas propias y sin Usuarios', () => {
     expect(router.currentRoute.value.name).toBe('inicio')
   })
 
-  it('el bodeguero crea bodegas sin elegir dueño (lo asigna el backend)', async () => {
+  it('el bodeguero administra sus bodegas asignadas sin poder crear ni eliminar', async () => {
     useAuthStore().saveSession('token-123', { nombre: 'Luis', rol: 'bodeguero' })
 
     const wrapper = mount(BodegasView)
     await flushPromises()
-    await wrapper.find('[data-test="create"]').trigger('click')
 
+    expect(wrapper.find('[data-test="create"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="delete"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="edit"]').exists()).toBe(true)
-    expect(wrapper.find('[data-test="delete"]').exists()).toBe(true)
-    expect(wrapper.find('[data-test="field-bodeguero_id"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="toggle-estado"]').exists()).toBe(true)
     expect(usuarios.list).not.toHaveBeenCalled()
-
-    const datos = {
-      nombre: 'Bodega Sur',
-      codigo: 'SUR-01',
-      direccion: 'Calle 1 2 3',
-      ciudad: 'Bogotá',
-      departamento: 'Cundinamarca',
-      telefono: '3001234567',
-      correo: 'sur@entrega.com',
-      recibe_nombre: 'Ana Recibe',
-      recibe_documento: '1020304052',
-      recibe_cargo: 'Supervisora',
-      recibe_telefono: '3109876545',
-    }
-    for (const [key, value] of Object.entries(datos)) {
-      await wrapper.find(`[data-test="field-${key}"]`).setValue(value)
-    }
-    await wrapper.find('form').trigger('submit')
-    await flushPromises()
-
-    expect(bodegas.create).toHaveBeenCalledWith(datos)
   })
 
   it('el admin asigna dueño desde el listado de bodegueros', async () => {

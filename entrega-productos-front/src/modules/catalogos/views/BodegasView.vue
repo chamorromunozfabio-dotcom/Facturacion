@@ -8,7 +8,7 @@ import { useAuthStore } from '../../auth/store/auth'
 import { useCrud } from '../composables/useCrud'
 import { BODEGA_FIELDS } from '../utils/bodegas'
 import EmpresaSelect from '../../empresas/components/EmpresaSelect.vue'
-import { campoEmpresa, empresaParams, useEmpresaFiltro } from '../../empresas/composables/useEmpresaFiltro'
+import { campoEmpresa, empresaParams, nombreEmpresaDe, useEmpresaFiltro } from '../../empresas/composables/useEmpresaFiltro'
 
 // El admin asigna empresa y dueño; la empresa asigna dueño entre sus bodegueros.
 const auth = useAuthStore()
@@ -120,31 +120,10 @@ function cleanPayload(payload) {
 }
 
 const {
-  canCreate,
-  canEdit,
-  canDelete,
-  createLabel,
-  confirmacion,
-  rows,
-  total,
-  page,
-  limit,
-  q,
-  loading,
-  alert,
-  modalOpen,
-  editing,
-  form,
-  saving,
-  confirmOpen,
-  deleting,
-  removing,
-  openCreate,
-  openEdit,
-  save,
-  askDelete,
-  confirmDelete,
-  toggleEstado,
+  canCreate, canEdit, canDelete, createLabel, confirmacion,
+  rows, total, page, limit, q, loading, alert,
+  modalOpen, editing, form, saving, confirmOpen, deleting, removing,
+  openCreate, openEdit, save, askDelete, confirmDelete, toggleEstado,
 } = useCrud({
   modulo: 'bodegas',
   api: bodegasApi,
@@ -284,6 +263,16 @@ watch(
   >
     <template #cell-estado="{ value }">
       <span>{{ value === false ? 'Inactiva' : 'Activa' }}</span>
+    </template>
+    <template #cell-empresa_nombre="{ row }">
+      <span>
+        {{
+          (row.empresa_nombre && row.empresa_nombre !== 'Sin empresa' ? row.empresa_nombre : '') ||
+          row.empresa?.razon_social ||
+          nombreEmpresaDe(empresaOpciones, row.empresa_id) ||
+          (row.empresa_id ? `Empresa #${row.empresa_id}` : 'Sin empresa')
+        }}
+      </span>
     </template>
     <template #filter>
       <EmpresaSelect v-if="esAdmin" v-model="empresaId" :empresas="empresaOpciones" />
