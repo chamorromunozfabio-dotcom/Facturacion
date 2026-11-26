@@ -9,9 +9,11 @@ const tiposApi = vi.hoisted(() => ({
   remove: vi.fn(),
 }))
 const bodegasApi = vi.hoisted(() => ({ list: vi.fn() }))
+const empresasApi = vi.hoisted(() => ({ listActivas: vi.fn() }))
 
 vi.mock('../src/modules/catalogos/api/tipos', () => ({ default: tiposApi }))
 vi.mock('../src/modules/catalogos/api/bodegas', () => ({ default: bodegasApi }))
+vi.mock('../src/modules/empresas/api/empresas', () => ({ default: empresasApi }))
 
 import FacturaForm from '../src/modules/facturas/components/FacturaForm.vue'
 import TiposView from '../src/modules/catalogos/views/TiposView.vue'
@@ -50,6 +52,9 @@ describe('Test 45 — Tipos por bodega y buscador en facturas', () => {
       limit: 10,
     })
     tiposApi.create.mockImplementation(async (payload) => ({ id: 9, ...payload }))
+    empresasApi.listActivas.mockResolvedValue({
+      data: [{ id: 1, razon_social: 'Distribuidora Andina S.A.S.' }],
+    })
   })
 
   it('el bodeguero crea el tipo en su bodega sin tener que elegirla', async () => {
@@ -180,5 +185,58 @@ describe('Test 45 — Tipos por bodega y buscador en facturas', () => {
     await wrapper.find('[data-test="field-bodega_id"]').setValue('1')
 
     expect(await opciones(wrapper)).toEqual(['Alimentos', 'Bebidas'])
+  })
+
+  it('el admin puede asignar el producto a una empresa y bodega o dejarlo general', async () => {
+    useAuthStore().saveSession('token-123', { nombre: 'Ana', rol: 'admin' })
+    const wrapper = mount(TiposView)
+    await flushPromises()
+
+    await wrapper.find('[data-test="create"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('[data-test="field-empresa_id"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="field-bodega_id"]').exists()).toBe(false)
+
+    await wrapper.find('[data-test="field-empresa_id"]').setValue('1')
+    await flushPromises()
+
+    expect(bodegasApi.list).toHaveBeenLastCalledWith({ page: 1, limit: 100, empresa_id: '1' })
+    expect(wrapper.find('[data-test="field-bodega_id"]').exists()).toBe(true)
+
+    await wrapper.find('[data-test="field-nombre"]').setValue('Café')
+    await wrapper.find('[data-test="field-bodega_id"]').setValue('2')
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(tiposApi.create).toHaveBeenCalledWith({ nombre: 'Café', bodega_id: 2 })
+  })
+
+  it('en FacturaForm el admin elige primero la empresa para filtrar sus bodegas', async () => {
+    const wrapper = mount(FacturaForm, {
+      props: {
+        open: true,
+        clientes: [{ id: 3, nombre: 'Juan' }],
+        empresas: [
+          { value: 1, label: 'Andina S.A.S.' },
+          { value: 2, label: 'Caribe S.A.S.' },
+        ],
+        bodegas: [
+          { id: 10, nombre: 'Bodega Andina', empresa_id: 1 },
+          { id: 20, nombre: 'Bodega Caribe', empresa_id: 2 },
+        ],
+        tipos: TIPOS,
+      },
+    })
+
+    const bodegaSelect = wrapper.find('[data-test="field-bodega_id"]')
+    expect(bodegaSelect.findAll('option').map((op) => op.text())).toContain('Bodega Andina')
+
+    await wrapper.find('[data-test="field-empresa_id"]').setValue('2')
+    await flushPromises()
+
+    const opcionesBodega = bodegaSelect.findAll('option').map((op) => op.text())
+    expect(opcionesBodega).toContain('Bodega Caribe')
+    expect(opcionesBodega).not.toContain('Bodega Andina')
   })
 })

@@ -292,7 +292,7 @@ export function useFacturas() {
   async function loadCatalogos() {
     // Los clientes ya no se cargan completos: se buscan con /clientes/buscar.
     const [bodegas, tipos] = await Promise.all([
-      bodegasApi.list({ page: 1, limit: 100 }),
+      bodegasApi.list({ page: 1, limit: 100, estado: true }),
       tiposApi.list({ page: 1, limit: 100, estado: true }),
     ])
     catalogos.value = {

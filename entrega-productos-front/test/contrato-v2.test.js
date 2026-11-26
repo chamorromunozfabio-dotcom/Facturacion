@@ -174,7 +174,12 @@ describe('Test 35 — Contrato v2: bodegas propias y sin Usuarios', () => {
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
-    expect(bodegas.create).toHaveBeenCalledWith({ ...datos, bodeguero_id: 2 })
+    expect(bodegas.create).toHaveBeenCalledWith({
+      ...datos,
+      bodeguero_id: 2,
+      recibe_nombre: 'Luis Gómez',
+      recibe_cargo: 'Bodeguero',
+    })
   })
 
   it('el selector de clientes de facturas usa /clientes/buscar', async () => {

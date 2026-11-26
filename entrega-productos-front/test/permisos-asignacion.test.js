@@ -287,7 +287,8 @@ describe('Test 36 — Permisos por usuario (contrato publicado por el backend)',
     await flushPromises()
 
     expect(wrapper.find('[data-test="check-facturas:view"]').element.checked).toBe(true)
-    expect(wrapper.find('[data-test="check-usuarios:create"]').element.checked).toBe(true)
+    expect(wrapper.find('[data-test="check-bodegas:create"]').element.checked).toBe(true)
+    expect(wrapper.find('[data-test="check-usuarios:create"]').element.checked).toBe(false)
     expect(wrapper.find('[data-test="check-facturas:aceptar"]').element.checked).toBe(false)
     expect(wrapper.find('[data-test="check-facturas:rechazar"]').element.checked).toBe(false)
     expect(visibleMenuFor('empresa').map((item) => item.label)).not.toContain('Permisos')

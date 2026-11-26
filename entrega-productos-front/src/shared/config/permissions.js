@@ -22,11 +22,10 @@ const RULES = {
     estadisticas: ['view'],
   },
   empresa: {
-    // La empresa administra el catálogo y las bodegas de su propio equipo.
+    // La empresa administra el catálogo y las bodegas de su propio equipo (sin vista Usuarios).
     tipos: ['view', 'create', 'edit', 'delete'],
     bodegas: ['view', 'create', 'edit', 'delete'],
-    // Solo sus bodegueros; el backend filtra por empresa_id.
-    usuarios: ['view', 'create', 'edit', 'delete'],
+    usuarios: [],
     roles: [],
     permisos: [],
     empresas: [],
@@ -124,8 +123,11 @@ export function tienePermiso(permisos, role, modulo, accion) {
   // pueden abrir esta ruta a otro rol.
   if (modulo === 'empresas') return role === 'admin'
 
-  // La empresa nunca acepta ni rechaza facturas, aunque el backend le asigne
-  // esos permisos por error. El cliente sí puede (son sus propias facturas).
+  // La empresa no accede a la vista Usuarios ni acepta/rechaza facturas, aunque
+  // el backend incluya esos permisos en su plantilla.
+  if (role === 'empresa' && modulo === 'usuarios' && accion === 'view') {
+    return false
+  }
   if (
     role === 'empresa' &&
     modulo === 'facturas' &&

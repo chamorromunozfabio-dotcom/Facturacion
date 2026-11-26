@@ -31,6 +31,13 @@ const roleOptions = computed(() => {
   return isEmpresa.value ? opciones.filter((rol) => rol.label === 'bodeguero') : opciones
 })
 
+// Las cuentas de rol `empresa` se gestionan únicamente desde el módulo Empresas.
+const visibleRoleOptions = computed(() =>
+  roleOptions.value.filter((rol) => rol.label !== 'empresa'),
+)
+
+const rowsVisibles = computed(() => rows.value.filter((usuario) => usuario.rol !== 'empresa'))
+
 function nombreRol(id) {
   return roleOptions.value.find((rol) => rol.value === Number(id))?.label ?? ''
 }
@@ -41,6 +48,7 @@ const columns = computed(() => [
   { key: 'rol', label: 'Rol' },
   ...(esAdmin.value ? [{ key: 'empresa_nombre', label: 'Empresa' }] : []),
   { key: 'numero_documento', label: 'Documento' },
+  { key: 'estado', label: 'Estado' },
 ])
 
 const baseFields = [
@@ -74,11 +82,14 @@ const fields = computed(() => {
   const list = baseFields
     .filter((field) => field.key !== 'rol_id' || !isEmpresa.value)
     .map((field) =>
-      field.key === 'rol_id' ? { ...field, options: roleOptions.value } : { ...field },
+      field.key === 'rol_id' ? { ...field, options: visibleRoleOptions.value } : { ...field },
     )
-  if (nombreRol(form.value.rol_id) === 'cliente') list.push(...camposCliente(form.value.tipo_documento))
-  // Multiempresa: el admin debe elegir la empresa al crear/editar un bodeguero o usuario `empresa`.
-  if (esAdmin.value && ['bodeguero', 'empresa'].includes(nombreRol(form.value.rol_id))) {
+  // El admin ve siempre la ficha completa del usuario (documento, teléfono, dirección y ciudad).
+  if (esAdmin.value || nombreRol(form.value.rol_id) === 'cliente') {
+    list.push(...camposCliente(form.value.tipo_documento))
+  }
+  // Multiempresa: el admin debe elegir la empresa al crear/editar un bodeguero.
+  if (esAdmin.value && nombreRol(form.value.rol_id) === 'bodeguero') {
     list.push(campoEmpresa(empresaOpciones.value))
   }
   if (editing.value) {
@@ -117,7 +128,7 @@ const {
   canCreate, canEdit, canDelete, createLabel, confirmacion,
   rows, total, page, limit, q, loading, alert,
   modalOpen, editing, form, saving, confirmOpen, deleting, removing,
-  openCreate, openEdit, save, askDelete, confirmDelete,
+  openCreate, openEdit, save, askDelete, confirmDelete, toggleEstado,
 } = useCrud({
   modulo: 'usuarios',
   api: usuariosApi,
@@ -184,7 +195,7 @@ const {
     badge="Accesos"
     :alert="alert"
     :columns="columns"
-    :rows="rows"
+    :rows="rowsVisibles"
     :total="total"
     :page="page"
     :limit="limit"
@@ -194,6 +205,8 @@ const {
     :can-create="canCreate"
     :can-edit="canEdit"
     :can-delete="canDelete"
+    :can-toggle-estado="true"
+    :can-toggle-row="(row) => row.id !== auth.user?.id"
     :modal-open="modalOpen"
     :editing="editing"
     :fields="fields"
@@ -212,6 +225,7 @@ const {
     @create="openCreate"
     @edit="openEdit"
     @delete="askDelete"
+    @toggle-estado="toggleEstado"
     @update:model-value="form = $event"
     @submit="save"
     @close-modal="modalOpen = false"
@@ -219,13 +233,16 @@ const {
     @cancel="confirmOpen = false"
     @close-alert="alert = null"
   >
+    <template #cell-estado="{ value }">
+      <span>{{ value === false ? 'Inactivo' : 'Activo' }}</span>
+    </template>
     <template #filter>
       <label v-if="!isBodeguero && !isEmpresa" class="filter">
         Filtrar por rol
         <select v-model="roleFilter" data-test="role-filter">
           <option value="">Todos</option>
           <option
-            v-for="rol in roleOptions"
+            v-for="rol in visibleRoleOptions"
             :key="rol.value"
             :value="rol.label"
             :data-test="`role-filter-option-${rol.value}`"

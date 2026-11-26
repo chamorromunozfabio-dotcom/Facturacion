@@ -193,6 +193,23 @@ export function useCrud(config) {
     }
   }
 
+  async function toggleEstado(row) {
+    if (!api.cambiarEstado) return
+    const nuevoEstado = row.estado === false
+    try {
+      const updated = transformarFila(await api.cambiarEstado(row.id, nuevoEstado))
+      rows.value = rows.value.map((item) =>
+        item.id === row.id ? { ...item, ...updated, estado: updated?.estado ?? nuevoEstado } : item,
+      )
+      alert.value = {
+        type: 'success',
+        message: `${nuevoEstado ? 'Activado' : 'Desactivado'} correctamente.`,
+      }
+    } catch (error) {
+      alert.value = { type: 'error', message: getErrorMessage(error) }
+    }
+  }
+
   onMounted(() => {
     load()
     if (alMontar) alMontar()
@@ -226,5 +243,6 @@ export function useCrud(config) {
     save,
     askDelete,
     confirmDelete,
+    toggleEstado,
   }
 }

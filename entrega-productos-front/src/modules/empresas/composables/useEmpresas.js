@@ -1,6 +1,8 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import empresasApi from '../api/empresas'
 import { getErrorMessage } from '../../../shared/api/axios'
+import { registrar } from '../../auth/api/register'
+import { erroresDelBackend } from '../../auth/utils/registro'
 
 const ESTADOS = [
   { value: '', label: 'Todas' },
@@ -32,6 +34,15 @@ export function useEmpresas() {
 
   const detalleOpen = ref(false)
   const detalleEmpresa = ref(null)
+
+  const crearOpen = ref(false)
+  const crearSaving = ref(false)
+  const crearError = ref('')
+  const crearFieldErrors = ref({})
+
+  const confirmOpen = ref(false)
+  const deleting = ref(null)
+  const removing = ref(false)
 
   let searchTimer
 
@@ -114,6 +125,68 @@ export function useEmpresas() {
     detalleOpen.value = false
   }
 
+  function abrirCrear() {
+    crearError.value = ''
+    crearFieldErrors.value = {}
+    crearOpen.value = true
+  }
+
+  function closeCrear() {
+    crearOpen.value = false
+  }
+
+  function askDelete(row) {
+    detalleOpen.value = false
+    deleting.value = row
+    confirmOpen.value = true
+  }
+
+  function cancelDelete() {
+    confirmOpen.value = false
+  }
+
+  async function confirmDelete() {
+    if (!deleting.value) return
+    removing.value = true
+    try {
+      await empresasApi.remove(deleting.value.id)
+      const nombre = deleting.value.razon_social
+      rows.value = rows.value.filter((row) => row.id !== deleting.value.id)
+      total.value = Math.max(0, total.value - 1)
+      confirmOpen.value = false
+      alert.value = { type: 'success', message: `"${nombre}" fue eliminada definitivamente.` }
+    } catch (error) {
+      confirmOpen.value = false
+      alert.value = { type: 'error', message: getErrorMessage(error) }
+    } finally {
+      removing.value = false
+    }
+  }
+
+  async function crearEmpresa(payload) {
+    crearSaving.value = true
+    crearError.value = ''
+    crearFieldErrors.value = {}
+    try {
+      const data = await registrar(payload)
+      if (data?.empresa?.id) {
+        await empresasApi.cambiarEstado(data.empresa.id, { estado: 'activa' })
+      }
+      crearOpen.value = false
+      await load()
+      alert.value = {
+        type: 'success',
+        message: `"${payload.razon_social}" fue creada y activada.`,
+      }
+    } catch (error) {
+      const porCampo = erroresDelBackend(error)
+      if (Object.keys(porCampo).length) crearFieldErrors.value = porCampo
+      else crearError.value = getErrorMessage(error)
+    } finally {
+      crearSaving.value = false
+    }
+  }
+
   function abrirRechazo(row) {
     detalleOpen.value = false
     rechazoEmpresa.value = row
@@ -168,12 +241,25 @@ export function useEmpresas() {
     rechazoValido,
     detalleOpen,
     detalleEmpresa,
+    crearOpen,
+    crearSaving,
+    crearError,
+    crearFieldErrors,
+    confirmOpen,
+    deleting,
+    removing,
     load,
     aprobar,
     suspender,
     reactivar,
     abrirDetalle,
     closeDetalle,
+    abrirCrear,
+    closeCrear,
+    crearEmpresa,
+    askDelete,
+    cancelDelete,
+    confirmDelete,
     abrirRechazo,
     closeRechazo,
     confirmarRechazo,

@@ -59,6 +59,7 @@ const {
   openEdit,
   askDelete,
   confirmDelete,
+  toggleEstado,
 } = useCrud({
   modulo: 'roles',
   api: rolesApi,
@@ -159,6 +160,8 @@ async function guardarRol(payload) {
     :can-create="canCreate"
     :can-edit="canEdit"
     :can-delete="canDelete"
+    :can-toggle-estado="true"
+    :can-toggle-row="(row) => !ROLES_BASE.has(row.nombre)"
     :modal-open="modalOpen"
     :editing="editing"
     :fields="fields"
@@ -177,6 +180,7 @@ async function guardarRol(payload) {
     @create="abrirCrear"
     @edit="abrirEditar"
     @delete="askDelete"
+    @toggle-estado="toggleEstado"
     @update:model-value="form = $event"
     @submit="guardarRol"
     @close-modal="modalOpen = false"

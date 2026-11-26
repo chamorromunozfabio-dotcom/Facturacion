@@ -91,12 +91,12 @@ describe('Test 4 — guardas del router', () => {
     expect(router.currentRoute.value.name).toBe('empresas')
   })
 
-  it('la empresa puede entrar a Usuarios y Bodegas', async () => {
+  it('la empresa entra a Bodegas pero no a la vista general de Usuarios', async () => {
     const auth = useAuthStore()
     auth.saveSession('token-123', { nombre: 'Distribuidora Andina', rol: 'empresa' })
 
     await router.push('/usuarios')
-    expect(router.currentRoute.value.name).toBe('usuarios')
+    expect(router.currentRoute.value.name).toBe('inicio')
 
     await router.push('/bodegas')
     expect(router.currentRoute.value.name).toBe('bodegas')

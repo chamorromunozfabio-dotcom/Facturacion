@@ -1,6 +1,6 @@
 <script setup>
 import { computed, useSlots } from 'vue'
-import { ChevronLeft, ChevronRight, Pencil, Plus, Search, Trash2 } from '@lucide/vue'
+import { ChevronLeft, ChevronRight, Pencil, Plus, Power, Search, Trash2 } from '@lucide/vue'
 import BotonBase from './BotonBase.vue'
 import CampoNative from './CampoNative.vue'
 
@@ -26,9 +26,11 @@ const props = defineProps({
   canCreate: { type: Boolean, default: true },
   canEdit: { type: Boolean, default: true },
   canDelete: { type: Boolean, default: true },
+  canToggleEstado: { type: Boolean, default: false },
+  canToggleRow: { type: Function, default: () => true },
 })
 
-const emit = defineEmits(['update:q', 'update:page', 'create', 'edit', 'delete'])
+const emit = defineEmits(['update:q', 'update:page', 'create', 'edit', 'delete', 'toggle-estado'])
 const slots = useSlots()
 
 /** Mostramos la columna de acciones si hay permiso global o un slot personalizado. */
@@ -100,6 +102,16 @@ function goTo(page) {
                 >
                   <Pencil :size="14" aria-hidden="true" />
                   <span>Editar</span>
+                </BotonBase>
+                <BotonBase
+                  v-if="canEdit && canToggleEstado && canToggleRow(row)"
+                  data-test="toggle-estado"
+                  type="button"
+                  class="btn btn--small"
+                  @click="emit('toggle-estado', row)"
+                >
+                  <Power :size="14" aria-hidden="true" />
+                  <span>{{ row.estado === false ? 'Activar' : 'Desactivar' }}</span>
                 </BotonBase>
                 <BotonBase
                   v-if="canDelete"

@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { Check, Pause, Play, ShieldX } from '@lucide/vue'
+import { Check, Pause, Play, ShieldX, Trash2 } from '@lucide/vue'
 import ModalBase from '../../../shared/ui/ModalBase.vue'
 import StatusBadge from '../../../shared/ui/StatusBadge.vue'
 import { useModalA11y } from '../../../shared/composables/useModalA11y'
@@ -11,7 +11,7 @@ const props = defineProps({
   empresa: { type: Object, default: null },
 })
 
-const emit = defineEmits(['close', 'aprobar', 'rechazar', 'suspender', 'reactivar'])
+const emit = defineEmits(['close', 'aprobar', 'rechazar', 'suspender', 'reactivar', 'eliminar'])
 
 useModalA11y(computed(() => props.open), () => emit('close'))
 
@@ -119,6 +119,15 @@ function formatearFecha(value) {
           @click="emit('reactivar', empresa)"
         >
           <Play :size="14" aria-hidden="true" /><span>Reactivar</span>
+        </button>
+        <button
+          v-if="(empresa.total_facturas ?? 0) === 0"
+          type="button"
+          class="btn btn--danger"
+          data-test="detalle-eliminar"
+          @click="emit('eliminar', empresa)"
+        >
+          <Trash2 :size="14" aria-hidden="true" /><span>Eliminar</span>
         </button>
       </footer>
     </div>

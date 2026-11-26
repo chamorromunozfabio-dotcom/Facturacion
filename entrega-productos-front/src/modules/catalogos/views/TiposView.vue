@@ -13,10 +13,17 @@ const auth = useAuthStore()
 const { esAdmin, empresaId, empresaOpciones } = useEmpresaFiltro()
 const puedeElegirBodega = computed(() => esAdmin.value || auth.role === 'empresa')
 const bodegas = ref([])
+const bodegasModal = ref([])
 const bodegaId = ref('')
 
 const bodegasOpciones = computed(() =>
   bodegas.value.map((bodega) => ({ value: bodega.id, label: bodega.nombre })),
+)
+const bodegasModalOpciones = computed(() =>
+  (esAdmin.value ? bodegasModal.value : bodegas.value).map((bodega) => ({
+    value: bodega.id,
+    label: bodega.nombre,
+  })),
 )
 const nombreBodega = (id) =>
   bodegas.value.find((bodega) => String(bodega.id) === String(id))?.nombre ?? ''
@@ -24,20 +31,37 @@ const nombreBodega = (id) =>
 const columns = computed(() => [
   { key: 'nombre', label: 'Nombre' },
   ...(puedeElegirBodega.value ? [{ key: 'bodega_nombre', label: 'Bodega' }] : []),
+  { key: 'estado', label: 'Estado' },
 ])
 
 const fields = computed(() => {
-  const base = [{ key: 'nombre', label: 'Nombre', required: true, maxLength: 100 }]
-  if (!puedeElegirBodega.value || !bodegasOpciones.value.length) return base
-  return [
-    ...base,
-    {
-      key: 'bodega_id',
-      label: 'Bodega',
+  const list = [{ key: 'nombre', label: 'Nombre', required: true, maxLength: 100 }]
+  if (esAdmin.value && empresaOpciones.value.length) {
+    list.push({
+      key: 'empresa_id',
+      label: 'Empresa',
       type: 'select',
-      options: [{ value: '', label: 'Tipo general (sin bodega)' }, ...bodegasOpciones.value],
-    },
-  ]
+      options: [{ value: '', label: 'Todas las empresas y bodegas (general)' }, ...empresaOpciones.value],
+      hint: 'Elige una empresa para asignar una bodega específica.',
+    })
+    if (form.value.empresa_id && bodegasModalOpciones.value.length) {
+      list.push({
+        key: 'bodega_id',
+        label: 'Bodega',
+        type: 'select',
+        options: [{ value: '', label: 'General (todas las bodegas)' }, ...bodegasModalOpciones.value],
+      })
+    }
+    return list
+  }
+  if (!puedeElegirBodega.value || !bodegasOpciones.value.length) return list
+  list.push({
+    key: 'bodega_id',
+    label: 'Bodega',
+    type: 'select',
+    options: [{ value: '', label: 'Tipo general (sin bodega)' }, ...bodegasOpciones.value],
+  })
+  return list
 })
 
 async function cargarBodegas() {
@@ -52,6 +76,20 @@ async function cargarBodegas() {
   }
 }
 
+async function cargarBodegasModal(empresaObjetivo) {
+  if (!esAdmin.value) return
+  if (!empresaObjetivo) {
+    bodegasModal.value = []
+    return
+  }
+  try {
+    const result = await bodegasApi.list({ page: 1, limit: 100, empresa_id: empresaObjetivo })
+    bodegasModal.value = result.data ?? []
+  } catch {
+    bodegasModal.value = []
+  }
+}
+
 // Al cambiar la empresa del filtro se recargan bodegas y listado de tipos.
 watch(empresaId, () => {
   cargarBodegas()
@@ -61,7 +99,14 @@ watch(empresaId, () => {
 
 function cleanPayload(payload) {
   const clean = { nombre: String(payload.nombre ?? '').trim() }
-  const bodegaElegida = puedeElegirBodega.value ? payload.bodega_id : bodegaId.value
+  const usaEmpresaModal = esAdmin.value && empresaOpciones.value.length > 0
+  const bodegaElegida = usaEmpresaModal
+    ? payload.empresa_id
+      ? payload.bodega_id
+      : ''
+    : puedeElegirBodega.value
+      ? payload.bodega_id
+      : bodegaId.value
   const sinBodega = bodegaElegida === '' || bodegaElegida === null || bodegaElegida === undefined
   if (!sinBodega) clean.bodega_id = Number(bodegaElegida)
   // En edición, admin o empresa también pueden devolver un tipo a "general" (null).
@@ -95,6 +140,7 @@ const {
   save,
   askDelete,
   confirmDelete,
+  toggleEstado,
 } = useCrud({
   modulo: 'tipos',
   api: tiposApi,
@@ -103,10 +149,17 @@ const {
   createLabel: 'Nuevo producto',
   emptyForm: () => ({
     nombre: '',
-    bodega_id: bodegaId.value || bodegas.value[0]?.id || '',
+    empresa_id: esAdmin.value ? empresaId.value || '' : '',
+    bodega_id:
+      bodegaId.value ||
+      (esAdmin.value && empresaOpciones.value.length ? '' : bodegas.value[0]?.id || ''),
   }),
   formFromRow: (row) => ({
     nombre: row.nombre ?? '',
+    empresa_id:
+      row.empresa_id ??
+      bodegas.value.find((b) => String(b.id) === String(row.bodega_id))?.empresa_id ??
+      '',
     bodega_id: row.bodega_id == null ? '' : row.bodega_id,
   }),
   cleanPayload,
@@ -159,6 +212,19 @@ watch(bodegaId, () => {
   if (page.value !== 1) page.value = 1
   else load()
 })
+
+// En el formulario del admin, al cambiar empresa se cargan sus bodegas específicas.
+watch(
+  () => [modalOpen.value, form.value?.empresa_id],
+  async ([abierto, empForm], [estabaAbierto, empAnterior]) => {
+    if (!esAdmin.value || !abierto) return
+    await cargarBodegasModal(empForm)
+    if (estabaAbierto && empForm !== empAnterior && form.value?.bodega_id) {
+      const sigue = bodegasModal.value.some((b) => String(b.id) === String(form.value.bodega_id))
+      if (!sigue) form.value = { ...form.value, bodega_id: '' }
+    }
+  },
+)
 </script>
 
 <template>
@@ -178,6 +244,7 @@ watch(bodegaId, () => {
     :can-create="canCreate"
     :can-edit="canEdit"
     :can-delete="canDelete"
+    :can-toggle-estado="true"
     :modal-open="modalOpen"
     :editing="editing"
     :fields="fields"
@@ -196,6 +263,7 @@ watch(bodegaId, () => {
     @create="openCreate"
     @edit="openEdit"
     @delete="askDelete"
+    @toggle-estado="toggleEstado"
     @update:model-value="form = $event"
     @submit="save"
     @close-modal="modalOpen = false"
@@ -203,6 +271,9 @@ watch(bodegaId, () => {
     @cancel="confirmOpen = false"
     @close-alert="alert = null"
   >
+    <template #cell-estado="{ value }">
+      <span>{{ value === false ? 'Inactivo' : 'Activo' }}</span>
+    </template>
     <template #filter>
       <EmpresaSelect v-if="esAdmin" v-model="empresaId" :empresas="empresaOpciones" />
       <label v-if="puedeElegirBodega || bodegas.length > 1" class="filter">
@@ -219,20 +290,6 @@ watch(bodegaId, () => {
 </template>
 
 <style scoped>
-.filter {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-width: 320px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #374151;
-}
-
-.filter select {
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 8px;
-  font: inherit;
-}
+.filter { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
+.filter select { border: 1px solid #d1d5db; border-radius: 8px; padding: 8px; font: inherit; }
 </style>

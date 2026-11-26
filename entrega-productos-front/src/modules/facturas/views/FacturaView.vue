@@ -224,6 +224,7 @@ const {
       :model-value="formModel"
       :clientes="catalogos.clientes"
       :cliente-query="clienteQuery"
+      :empresas="esAdmin ? empresaOpciones : []"
       :bodegas="catalogos.bodegas"
       :tipos="catalogos.tipos"
       :submit-label="editingId ? 'Guardar cambios' : 'Crear factura'"

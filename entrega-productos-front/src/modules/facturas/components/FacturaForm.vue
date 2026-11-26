@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import ModalBase from '../../../shared/ui/ModalBase.vue'
 import { useModalA11y } from '../../../shared/composables/useModalA11y'
 import { useFacturaForm } from '../composables/useFacturaForm'
@@ -13,6 +13,7 @@ const props = defineProps({
   modelValue: { type: Object, default: () => ({}) },
   clientes: { type: Array, default: () => [] },
   clienteQuery: { type: String, default: '' },
+  empresas: { type: Array, default: () => [] },
   bodegas: { type: Array, default: () => [] },
   tipos: { type: Array, default: () => [] },
   submitLabel: { type: String, default: 'Guardar' },
@@ -35,6 +36,35 @@ const {
   marca,
   handleSubmit,
 } = useFacturaForm(props, emit)
+
+const empresaSeleccionada = ref('')
+
+function sincronizarEmpresa() {
+  if (!props.empresas.length) {
+    empresaSeleccionada.value = ''
+    return
+  }
+  const bodegaActual = props.bodegas.find((b) => String(b.id) === String(form.bodega_id))
+  empresaSeleccionada.value = String(bodegaActual?.empresa_id ?? props.modelValue?.empresa_id ?? '')
+}
+
+watch(() => props.open, (abierto) => {
+  if (abierto) sincronizarEmpresa()
+}, { immediate: true })
+
+watch(empresaSeleccionada, (nueva) => {
+  if (!props.empresas.length || !form.bodega_id) return
+  const bodegaActual = props.bodegas.find((b) => String(b.id) === String(form.bodega_id))
+  if (bodegaActual && String(bodegaActual.empresa_id) !== String(nueva)) {
+    form.bodega_id = ''
+    marca('bodega_id')
+  }
+})
+
+const bodegasFiltradas = computed(() => {
+  if (!props.empresas.length || !empresaSeleccionada.value) return props.bodegas
+  return props.bodegas.filter((b) => String(b.empresa_id) === String(empresaSeleccionada.value))
+})
 </script>
 
 <template>
@@ -61,7 +91,9 @@ const {
         :errores="errores"
         :clientes="clientes"
         :cliente-query="clienteQuery"
-        :bodegas="bodegas"
+        :empresas="empresas"
+        v-model:empresa-id="empresaSeleccionada"
+        :bodegas="bodegasFiltradas"
         :es-credito="esCredito"
         @marcar="marca"
         @buscar-cliente="emit('buscar-cliente', $event)"

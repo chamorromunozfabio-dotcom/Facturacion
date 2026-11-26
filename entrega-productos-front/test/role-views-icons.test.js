@@ -52,7 +52,7 @@ describe('Test 25 — Vistas por rol con iconos Lucide y transiciones', () => {
     expect(wrapper.text()).not.toContain('🏠')
   })
 
-  it('empresa ve Inicio, Tipos, Bodegas, Usuarios, Facturas y Estadísticas', () => {
+  it('empresa ve Inicio, Tipos, Bodegas, Facturas y Estadísticas (sin Usuarios)', () => {
     login('empresa')
 
     const wrapper = mount(MainLayout, { global: globalOptions })
@@ -62,10 +62,10 @@ describe('Test 25 — Vistas por rol con iconos Lucide y transiciones', () => {
       'Inicio',
       'Tipos',
       'Bodegas',
-      'Usuarios',
       'Facturas',
       'Estadísticas',
     ])
+    expect(wrapper.text()).not.toContain('Usuarios')
     expect(wrapper.text()).not.toContain('Empresas')
     expect(wrapper.text()).not.toContain('Permisos')
     expect(wrapper.text()).not.toContain('Roles')

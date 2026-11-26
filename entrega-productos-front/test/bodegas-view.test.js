@@ -180,4 +180,112 @@ describe('Test 14 — BodegasView (CRUD con componentes)', () => {
     expect(spyUsuarios).toHaveBeenCalledWith({ rol: 'bodeguero', page: 1, limit: 100 })
     spyUsuarios.mockRestore()
   })
+
+  it('la empresa tiene el CRUD completo de sus bodegueros en la pestaña Mis bodegueros', async () => {
+    useAuthStore().saveSession('token-emp', {
+      nombre: 'Distribuidora Andina',
+      rol: 'empresa',
+      empresa: { id: 1, razon_social: 'Distribuidora Andina S.A.S.', estado: 'activa' },
+    })
+    const usuarios = await import('../src/modules/catalogos/api/usuarios')
+    const spyList = vi.spyOn(usuarios.default, 'list').mockResolvedValue({
+      data: [
+        {
+          id: 25,
+          nombre: 'Pedro Bodeguero',
+          correo: 'bodega2@andina.com',
+          numero_documento: '10203040',
+          telefono: '3009998877',
+        },
+      ],
+      total: 1,
+      page: 1,
+      limit: 10,
+    })
+    const spyCreate = vi
+      .spyOn(usuarios.default, 'create')
+      .mockResolvedValue({ id: 26, nombre: 'Laura Bodega', correo: 'laura@andina.com' })
+
+    const wrapper = mount(BodegasView)
+    await flushPromises()
+
+    await wrapper.find('[data-test="tab-bodegueros"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Mis bodegueros')
+    expect(wrapper.text()).toContain('Pedro Bodeguero')
+
+    await wrapper.find('[data-test="create"]').trigger('click')
+    await wrapper.find('[data-test="field-nombre"]').setValue('Laura Bodega')
+    await wrapper.find('[data-test="field-correo"]').setValue('laura@andina.com')
+    await wrapper.find('[data-test="field-contrasena"]').setValue('Bodega123*')
+    await wrapper.find('[data-test="field-numero_documento"]').setValue('99887766')
+    await wrapper.find('[data-test="field-telefono"]').setValue('3001112233')
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(spyCreate).toHaveBeenCalledWith({
+      nombre: 'Laura Bodega',
+      correo: 'laura@andina.com',
+      contrasena: 'Bodega123*',
+      numero_documento: '99887766',
+      telefono: '3001112233',
+    })
+    spyList.mockRestore()
+    spyCreate.mockRestore()
+  })
+
+  it('al asignar bodeguero encargado oculta los campos redundantes y los envía al guardar', async () => {
+    useAuthStore().saveSession('token-emp', {
+      nombre: 'Distribuidora Andina',
+      rol: 'empresa',
+      empresa: { id: 1, razon_social: 'Distribuidora Andina S.A.S.', estado: 'activa' },
+    })
+    const usuarios = await import('../src/modules/catalogos/api/usuarios')
+    const spyList = vi.spyOn(usuarios.default, 'list').mockResolvedValue({
+      data: [
+        {
+          id: 10,
+          nombre: 'Pedro Bodeguero',
+          numero_documento: '10203040',
+          telefono: '3009998877',
+        },
+      ],
+    })
+
+    const wrapper = mount(BodegasView)
+    await flushPromises()
+
+    await wrapper.find('[data-test="create"]').trigger('click')
+    await flushPromises()
+
+    await wrapper.find('[data-test="field-bodeguero_id"]').setValue('10')
+    await flushPromises()
+
+    expect(wrapper.find('[data-test="field-recibe_nombre"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="field-recibe_documento"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="field-recibe_cargo"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="field-recibe_telefono"]').exists()).toBe(false)
+
+    await wrapper.find('[data-test="field-nombre"]').setValue('Bodega Sur')
+    await wrapper.find('[data-test="field-codigo"]').setValue('BS-01')
+    await wrapper.find('[data-test="field-direccion"]').setValue('Kr 25 # 10-20')
+    await wrapper.find('[data-test="field-ciudad"]').setValue('Bogotá')
+    await wrapper.find('[data-test="field-departamento"]').setValue('Cundinamarca')
+    await wrapper.find('[data-test="field-telefono"]').setValue('3001234567')
+    await wrapper.find('[data-test="field-correo"]').setValue('sur@andina.com')
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(api.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bodeguero_id: 10,
+        recibe_nombre: 'Pedro Bodeguero',
+        recibe_documento: '10203040',
+        recibe_cargo: 'Bodeguero',
+        recibe_telefono: '3009998877',
+      }),
+    )
+    spyList.mockRestore()
+  })
 })

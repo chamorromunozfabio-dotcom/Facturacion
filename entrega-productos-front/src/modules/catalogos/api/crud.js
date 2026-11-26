@@ -34,5 +34,11 @@ export function createCrudResource(resource, options = {}) {
       if (USE_MOCKS) return mockRemove(resource, id)
       return api.delete(`/${resource}/${id}`).then((response) => response.data)
     },
+    cambiarEstado(id, estado) {
+      if (USE_MOCKS) return mockUpdate(resource, id, { estado: Boolean(estado) })
+      return api
+        .patch(`/${resource}/${id}/estado`, { estado: Boolean(estado) })
+        .then((response) => response.data)
+    },
   }
 }

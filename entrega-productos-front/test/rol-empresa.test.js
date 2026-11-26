@@ -57,7 +57,7 @@ describe('Test 68 — Rol empresa: permisos, navegación y usuarios', () => {
   })
 
   it('la matriz del rol empresa gestiona su equipo pero no acepta facturas', () => {
-    expect(hasPermission('empresa', 'usuarios', 'create')).toBe(true)
+    expect(hasPermission('empresa', 'usuarios', 'view')).toBe(false)
     expect(hasPermission('empresa', 'bodegas', 'delete')).toBe(true)
     expect(hasPermission('empresa', 'facturas', 'entregar')).toBe(true)
     expect(hasPermission('empresa', 'facturas', 'aceptar')).toBe(false)
@@ -66,7 +66,7 @@ describe('Test 68 — Rol empresa: permisos, navegación y usuarios', () => {
     expect(hasPermission('empresa', 'roles', 'view')).toBe(false)
   })
 
-  it('los permisos reales del backend no pueden abrir Empresas ni aceptar facturas', () => {
+  it('los permisos reales del backend no pueden abrir Empresas, Usuarios ni aceptar facturas', () => {
     const permisos = [
       { nombre: 'empresas_view' },
       { nombre: 'facturas_aceptar' },
@@ -77,7 +77,7 @@ describe('Test 68 — Rol empresa: permisos, navegación y usuarios', () => {
     expect(tienePermiso(permisos, 'empresa', 'empresas', 'view')).toBe(false)
     expect(tienePermiso(permisos, 'empresa', 'facturas', 'aceptar')).toBe(false)
     expect(tienePermiso(permisos, 'empresa', 'facturas', 'rechazar')).toBe(false)
-    expect(tienePermiso(permisos, 'empresa', 'usuarios', 'view')).toBe(true)
+    expect(tienePermiso(permisos, 'empresa', 'usuarios', 'view')).toBe(false)
     expect(tienePermiso(permisos, 'admin', 'empresas', 'view')).toBe(true)
     expect(tienePermiso(permisos, 'cliente', 'empresas', 'view')).toBe(false)
   })
@@ -85,70 +85,28 @@ describe('Test 68 — Rol empresa: permisos, navegación y usuarios', () => {
   it('la plantilla del rol no incluye acciones exclusivas de admin o cliente', () => {
     const plantilla = plantillaDelRol('empresa')
 
-    expect(plantilla).toContain('usuarios:view')
+    expect(plantilla).toContain('bodegas:view')
     expect(plantilla).toContain('facturas:pdf')
+    expect(plantilla).not.toContain('usuarios:view')
     expect(plantilla).not.toContain('facturas:aceptar')
     expect(plantilla).not.toContain('facturas:rechazar')
     expect(plantilla).not.toContain('empresas:view')
     expect(plantilla).not.toContain('roles:view')
   })
 
-  it('el menú de empresa no muestra Empresas, Permisos ni Roles', () => {
+  it('el menú de empresa no muestra Usuarios, Empresas, Permisos ni Roles', () => {
     const labels = visibleMenuFor('empresa', []).map((item) => item.label)
 
-    expect(labels).toEqual(['Inicio', 'Tipos', 'Bodegas', 'Usuarios', 'Facturas', 'Estadísticas'])
+    expect(labels).toEqual(['Inicio', 'Tipos', 'Bodegas', 'Facturas', 'Estadísticas'])
     expect(visibleMenuFor('admin', []).map((item) => item.label)).toContain('Empresas')
     expect(
-      visibleMenuFor('empresa', [{ nombre: 'empresas_view' }]).map((item) => item.label),
-    ).not.toContain('Empresas')
+      visibleMenuFor('empresa', [{ nombre: 'empresas_view' }, { nombre: 'usuarios_view' }]).map(
+        (item) => item.label,
+      ),
+    ).not.toContain('Usuarios')
   })
 
-  it('empresa solo lista sus bodegueros y no muestra el filtro de rol', async () => {
-    useAuthStore().saveSession('token-123', {
-      nombre: 'Distribuidora Andina',
-      rol: 'empresa',
-      empresa_id: 1,
-    })
-
-    const wrapper = mount(UsuariosView)
-    await flushPromises()
-
-    expect(api.list).toHaveBeenCalledWith({ q: '', page: 1, limit: 10, rol: 'bodeguero' })
-    expect(wrapper.find('[data-test="role-filter"]').exists()).toBe(false)
-    expect(wrapper.find('[data-test="create"]').exists()).toBe(true)
-    expect(wrapper.text()).toContain('Luis Gómez')
-  })
-
-  it('el alta de empresa fija el rol bodeguero y no muestra el selector', async () => {
-    useAuthStore().saveSession('token-123', {
-      nombre: 'Distribuidora Andina',
-      rol: 'empresa',
-      empresa_id: 1,
-    })
-
-    const wrapper = mount(UsuariosView)
-    await flushPromises()
-
-    await wrapper.find('[data-test="create"]').trigger('click')
-    await flushPromises()
-
-    expect(wrapper.find('[data-test="field-rol_id"]').exists()).toBe(false)
-    expect(wrapper.find('[data-test="field-tipo_documento"]').exists()).toBe(false)
-
-    await wrapper.find('[data-test="field-nombre"]').setValue('Nuevo bodeguero')
-    await wrapper.find('[data-test="field-correo"]').setValue('nuevo@entrega.com')
-    await wrapper.find('[data-test="field-contrasena"]').setValue('Bodega123*')
-    await wrapper.find('form').trigger('submit')
-    await flushPromises()
-
-    expect(api.create).toHaveBeenCalledWith({
-      nombre: 'Nuevo bodeguero',
-      correo: 'nuevo@entrega.com',
-      contrasena: 'Bodega123*',
-    })
-  })
-
-  it('el admin conserva el selector de rol con la opción empresa', async () => {
+  it('el admin no ve empresa en el selector al crear nuevo usuario', async () => {
     useAuthStore().saveSession('token-123', { nombre: 'Ana', rol: 'admin' })
 
     const wrapper = mount(UsuariosView)
@@ -160,16 +118,16 @@ describe('Test 68 — Rol empresa: permisos, navegación y usuarios', () => {
       .findAll('[data-test="field-rol_id"] option')
       .map((option) => option.text())
 
-    expect(opciones).toEqual(['admin', 'bodeguero', 'cliente', 'empresa'])
+    expect(opciones).toEqual(['admin', 'bodeguero', 'cliente'])
   })
 
-  it('el admin puede crear un usuario con rol empresa y normaliza la respuesta objeto', async () => {
+  it('el admin puede crear un bodeguero asignando empresa y normaliza la respuesta objeto', async () => {
     useAuthStore().saveSession('token-123', { nombre: 'Ana', rol: 'admin' })
     api.create.mockResolvedValueOnce({
       id: 12,
-      nombre: 'Ana Torres',
-      correo: 'ana.torres@andina.com',
-      rol: { id: 4, nombre: 'empresa' },
+      nombre: 'Pedro Bodega',
+      correo: 'pedro.bodega@andina.com',
+      rol: { id: 2, nombre: 'bodeguero' },
       empresa: { id: 1, razon_social: 'Distribuidora Andina S.A.S.' },
     })
 
@@ -178,10 +136,10 @@ describe('Test 68 — Rol empresa: permisos, navegación y usuarios', () => {
     await wrapper.find('[data-test="create"]').trigger('click')
     await flushPromises()
 
-    await wrapper.find('[data-test="field-nombre"]').setValue('Ana Torres')
-    await wrapper.find('[data-test="field-correo"]').setValue('ana.torres@andina.com')
-    await wrapper.find('[data-test="field-contrasena"]').setValue('Empresa123*')
-    await wrapper.find('[data-test="field-rol_id"]').setValue('4')
+    await wrapper.find('[data-test="field-nombre"]').setValue('Pedro Bodega')
+    await wrapper.find('[data-test="field-correo"]').setValue('pedro.bodega@andina.com')
+    await wrapper.find('[data-test="field-contrasena"]').setValue('Bodega123*')
+    await wrapper.find('[data-test="field-rol_id"]').setValue('2')
     await flushPromises()
 
     expect(wrapper.find('[data-test="field-empresa_id"]').exists()).toBe(true)
@@ -190,13 +148,13 @@ describe('Test 68 — Rol empresa: permisos, navegación y usuarios', () => {
     await flushPromises()
 
     expect(api.create).toHaveBeenCalledWith({
-      nombre: 'Ana Torres',
-      correo: 'ana.torres@andina.com',
-      contrasena: 'Empresa123*',
-      rol_id: 4,
+      nombre: 'Pedro Bodega',
+      correo: 'pedro.bodega@andina.com',
+      contrasena: 'Bodega123*',
+      rol_id: 2,
       empresa_id: 1,
     })
-    expect(wrapper.text()).toContain('empresa')
+    expect(wrapper.text()).toContain('bodeguero')
     expect(wrapper.text()).toContain('Distribuidora Andina S.A.S.')
     expect(wrapper.text()).not.toContain('[object Object]')
   })
@@ -230,5 +188,35 @@ describe('Test 68 — Rol empresa: permisos, navegación y usuarios', () => {
 
     expect(api.update).not.toHaveBeenCalled()
     expect(wrapper.text()).toContain('No hay cambios')
+  })
+
+  it('oculta las cuentas con rol empresa del listado y filtro de Usuarios', async () => {
+    useAuthStore().saveSession('token-123', { nombre: 'Ana', rol: 'admin' })
+    api.list.mockResolvedValueOnce({
+      data: [
+        bodegueroRow,
+        {
+          id: 99,
+          nombre: 'Ana Torres',
+          correo: 'empresa@andina.com',
+          rol: 'empresa',
+          rol_id: 4,
+          empresa_nombre: 'Distribuidora Andina S.A.S.',
+        },
+      ],
+      total: 2,
+      page: 1,
+      limit: 10,
+    })
+
+    const wrapper = mount(UsuariosView)
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Luis Gómez')
+    expect(wrapper.text()).not.toContain('empresa@andina.com')
+    const opcionesFiltro = wrapper
+      .findAll('[data-test="role-filter"] option')
+      .map((option) => option.text())
+    expect(opcionesFiltro).not.toContain('empresa')
   })
 })

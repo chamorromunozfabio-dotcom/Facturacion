@@ -1,8 +1,11 @@
 <script setup>
-import { Check, Eye, Pause, Play, ShieldX } from '@lucide/vue'
+import { computed } from 'vue'
+import { Check, Eye, Pause, Play, ShieldX, Trash2 } from '@lucide/vue'
 import AlertMessage from '../../../shared/ui/AlertMessage.vue'
+import ConfirmDelete from '../../../shared/ui/ConfirmDelete.vue'
 import DataTable from '../../../shared/ui/DataTable.vue'
 import StatusBadge from '../../../shared/ui/StatusBadge.vue'
+import EmpresaCreateModal from '../components/EmpresaCreateModal.vue'
 import EmpresaDetalleModal from '../components/EmpresaDetalleModal.vue'
 import EmpresaRechazoModal from '../components/EmpresaRechazoModal.vue'
 import { useEmpresas } from '../composables/useEmpresas'
@@ -24,15 +27,35 @@ const {
   rechazoSaving,
   detalleOpen,
   detalleEmpresa,
+  crearOpen,
+  crearSaving,
+  crearError,
+  crearFieldErrors,
+  confirmOpen,
+  deleting,
+  removing,
   aprobar,
   suspender,
   reactivar,
   abrirDetalle,
   closeDetalle,
+  abrirCrear,
+  closeCrear,
+  crearEmpresa,
+  askDelete,
+  cancelDelete,
+  confirmDelete,
   abrirRechazo,
   closeRechazo,
   confirmarRechazo,
 } = useEmpresas()
+
+const mensajeEliminar = computed(() => {
+  if (!deleting.value) return ''
+  const bodegueros = deleting.value.total_bodegueros ?? 0
+  const bodegas = deleting.value.total_bodegas ?? 0
+  return `Se eliminará "${deleting.value.razon_social}" junto con ${bodegueros} bodegueros y ${bodegas} bodegas. Esta acción no se puede deshacer.`
+})
 
 const columns = [
   { key: 'razon_social', label: 'Razón social' },
@@ -93,11 +116,13 @@ function fecha(value) {
       :limit="limit"
       :q="q"
       :loading="loading"
-      :can-create="false"
+      create-label="Nueva empresa"
+      :can-create="true"
       :can-edit="false"
       :can-delete="false"
       @update:q="q = $event"
       @update:page="page = $event"
+      @create="abrirCrear"
     >
       <template #cell-estado="{ value }">
         <StatusBadge :estado="value" />
@@ -151,8 +176,26 @@ function fecha(value) {
         >
           <Play :size="14" aria-hidden="true" /><span>Reactivar</span>
         </button>
+        <button
+          v-if="(row.total_facturas ?? 0) === 0"
+          type="button"
+          class="btn btn--small btn--danger"
+          data-test="eliminar-empresa"
+          @click="askDelete(row)"
+        >
+          <Trash2 :size="14" aria-hidden="true" /><span>Eliminar</span>
+        </button>
       </template>
     </DataTable>
+
+    <EmpresaCreateModal
+      :open="crearOpen"
+      :saving="crearSaving"
+      :error="crearError"
+      :field-errors="crearFieldErrors"
+      @close="closeCrear"
+      @submit="crearEmpresa"
+    />
 
     <EmpresaDetalleModal
       :open="detalleOpen"
@@ -162,6 +205,17 @@ function fecha(value) {
       @rechazar="abrirRechazo"
       @suspender="suspender"
       @reactivar="reactivar"
+      @eliminar="askDelete"
+    />
+
+    <ConfirmDelete
+      :open="confirmOpen"
+      title="Eliminar empresa"
+      :message="mensajeEliminar"
+      :item-label="deleting?.razon_social || ''"
+      :loading="removing"
+      @confirm="confirmDelete"
+      @cancel="cancelDelete"
     />
 
     <EmpresaRechazoModal

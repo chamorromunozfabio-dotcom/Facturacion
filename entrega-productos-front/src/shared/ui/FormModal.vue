@@ -85,7 +85,7 @@ function limpiarValor(field, valor) {
   if (field.digitsOnly) texto = texto.replace(/[^0-9]/g, '')
   if (field.lettersDigitsOnly) texto = texto.replace(/[^A-Za-z0-9]/g, '')
   if (field.noSpaces) texto = texto.replace(/\s+/g, '')
-  texto = texto.trim()
+  texto = texto.trimStart()
   if (field.maxLength) texto = texto.slice(0, field.maxLength)
   return texto
 }

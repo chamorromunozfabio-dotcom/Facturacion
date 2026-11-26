@@ -4,9 +4,15 @@ import { flushPromises, mount } from '@vue/test-utils'
 const api = vi.hoisted(() => ({
   list: vi.fn(),
   cambiarEstado: vi.fn(),
+  remove: vi.fn(),
+}))
+
+const registerApi = vi.hoisted(() => ({
+  registrar: vi.fn(),
 }))
 
 vi.mock('../src/modules/empresas/api/empresas', () => ({ default: api }))
+vi.mock('../src/modules/auth/api/register', () => registerApi)
 
 import EmpresasView from '../src/modules/empresas/views/EmpresasView.vue'
 
@@ -63,7 +69,7 @@ describe('Test 70 — Módulo Empresas (solo admin)', () => {
     }))
   })
 
-  it('lista las empresas con su estado y sin botón de crear', async () => {
+  it('lista las empresas con su estado y botón de nueva empresa', async () => {
     const wrapper = mount(EmpresasView)
     await flushPromises()
 
@@ -72,7 +78,7 @@ describe('Test 70 — Módulo Empresas (solo admin)', () => {
     expect(wrapper.text()).toContain('Distribuidora Andina S.A.S.')
     expect(wrapper.text()).toContain('Logística Nacional S.A.S.')
     expect(wrapper.findAll('.status-badge')).toHaveLength(3)
-    expect(wrapper.find('[data-test="create"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="create"]').text()).toContain('Nueva empresa')
   })
 
   it('filtra por estado desde las pestañas', async () => {
@@ -184,5 +190,73 @@ describe('Test 70 — Módulo Empresas (solo admin)', () => {
     await flushPromises()
 
     expect(api.cambiarEstado).toHaveBeenCalledWith(2, { estado: 'activa' })
+  })
+
+  it('el admin puede crear y activar una nueva empresa desde Empresas', async () => {
+    registerApi.registrar.mockResolvedValueOnce({
+      empresa: { id: 10, razon_social: 'Andina Nueva S.A.S.', estado: 'pendiente' },
+    })
+
+    const wrapper = mount(EmpresasView)
+    await flushPromises()
+
+    await wrapper.find('[data-test="create"]').trigger('click')
+    const modal = wrapper.find('[data-test="empresa-crear-modal"]')
+    expect(modal.exists()).toBe(true)
+
+    await modal.find('[data-test="empresa-field-razon_social"]').setValue('Andina Nueva S.A.S.')
+    await modal.find('[data-test="empresa-field-nit"]').setValue('900555666-1')
+    await modal.find('[data-test="empresa-field-telefono"]').setValue('3001112233')
+    await modal.find('[data-test="empresa-field-direccion"]').setValue('Calle 50 # 10-20')
+    await modal.find('[data-test="empresa-field-representante"]').setValue('Laura Ríos')
+    await modal.find('[data-test="empresa-field-correo"]').setValue('laura@andinanueva.com')
+    await modal.find('[data-test="empresa-field-contrasena"]').setValue('Empresa123*')
+    await modal.find('[data-test="empresa-field-confirmar"]').setValue('Empresa123*')
+
+    await modal.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(registerApi.registrar).toHaveBeenCalledWith({
+      tipo: 'empresa',
+      razon_social: 'Andina Nueva S.A.S.',
+      nit: '900555666-1',
+      telefono: '3001112233',
+      direccion: 'Calle 50 # 10-20',
+      representante: 'Laura Ríos',
+      correo: 'laura@andinanueva.com',
+      contrasena: 'Empresa123*',
+    })
+    expect(api.cambiarEstado).toHaveBeenCalledWith(10, { estado: 'activa' })
+    expect(wrapper.text()).toContain('fue creada y activada')
+  })
+
+  it('permite eliminar una empresa sin facturas mostrando bodegueros y bodegas a borrar', async () => {
+    api.list.mockResolvedValueOnce({
+      data: [
+        { ...pendiente, total_bodegueros: 2, total_bodegas: 1, total_facturas: 0 },
+        { ...activa, total_bodegueros: 1, total_bodegas: 1, total_facturas: 4 },
+      ],
+      total: 2,
+      page: 1,
+      limit: 10,
+    })
+    api.remove.mockResolvedValueOnce({})
+
+    const wrapper = mount(EmpresasView)
+    await flushPromises()
+
+    // Solo la empresa sin facturas muestra el botón Eliminar.
+    expect(wrapper.findAll('[data-test="eliminar-empresa"]')).toHaveLength(1)
+
+    await wrapper.find('[data-test="eliminar-empresa"]').trigger('click')
+    const confirm = wrapper.find('[data-test="confirm-delete"]')
+    expect(confirm.exists()).toBe(true)
+    expect(confirm.text()).toContain('2 bodegueros y 1 bodegas')
+
+    await wrapper.find('[data-test="confirm"]').trigger('click')
+    await flushPromises()
+
+    expect(api.remove).toHaveBeenCalledWith(2)
+    expect(wrapper.text()).toContain('fue eliminada definitivamente')
   })
 })

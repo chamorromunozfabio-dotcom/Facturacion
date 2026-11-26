@@ -143,7 +143,7 @@ export function limpiarValor(campo, valor) {
   if (campo.digitsOnly) texto = texto.replace(/[^0-9]/g, '')
   if (campo.nitOnly) texto = texto.replace(/[^0-9-]/g, '').replace(/-+/g, '-')
   if (campo.noSpaces) texto = texto.replace(/\s+/g, '')
-  if (!campo.sinTrim) texto = texto.trim()
+  if (!campo.sinTrim) texto = texto.trimStart()
   if (campo.maxLength) texto = texto.slice(0, campo.maxLength)
   return texto
 }

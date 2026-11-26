@@ -7,11 +7,13 @@ defineProps({
   errores: { type: Object, default: () => ({}) },
   clientes: { type: Array, default: () => [] },
   clienteQuery: { type: String, default: '' },
+  empresas: { type: Array, default: () => [] },
+  empresaId: { type: [String, Number], default: '' },
   bodegas: { type: Array, default: () => [] },
   esCredito: { type: Boolean, default: false },
 })
 
-defineEmits(['marcar', 'buscar-cliente'])
+defineEmits(['marcar', 'buscar-cliente', 'update:empresaId'])
 </script>
 
 <template>
@@ -35,6 +37,20 @@ defineEmits(['marcar', 'buscar-cliente'])
         </option>
       </select>
       <small v-if="errores.cliente_id" data-test="error-cliente_id" class="campo-error">{{ errores.cliente_id }}</small>
+    </label>
+
+    <label v-if="empresas.length">
+      Empresa *
+      <select
+        :value="empresaId"
+        data-test="field-empresa_id"
+        @change="$emit('update:empresaId', $event.target.value)"
+      >
+        <option value="">Selecciona la empresa…</option>
+        <option v-for="empresa in empresas" :key="empresa.value" :value="empresa.value">
+          {{ empresa.label }}
+        </option>
+      </select>
     </label>
 
     <label>

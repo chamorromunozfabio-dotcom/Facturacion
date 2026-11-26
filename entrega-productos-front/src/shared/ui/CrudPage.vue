@@ -27,6 +27,8 @@ defineProps({
   canCreate: { type: Boolean, default: true },
   canEdit: { type: Boolean, default: true },
   canDelete: { type: Boolean, default: true },
+  canToggleEstado: { type: Boolean, default: false },
+  canToggleRow: { type: Function, default: () => true },
 
   modalOpen: { type: Boolean, default: false },
   editing: { type: Object, default: null },
@@ -51,6 +53,7 @@ const emit = defineEmits([
   'create',
   'edit',
   'delete',
+  'toggle-estado',
   'update:model-value',
   'submit',
   'close-modal',
@@ -77,7 +80,9 @@ const tableSlots = computed(() =>
     </header>
 
     <slot name="notice" />
-    <slot name="filter" />
+    <div v-if="slots.filter" class="crud-page__filters">
+      <slot name="filter" />
+    </div>
 
     <Transition name="alert">
       <AlertMessage
@@ -100,11 +105,14 @@ const tableSlots = computed(() =>
       :can-create="canCreate"
       :can-edit="canEdit"
       :can-delete="canDelete"
+      :can-toggle-estado="canToggleEstado"
+      :can-toggle-row="canToggleRow"
       @update:q="emit('update:q', $event)"
       @update:page="emit('update:page', $event)"
       @create="emit('create')"
       @edit="emit('edit', $event)"
       @delete="emit('delete', $event)"
+      @toggle-estado="emit('toggle-estado', $event)"
     >
       <template v-for="nombre in tableSlots" #[nombre]="propsSlot" :key="nombre">
         <slot :name="nombre" v-bind="propsSlot" />
@@ -151,6 +159,13 @@ const tableSlots = computed(() =>
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
+}
+
+.crud-page__filters {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   flex-wrap: wrap;
 }
 

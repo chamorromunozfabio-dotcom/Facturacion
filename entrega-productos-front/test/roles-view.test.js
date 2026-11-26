@@ -8,6 +8,7 @@ const rolesApi = vi.hoisted(() => ({
   update: vi.fn(),
   remove: vi.fn(),
   setPermisos: vi.fn(),
+  cambiarEstado: vi.fn(),
 }))
 
 const permisosApi = vi.hoisted(() => ({
@@ -117,5 +118,23 @@ describe('RolesView — permisos al crear/editar y protección de roles base', (
 
     expect(rolesApi.update).not.toHaveBeenCalled()
     expect(rolesApi.setPermisos).toHaveBeenCalledWith(1, [1, 2])
+  })
+
+  it('oculta activar/desactivar en roles base y lo permite en roles personalizados', async () => {
+    rolesApi.cambiarEstado.mockResolvedValue({ id: 5, nombre: 'auditor', estado: false })
+
+    const wrapper = mount(RolesView)
+    await flushPromises()
+
+    // Solo 'auditor' tiene botón toggle-estado ('admin' es rol base).
+    const botones = wrapper.findAll('[data-test="toggle-estado"]')
+    expect(botones).toHaveLength(1)
+    expect(botones[0].text()).toContain('Desactivar')
+
+    await botones[0].trigger('click')
+    await flushPromises()
+
+    expect(rolesApi.cambiarEstado).toHaveBeenCalledWith(5, false)
+    expect(wrapper.text()).toContain('Inactivo')
   })
 })
