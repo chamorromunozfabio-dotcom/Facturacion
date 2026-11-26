@@ -10,9 +10,11 @@ const api = vi.hoisted(() => ({
 }))
 
 const roles = vi.hoisted(() => ({ list: vi.fn() }))
+const empresas = vi.hoisted(() => ({ listActivas: vi.fn() }))
 
 vi.mock('../src/modules/catalogos/api/usuarios', () => ({ default: api }))
 vi.mock('../src/modules/catalogos/api/roles', () => ({ default: roles }))
+vi.mock('../src/modules/empresas/api/empresas', () => ({ default: empresas }))
 
 import { hasPermission, plantillaDelRol, tienePermiso } from '../src/shared/config/permissions'
 import { visibleMenuFor } from '../src/shared/config/navigation'
@@ -48,6 +50,9 @@ describe('Test 68 — Rol empresa: permisos, navegación y usuarios', () => {
       total: ROLES_BACKEND.length,
       page: 1,
       limit: 100,
+    })
+    empresas.listActivas.mockResolvedValue({
+      data: [{ id: 1, razon_social: 'Distribuidora Andina S.A.S.' }],
     })
   })
 
@@ -156,5 +161,74 @@ describe('Test 68 — Rol empresa: permisos, navegación y usuarios', () => {
       .map((option) => option.text())
 
     expect(opciones).toEqual(['admin', 'bodeguero', 'cliente', 'empresa'])
+  })
+
+  it('el admin puede crear un usuario con rol empresa y normaliza la respuesta objeto', async () => {
+    useAuthStore().saveSession('token-123', { nombre: 'Ana', rol: 'admin' })
+    api.create.mockResolvedValueOnce({
+      id: 12,
+      nombre: 'Ana Torres',
+      correo: 'ana.torres@andina.com',
+      rol: { id: 4, nombre: 'empresa' },
+      empresa: { id: 1, razon_social: 'Distribuidora Andina S.A.S.' },
+    })
+
+    const wrapper = mount(UsuariosView)
+    await flushPromises()
+    await wrapper.find('[data-test="create"]').trigger('click')
+    await flushPromises()
+
+    await wrapper.find('[data-test="field-nombre"]').setValue('Ana Torres')
+    await wrapper.find('[data-test="field-correo"]').setValue('ana.torres@andina.com')
+    await wrapper.find('[data-test="field-contrasena"]').setValue('Empresa123*')
+    await wrapper.find('[data-test="field-rol_id"]').setValue('4')
+    await flushPromises()
+
+    expect(wrapper.find('[data-test="field-empresa_id"]').exists()).toBe(true)
+    await wrapper.find('[data-test="field-empresa_id"]').setValue('1')
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(api.create).toHaveBeenCalledWith({
+      nombre: 'Ana Torres',
+      correo: 'ana.torres@andina.com',
+      contrasena: 'Empresa123*',
+      rol_id: 4,
+      empresa_id: 1,
+    })
+    expect(wrapper.text()).toContain('empresa')
+    expect(wrapper.text()).toContain('Distribuidora Andina S.A.S.')
+    expect(wrapper.text()).not.toContain('[object Object]')
+  })
+
+  it('al editar un usuario sin cambiar rol_id ni empresa_id no dispara cambios falsos', async () => {
+    useAuthStore().saveSession('token-123', { nombre: 'Ana', rol: 'admin' })
+    api.list.mockResolvedValueOnce({
+      data: [
+        {
+          id: 15,
+          nombre: 'Luis Gómez',
+          correo: 'luis@entrega.com',
+          rol: { id: 2, nombre: 'bodeguero' },
+          empresa: { id: 1, razon_social: 'Distribuidora Andina S.A.S.' },
+        },
+      ],
+      total: 1,
+      page: 1,
+      limit: 10,
+    })
+
+    const wrapper = mount(UsuariosView)
+    await flushPromises()
+
+    await wrapper.find('[data-test="edit"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('[data-test="field-empresa_id"]').element.value).toBe('1')
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(api.update).not.toHaveBeenCalled()
+    expect(wrapper.text()).toContain('No hay cambios')
   })
 })

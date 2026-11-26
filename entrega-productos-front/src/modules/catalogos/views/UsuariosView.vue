@@ -4,6 +4,12 @@ import { computed, ref } from 'vue'
 import rolesApi from '../api/roles'
 import usuariosApi from '../api/usuarios'
 import { quitarVacios } from '../utils/crud'
+import {
+  ROLES_POR_DEFECTO,
+  camposCliente,
+  normalizarUsuarioFila,
+  resolveRolId,
+} from '../utils/usuarios'
 import { useAuthStore } from '../../auth/store/auth'
 import { useCrud } from '../composables/useCrud'
 import EmpresaSelect from '../../empresas/components/EmpresaSelect.vue'
@@ -12,23 +18,14 @@ import { campoEmpresa, empresaParams, useEmpresaFiltro } from '../../empresas/co
 const auth = useAuthStore()
 const isBodeguero = computed(() => auth.role === 'bodeguero')
 const isEmpresa = computed(() => auth.role === 'empresa')
-const { esAdmin, empresaId, empresaOpciones } = useEmpresaFiltro()
+const { esAdmin, empresaId, empresaOpciones, cargarEmpresas } = useEmpresaFiltro()
 const roleFilter = ref('')
-
-// Los roles NO son fijos: el admin puede crear otros y el backend los devuelve en
-// GET /roles. Solo hay respaldo para los tres clásicos; `empresa` se resuelve
-// siempre por nombre desde el backend (su id no es fijo ni conocido).
-const ROLES_POR_DEFECTO = [
-  { value: 1, label: 'admin' }, { value: 2, label: 'bodeguero' },
-  { value: 3, label: 'cliente' },
-]
-const IDS_POR_DEFECTO = Object.fromEntries(ROLES_POR_DEFECTO.map((rol) => [rol.label, rol.value]))
 const rolesDisponibles = ref([])
 
 const roleOptions = computed(() => {
   const activos = rolesDisponibles.value
     .filter((rol) => rol.estado !== false)
-    .map((rol) => ({ value: rol.id, label: rol.nombre }))
+    .map((rol) => ({ value: Number(rol.id), label: rol.nombre }))
   const opciones = activos.length ? activos : ROLES_POR_DEFECTO
   // La empresa solo puede crear y editar bodegueros de su propio equipo.
   return isEmpresa.value ? opciones.filter((rol) => rol.label === 'bodeguero') : opciones
@@ -37,19 +34,6 @@ const roleOptions = computed(() => {
 function nombreRol(id) {
   return roleOptions.value.find((rol) => rol.value === Number(id))?.label ?? ''
 }
-
-function resolveRolId(row) {
-  if (row.rol_id !== undefined && row.rol_id !== null && row.rol_id !== '') return row.rol_id
-  return roleOptions.value.find((rol) => rol.label === row.rol)?.value ?? IDS_POR_DEFECTO[row.rol] ?? ''
-}
-
-const documentOptions = ['CC', 'NIT', 'CE', 'PA'].map((value) => ({ value, label: value }))
-// El backend solo acepta dígitos: 7 a 15 para el teléfono del usuario, sin
-// símbolos (RESPUESTA_SOLO_NUMEROS.md). Bodegas sí sigue aceptando texto libre.
-const phonePattern = /^[0-9]{7,15}$/
-const phoneMessage = 'Solo dígitos: entre 7 y 15.'
-
-const documentPatterns = { numerico: /^[0-9]+$/, pasaporte: /^[A-Za-z0-9]+$/ }
 
 const columns = computed(() => [
   { key: 'nombre', label: 'Nombre' },
@@ -79,43 +63,6 @@ const baseFields = [
   },
   { key: 'rol_id', label: 'Rol', type: 'select', required: true },
 ]
-// El backend los acepta como opcionales para todos los roles (PA incluido).
-// Al editar, el documento se valida con el tipo que va a quedar guardado:
-// solo PA acepta letras, y en ambos casos sin puntos, guiones ni espacios.
-const clienteFields = computed(() => {
-  const esPasaporte = String(form.value.tipo_documento ?? '').toUpperCase() === 'PA'
-  return [
-    {
-      key: 'tipo_documento',
-      label: 'Tipo de documento',
-      type: 'select',
-      options: documentOptions,
-    },
-    {
-      key: 'numero_documento',
-      label: 'Número de documento',
-      maxLength: 20,
-      digitsOnly: !esPasaporte,
-      lettersDigitsOnly: esPasaporte,
-      pattern: esPasaporte ? documentPatterns.pasaporte : documentPatterns.numerico,
-      message: esPasaporte
-        ? 'Solo letras y números, sin símbolos.'
-        : 'Solo números, sin puntos, guiones ni espacios.',
-      hint: esPasaporte ? 'Letras y números, sin símbolos.' : 'Solo números, sin puntos ni guiones.',
-    },
-    {
-      key: 'telefono',
-      label: 'Teléfono',
-      digitsOnly: true,
-      maxLength: 15,
-      pattern: phonePattern,
-      message: phoneMessage,
-      hint: 'Solo números, entre 7 y 15.',
-    },
-    { key: 'direccion', label: 'Dirección' },
-    { key: 'ciudad', label: 'Ciudad' },
-  ]
-})
 
 const effectiveRole = computed(() => {
   if (isBodeguero.value) return 'cliente'
@@ -129,9 +76,8 @@ const fields = computed(() => {
     .map((field) =>
       field.key === 'rol_id' ? { ...field, options: roleOptions.value } : { ...field },
     )
-  if (nombreRol(form.value.rol_id) === 'cliente') list.push(...clienteFields.value)
-  // Multiempresa: el admin debe elegir la empresa al crear un bodeguero o un
-  // usuario `empresa`; con otro rol el campo no aplica ni se envía.
+  if (nombreRol(form.value.rol_id) === 'cliente') list.push(...camposCliente(form.value.tipo_documento))
+  // Multiempresa: el admin debe elegir la empresa al crear/editar un bodeguero o usuario `empresa`.
   if (esAdmin.value && ['bodeguero', 'empresa'].includes(nombreRol(form.value.rol_id))) {
     list.push(campoEmpresa(empresaOpciones.value))
   }
@@ -143,7 +89,6 @@ const fields = computed(() => {
   return list
 })
 
-/** Trae los roles reales del backend, incluidos los creados después del despliegue. */
 async function cargarRoles() {
   try {
     const result = await rolesApi.list({ page: 1, limit: 100 })
@@ -151,10 +96,6 @@ async function cargarRoles() {
   } catch {
     // Si falla, seguimos con los tres roles por defecto para no bloquear el formulario.
   }
-}
-
-function rolBodegueroId() {
-  return roleOptions.value.find((rol) => rol.label === 'bodeguero')?.value ?? 2
 }
 
 function cleanPayload(payload) {
@@ -185,21 +126,31 @@ const {
   createLabel: 'Nuevo usuario',
   emptyForm: () => {
     const empty = Object.fromEntries(fields.value.map((field) => [field.key, '']))
-    if (isEmpresa.value) empty.rol_id = rolBodegueroId()
+    if (isEmpresa.value) {
+      empty.rol_id = roleOptions.value.find((rol) => rol.label === 'bodeguero')?.value ?? 2
+    }
     return empty
   },
   formFromRow: (row) => ({
     nombre: row.nombre ?? '',
     correo: row.correo ?? '',
     contrasena: '',
-    rol_id: resolveRolId(row),
-    empresa_id: row.empresa_id ?? '',
+    rol_id: resolveRolId(row, roleOptions.value),
+    empresa_id: row.empresa_id ?? row.empresa?.id ?? '',
     tipo_documento: row.tipo_documento ?? '',
     numero_documento: row.numero_documento ?? '',
     telefono: row.telefono ?? '',
     direccion: row.direccion ?? '',
     ciudad: row.ciudad ?? '',
   }),
+  actualParaCambios: (row) => normalizarUsuarioFila(row, roleOptions.value),
+  normalizarCambio: (key, valor) =>
+    key === 'rol_id' || key === 'empresa_id'
+      ? valor === '' || valor == null
+        ? ''
+        : String(valor)
+      : valor,
+  transformarFila: (usuario) => normalizarUsuarioFila(usuario, roleOptions.value),
   cleanPayload,
   duplicateMessage: 'Ya existe un usuario con ese correo. Probá con otro.',
   mensajes: {
@@ -218,7 +169,10 @@ const {
     ...empresaParams(esAdmin.value, empresaId.value),
   }),
   filtros: [roleFilter, empresaId],
-  antesDeAbrir: cargarRoles,
+  antesDeAbrir: () => {
+    cargarEmpresas()
+    return cargarRoles()
+  },
   alMontar: cargarRoles,
 })
 </script>

@@ -143,14 +143,14 @@ export function useCrud(config) {
           return
         }
         const updated = await api.update(editing.value.id, changes)
-        const merged = { ...editing.value, ...updated }
+        const merged = transformarFila({ ...editing.value, ...updated })
         rows.value = rows.value.map((row) => (row.id === merged.id ? merged : row))
         alert.value = {
           type: 'success',
           message: resolver(mensajes.actualizado, clean, merged),
         }
       } else {
-        const created = await api.create(clean)
+        const created = transformarFila(await api.create(clean))
         rows.value = [created, ...rows.value]
         total.value += 1
         alert.value = {
