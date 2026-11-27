@@ -18,13 +18,12 @@ const bodegasModal = ref([])
 const bodegaId = ref('')
 
 const bodegasOpciones = computed(() =>
-  bodegas.value.map((bodega) => ({ value: bodega.id, label: bodega.nombre })),
+  bodegas.value.filter((b) => b.estado !== false).map((b) => ({ value: b.id, label: b.nombre })),
 )
 const bodegasModalOpciones = computed(() =>
-  (esAdmin.value ? bodegasModal.value : bodegas.value).map((bodega) => ({
-    value: bodega.id,
-    label: bodega.nombre,
-  })),
+  (esAdmin.value ? bodegasModal.value : bodegas.value)
+    .filter((b) => b.estado !== false)
+    .map((b) => ({ value: b.id, label: b.nombre })),
 )
 const nombreBodega = (id) =>
   bodegas.value.find((bodega) => String(bodega.id) === String(id))?.nombre ?? ''

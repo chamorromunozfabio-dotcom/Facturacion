@@ -79,10 +79,12 @@ async function loadBodegueros(empresaObjetivo = empresaId.value) {
     if (esAdmin.value && empresaObjetivo) params.empresa_id = empresaObjetivo
     const result = await usuariosApi.list(params)
     bodeguerosLista.value = result.data ?? []
-    bodegueroOptions.value = bodeguerosLista.value.map((user) => ({
-      value: user.id,
-      label: user.nombre,
-    }))
+    bodegueroOptions.value = bodeguerosLista.value
+      .filter((user) => user.estado !== false)
+      .map((user) => ({
+        value: user.id,
+        label: user.nombre,
+      }))
   } catch {
     bodeguerosLista.value = []
     bodegueroOptions.value = []
