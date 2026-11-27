@@ -67,9 +67,11 @@ describe('Test 58 — Login modular: reglas puras, composable y formulario', () 
     expect(validarContrasena('12345678')).toBe('')
     const conErrores = validarCredenciales({})
     const sinErrores = validarCredenciales({ correo: 'ana@x.com', contrasena: 'Clave123*' })
+    const conDocumento = validarCredenciales({ correo: '1020304050', contrasena: 'Clave123*' })
     expect(puedeEnviar(conErrores, false)).toBe(false)
     expect(puedeEnviar(sinErrores, true)).toBe(false)
     expect(puedeEnviar(sinErrores, false)).toBe(true)
+    expect(puedeEnviar(conDocumento, false)).toBe(true)
 
     const errores = { correo: '', contrasena: '' }
     expect(avisoBoton({ correo: '', contrasena: '' }, errores, false, false)).toBe(

@@ -6,7 +6,7 @@ const props = defineProps({
 })
 
 /** Una sola definición de color para listado y detalle de facturas. */
-const clases = computed(() => `status-badge status-badge--${props.estado}`)
+const clases = computed(() => `status-badge status-badge--${String(props.estado).toLowerCase()}`)
 </script>
 
 <template>
@@ -70,9 +70,16 @@ const clases = computed(() => `status-badge status-badge--${props.estado}`)
   color: #92400e;
 }
 
-.status-badge--activa {
+.status-badge--activa,
+.status-badge--activo {
   background: #dcfce7;
   color: #166534;
+}
+
+.status-badge--inactiva,
+.status-badge--inactivo {
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 .status-badge--suspendida {

@@ -45,6 +45,11 @@ const lastRow = computed(() => Math.min(props.page * props.limit, props.total))
 function goTo(page) {
   if (page >= 1 && page <= totalPages.value) emit('update:page', page)
 }
+
+/** Impide reactivar un registro en la UI cuando su empresa no está activa. */
+function isBlockedByEmpresa(row) {
+  return Boolean(row?.estado === false && row?.empresa_estado && row.empresa_estado !== 'activa')
+}
 </script>
 
 <template>
@@ -108,6 +113,12 @@ function goTo(page) {
                   data-test="toggle-estado"
                   type="button"
                   class="btn btn--small"
+                  :disabled="isBlockedByEmpresa(row)"
+                  :title="
+                    isBlockedByEmpresa(row)
+                      ? 'No se puede activar mientras la empresa esté suspendida o inactiva'
+                      : undefined
+                  "
                   @click="emit('toggle-estado', row)"
                 >
                   <Power :size="14" aria-hidden="true" />

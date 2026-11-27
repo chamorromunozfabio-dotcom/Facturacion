@@ -60,13 +60,13 @@ describe('Test 31 — Mensajes claros para el usuario', () => {
   it('indica cuál campo está mal y no habilita el ingreso', async () => {
     const wrapper = mount(LoginView)
 
-    await wrapper.find('input[type="email"]').setValue('correo-mal')
+    await wrapper.find('[data-test="correo"]').setValue('correo-mal')
     await wrapper.find('input[type="password"]').setValue('1234')
     await wrapper.find('form').trigger('submit')
 
     expect(wrapper.find('#error-correo').text()).toContain('correo válido')
     expect(wrapper.find('#error-contrasena').text()).toContain('al menos 8 caracteres')
-    expect(wrapper.find('input[type="email"]').attributes('aria-invalid')).toBe('true')
+    expect(wrapper.find('[data-test="correo"]').attributes('aria-invalid')).toBe('true')
     expect(wrapper.find('input[type="password"]').attributes('aria-invalid')).toBe('true')
     expect(wrapper.find('button[type="submit"]').element.disabled).toBe(true)
   })
@@ -76,7 +76,7 @@ describe('Test 31 — Mensajes claros para el usuario', () => {
 
     await wrapper.findAll('.demo-accounts__btn')[0].trigger('click')
 
-    expect(wrapper.find('input[type="email"]').element.value).toBe('admin@entrega.com')
+    expect(wrapper.find('[data-test="correo"]').element.value).toBe('admin@entrega.com')
     expect(wrapper.find('button[type="submit"]').element.disabled).toBe(false)
     expect(wrapper.find('button[type="submit"]').attributes('title')).toBeUndefined()
     expect(wrapper.find('.field-error').exists()).toBe(false)

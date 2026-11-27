@@ -3,12 +3,16 @@
  * Así se pueden probar y reutilizar desde el composable o desde otro formulario.
  */
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+export const DOCUMENTO_RE = /^[A-Za-z0-9]{5,20}$/
 export const MIN_PASSWORD = 8
 
 export function validarCorreo(valor) {
-  const correo = String(valor ?? '').trim()
-  if (!correo) return 'El correo es obligatorio.'
-  if (!EMAIL_RE.test(correo)) return 'Ingresa un correo válido (ejemplo: nombre@correo.com).'
+  const identificador = String(valor ?? '').trim()
+  if (!identificador) return 'El correo es obligatorio.'
+  if (!identificador.includes('@') && DOCUMENTO_RE.test(identificador)) return ''
+  if (!EMAIL_RE.test(identificador)) {
+    return 'Ingresa un correo válido (ejemplo: nombre@correo.com).'
+  }
   return ''
 }
 

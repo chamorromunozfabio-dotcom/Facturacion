@@ -1,5 +1,6 @@
 <script setup>
 import CrudPage from '../../../shared/ui/CrudPage.vue'
+import StatusBadge from '../../../shared/ui/StatusBadge.vue'
 import { computed, ref, watch } from 'vue'
 import bodegasApi from '../api/bodegas'
 import usuariosApi from '../api/usuarios'
@@ -262,7 +263,7 @@ watch(
     @close-alert="alert = null"
   >
     <template #cell-estado="{ value }">
-      <span>{{ value === false ? 'Inactiva' : 'Activa' }}</span>
+      <StatusBadge :estado="value === false ? 'Inactiva' : 'Activa'" />
     </template>
     <template #cell-empresa_nombre="{ row }">
       <span>

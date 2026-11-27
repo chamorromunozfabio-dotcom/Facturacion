@@ -50,13 +50,13 @@ const {
           </div>
 
           <label>
-            Correo electrónico <span class="required">*</span>
+            Correo o número de documento <span class="required">*</span>
             <IonInput
               v-model="credentials.correo"
               data-test="correo"
-              type="email"
-              autocomplete="email"
-              placeholder="nombre@correo.com"
+              type="text"
+              autocomplete="username"
+              placeholder="nombre@correo.com o documento"
               :aria-invalid="mostrarError('correo')"
               :aria-describedby="mostrarError('correo') ? 'error-correo' : undefined"
               @ion-blur="touched.correo = true"

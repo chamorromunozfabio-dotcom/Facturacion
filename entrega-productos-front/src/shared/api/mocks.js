@@ -402,12 +402,19 @@ function rowsFor(resource) {
   return rowsByResource[resource] ?? [{ id: 1, nombre: 'Registro de ejemplo' }]
 }
 
+function withEmpresaEstado(resource, row) {
+  if (!['usuarios', 'bodegas', 'tipos'].includes(resource) || !row?.empresa_id) return row
+  const empresa = rowsByResource.empresas.find((e) => Number(e.id) === Number(row.empresa_id))
+  if (!empresa) return row
+  return { ...row, empresa_estado: empresa.estado }
+}
+
 export async function mockList(resource, params = {}) {
   await wait()
   const page = Number(params.page ?? 1)
   const limit = Number(params.limit ?? 10)
   const q = String(params.q ?? params.search ?? '').toLowerCase()
-  const all = rowsFor(resource)
+  const all = rowsFor(resource).map((row) => withEmpresaEstado(resource, row))
   let filtered = q
     ? all.filter((row) =>
         resource === 'facturas'
@@ -464,6 +471,19 @@ export async function mockCreate(resource, payload) {
 
 export async function mockUpdate(resource, id, payload) {
   await wait()
+  const list = rowsByResource[resource]
+  const current = Array.isArray(list) ? list.find((row) => String(row.id) === String(id)) : null
+  if (['usuarios', 'bodegas', 'tipos'].includes(resource) && payload?.estado === true && current?.empresa_id) {
+    const empresa = rowsByResource.empresas.find((e) => Number(e.id) === Number(current.empresa_id))
+    if (empresa && empresa.estado !== 'activa') {
+      throw new Error('No se puede activar porque la empresa está suspendida o inactiva. Reactiva primero la empresa.')
+    }
+  }
+  if (current) {
+    Object.assign(current, payload)
+    if (payload?.estado === false) delete current._desactivadoPorEmpresa
+    return withEmpresaEstado(resource, { ...current })
+  }
   return { id: Number(id), ...payload }
 }
 
@@ -539,6 +559,32 @@ export async function mockBuscarClientes(q = '') {
   return { data, total: data.length, page: 1, limit: 20 }
 }
 
+function syncEmpresaCascade(empresa) {
+  const bodegaIds = new Set(
+    rowsByResource.bodegas
+      .filter((b) => Number(b.empresa_id) === Number(empresa.id))
+      .map((b) => Number(b.id)),
+  )
+  const perteneceAEmpresa = (resource, row) =>
+    Number(row.empresa_id) === Number(empresa.id) ||
+    (resource === 'tipos' && row.bodega_id && bodegaIds.has(Number(row.bodega_id)))
+
+  for (const resource of ['usuarios', 'bodegas', 'tipos']) {
+    for (const row of rowsByResource[resource]) {
+      if (!perteneceAEmpresa(resource, row)) continue
+      if (empresa.estado === 'suspendida' || empresa.estado === 'rechazada') {
+        if (row.estado !== false) {
+          row._desactivadoPorEmpresa = true
+          row.estado = false
+        }
+      } else if (empresa.estado === 'activa' && row._desactivadoPorEmpresa) {
+        row.estado = true
+        delete row._desactivadoPorEmpresa
+      }
+    }
+  }
+}
+
 /** Aprueba, rechaza, suspende o reactiva una empresa en el modo demo. */
 export async function mockCambiarEstadoEmpresa(id, payload = {}) {
   await wait()
@@ -548,6 +594,7 @@ export async function mockCambiarEstadoEmpresa(id, payload = {}) {
   if (Object.hasOwn(payload, 'motivo_rechazo')) {
     empresa.motivo_rechazo = payload.motivo_rechazo || null
   }
+  syncEmpresaCascade(empresa)
   return { ...empresa }
 }
 

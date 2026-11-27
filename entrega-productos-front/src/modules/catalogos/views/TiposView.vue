@@ -1,5 +1,6 @@
 <script setup>
 import CrudPage from '../../../shared/ui/CrudPage.vue'
+import StatusBadge from '../../../shared/ui/StatusBadge.vue'
 import { computed, ref, watch } from 'vue'
 import { useAuthStore } from '../../auth/store/auth'
 import bodegasApi from '../api/bodegas'
@@ -271,7 +272,7 @@ function empresaDeTipo(row) {
     @close-alert="alert = null"
   >
     <template #cell-estado="{ value }">
-      <span>{{ value === false ? 'Inactivo' : 'Activo' }}</span>
+      <StatusBadge :estado="value === false ? 'Inactivo' : 'Activo'" />
     </template>
     <template #cell-empresa_nombre="{ row }">
       <span>{{ empresaDeTipo(row) }}</span>

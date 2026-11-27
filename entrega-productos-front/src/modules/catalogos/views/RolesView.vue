@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import CrudPage from '../../../shared/ui/CrudPage.vue'
+import StatusBadge from '../../../shared/ui/StatusBadge.vue'
 import permisosApi from '../../permisos/api/permisos'
 import rolesApi from '../api/roles'
 import RolPermisosField from '../components/RolPermisosField.vue'
@@ -161,7 +162,7 @@ async function guardarRol(payload) {
     :can-edit="canEdit"
     :can-delete="canDelete"
     :can-toggle-estado="true"
-    :can-toggle-row="(row) => !ROLES_BASE.has(row.nombre)"
+    :can-toggle-row="(row) => row.nombre !== 'admin'"
     :modal-open="modalOpen"
     :editing="editing"
     :fields="fields"
@@ -192,9 +193,7 @@ async function guardarRol(payload) {
       <span>{{ Array.isArray(value) ? `${value.length} permisos` : '0 permisos' }}</span>
     </template>
     <template #cell-estado="{ value }">
-      <span :class="value ? 'estado--activo' : 'estado--inactivo'">
-        {{ value ? 'Activo' : 'Inactivo' }}
-      </span>
+      <StatusBadge :estado="value === false ? 'Inactivo' : 'Activo'" />
     </template>
     <template #form-extra>
       <RolPermisosField v-model="permisosIds" :permisos-backend="permisosBackend" />

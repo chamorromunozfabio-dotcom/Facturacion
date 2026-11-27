@@ -30,7 +30,7 @@ describe('Test 7 — LoginView', () => {
 
     expect(wrapper.find('h1').text()).toBe('Iniciar sesión')
     expect(wrapper.find('img').attributes('alt')).toBe('Logo de Entrega de Productos')
-    expect(wrapper.find('input[type="email"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="correo"]').exists()).toBe(true)
     expect(wrapper.find('input[type="password"]').exists()).toBe(true)
     expect(wrapper.text()).toContain('Modo demo activo')
   })
@@ -48,8 +48,21 @@ describe('Test 7 — LoginView', () => {
   it('hace login demo con credenciales válidas y redirige al inicio', async () => {
     const wrapper = mount(LoginView)
 
-    await wrapper.find('input[type="email"]').setValue('admin@entrega.com')
+    await wrapper.find('[data-test="correo"]').setValue('admin@entrega.com')
     await wrapper.find('input[type="password"]').setValue('Admin123*')
+    await wrapper.find('form').trigger('submit')
+    await new Promise((resolve) => setTimeout(resolve, 350))
+    await flushPromises()
+
+    expect(useAuthStore().isAuthenticated).toBe(true)
+    expect(push).toHaveBeenCalledWith('/')
+  })
+
+  it('permite iniciar sesión ingresando un número de documento', async () => {
+    const wrapper = mount(LoginView)
+
+    await wrapper.find('[data-test="correo"]').setValue('1020304050')
+    await wrapper.find('input[type="password"]').setValue('Bodega123*')
     await wrapper.find('form').trigger('submit')
     await new Promise((resolve) => setTimeout(resolve, 350))
     await flushPromises()

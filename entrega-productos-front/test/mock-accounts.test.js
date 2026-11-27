@@ -66,7 +66,7 @@ describe('Test 30 — Cuentas demo por rol', () => {
 
     await botones[1].trigger('click')
 
-    expect(wrapper.find('input[type="email"]').element.value).toBe('luis@entrega.com')
+    expect(wrapper.find('[data-test="correo"]').element.value).toBe('luis@entrega.com')
     expect(wrapper.find('input[type="password"]').element.value).toBe('Bodega123*')
   })
 })

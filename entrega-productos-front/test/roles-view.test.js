@@ -137,4 +137,23 @@ describe('RolesView — permisos al crear/editar y protección de roles base', (
     expect(rolesApi.cambiarEstado).toHaveBeenCalledWith(5, false)
     expect(wrapper.text()).toContain('Inactivo')
   })
+
+  it('permite activar/desactivar empresa, bodeguero y cliente pero protege admin', async () => {
+    rolesApi.list.mockResolvedValue({
+      data: [
+        { id: 1, nombre: 'admin', descripcion: 'Admin', estado: true, permisos: [] },
+        { id: 2, nombre: 'bodeguero', descripcion: 'Bodeguero', estado: true, permisos: [] },
+        { id: 3, nombre: 'cliente', descripcion: 'Cliente', estado: true, permisos: [] },
+        { id: 4, nombre: 'empresa', descripcion: 'Empresa', estado: true, permisos: [] },
+      ],
+      total: 4,
+      page: 1,
+      limit: 10,
+    })
+
+    const wrapper = mount(RolesView)
+    await flushPromises()
+
+    expect(wrapper.findAll('[data-test="toggle-estado"]')).toHaveLength(3)
+  })
 })

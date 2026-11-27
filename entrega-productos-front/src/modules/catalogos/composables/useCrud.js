@@ -196,6 +196,13 @@ export function useCrud(config) {
   async function toggleEstado(row) {
     if (!api.cambiarEstado) return
     const nuevoEstado = row.estado === false
+    if (nuevoEstado && row.empresa_estado && row.empresa_estado !== 'activa') {
+      alert.value = {
+        type: 'error',
+        message: 'No se puede activar porque la empresa está suspendida o inactiva. Reactiva primero la empresa.',
+      }
+      return
+    }
     try {
       const updated = transformarFila(await api.cambiarEstado(row.id, nuevoEstado))
       rows.value = rows.value.map((item) =>

@@ -1,5 +1,6 @@
 <script setup>
 import CrudPage from '../../../shared/ui/CrudPage.vue'
+import StatusBadge from '../../../shared/ui/StatusBadge.vue'
 import { computed, ref } from 'vue'
 import rolesApi from '../api/roles'
 import usuariosApi from '../api/usuarios'
@@ -238,7 +239,7 @@ const {
     @close-alert="alert = null"
   >
     <template #cell-estado="{ value }">
-      <span>{{ value === false ? 'Inactivo' : 'Activo' }}</span>
+      <StatusBadge :estado="value === false ? 'Inactivo' : 'Activo'" />
     </template>
     <template #filter>
       <label v-if="!isBodeguero && !isEmpresa" class="filter">
